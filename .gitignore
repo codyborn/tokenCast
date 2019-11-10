@@ -1,0 +1,10 @@
+**/bin
+**/obj
+**/objd
+**/.vs
+TokenCastWebApp/TokenCastWebApp.csproj.user
+TokenCastWebApp/wwwroot/js/jquery.min.js
+TokenCastWebApp/wwwroot/js/node_modules/
+TokenCastWebApp/wwwroot/js/qrcode.js
+TokenCastWebApp/wwwroot/js/site.js
+TokenCastWebApp/wwwroot/lib/
