@@ -1,0 +1,250 @@
+﻿
+@{
+    ViewData["Title"] = "Account";
+}
+
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+    <script type="text/javascript">
+        web3Account = "";
+        signature = "";
+        defaultDeviceId = "";
+
+        window.addEventListener('load', async () => {
+            // Modern dapp browsers...
+            if (window.ethereum) {
+            window.web3 = new Web3(ethereum);
+            try {
+                // Request account access if needed
+                await ethereum.enable();
+                // Acccounts now exposed
+                await SetWeb3Account();
+            } catch (error) {
+                // User denied account access...
+            }
+            }
+            // Legacy dapp browsers...
+            else if (window.web3) {
+            window.web3 = new Web3(web3.currentProvider);
+            // Acccounts always exposed
+            await SetWeb3Account();
+            }
+            // Non-dapp browsers...
+            else {
+            console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+            }
+        });
+
+        async function SetWeb3Account() {
+            web3Account = web3.eth.accounts.givenProvider.selectedAddress;
+            app.address = web3Account;
+            await GetSignature();
+        }
+
+        async function GetSignature() {
+                
+            let plain = 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
+            let msg = web3.utils.asciiToHex(plain);
+            let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
+            signature = await web3.eth.personal.sign(msg, web3Account)
+            GetAccountInfo();
+        }
+
+        async function GetAccountInfo() {
+                
+            // Create account if not exist
+            $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
+                if (accountDetails != null) {
+                    app.showSignMessage = false;
+                    app.showFetchingTokensMessage = true;
+                }
+                app.account = accountDetails;
+                CheckAddDevice(accountDetails);
+            });
+        }
+
+        async function CheckAddDevice(accountDetails) {
+
+            // Get device id from QS param
+            // If present, prompt user to add device
+            var urlParams = new URLSearchParams(window.location.search);
+            var deviceId = urlParams.get("deviceId");
+
+            if (deviceId != null &&
+                (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
+                $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                    function (result) {
+                        if (result == false) {
+                            console.log("Failed to link device to account");
+                        }
+                        else {
+                            console.log("Successfully linked device to account");
+                            defaultDeviceId = deviceId;
+                            GetAccountInfo();
+                            GetTokens(signature, accountDetails);
+                        }
+                    });
+            }
+            else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
+                defaultDeviceId = accountDetails.devices[0];
+                GetTokens(signature, accountDetails);
+            }
+        }
+
+        async function GetTokens(accountDetails) {
+
+            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature, function( tokenResponse ) {
+                if (tokenResponse == "") {
+                    // no tokens found
+                }
+                var parsedTokens = JSON.parse(tokenResponse);
+                if (parsedTokens == null) {                    
+                    // no tokens found
+                    app.showNoTokensMessage = true;
+                }
+                app.showFetchingTokensMessage = false;
+                app.tokens = [];
+                parsedTokens.assets.forEach(function (token) {
+                    if (token.image_url != "") {
+                        app.tokens.push(token);
+                    }
+                })
+            });
+        }
+
+    </script>
+</head>
+<body>
+    <style>
+        .tokenGallery {
+            margin-top:5em;
+            width: 50%;
+            min-width: 251px;
+            position: relative;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        div.gallery {
+          margin: 5px;
+          border: 1px solid #ccc;
+          float: left;
+          width: 48%;
+          min-width: 250px;
+        }
+
+        div.gallery:hover {
+          border: 1px solid #777;
+        }
+
+        div.gallery img {
+          width: auto;
+          height: 250px;
+          padding: 15px;
+        }
+
+        div.desc {
+          padding: 15px;
+          text-align: center;
+        }
+
+        .statusMessage {
+            padding-top: 25%;
+            font-size: x-large;
+        }
+
+        #removeContentButtonContainer {
+              border-radius: 2px;
+              width: 300px;
+              position: absolute;
+              bottom: -100px;
+              right: 25%;
+              left: 50%;
+              margin-left: -150px;
+              padding-bottom: 20px;
+        }
+
+        #removeContentButton  {
+              background-color: darkred;
+              border: none;
+              color: white;
+              padding: 15px 32px;
+              text-align: center;
+              text-decoration: none;
+              display: inline-block;
+              font-size: 16px;
+        }
+    </style>
+    <div id="app" style="text-align:center; padding-top: 10px;">
+        <span>Current user: </span>{{ address }}
+        <div class="statusMessage" v-if="showSignMessage">Please sign the payload to prove ownership over your account</div>
+        <div class="statusMessage" v-if="showFetchingTokensMessage">Fetching tokens...</div>
+        <div class="statusMessage" v-if="showNoTokensMessage">Unable to find any tokens :(</div>
+        <div class="tokenGallery">
+            <div v-for="token in tokens" class="gallery">
+                <a v-on:click="CastToken(token)">
+                    <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400">
+                </a>
+                <div class="desc">{{ token.name }}</div>
+            </div>
+        </div>
+        <div v-if="tokens != ''" id="removeContentButtonContainer">
+            <button id="removeContentButton" v-on:click="RemoveToken()">Remove Content</button>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        web3Account = "";
+        signature = "";
+
+        var app = new Vue({
+            el: '#app',
+            data: {
+                address: '',
+                account: '',
+                tokens: '',
+                showSignMessage: true,
+                showFetchingTokensMessage: false,
+                showNoTokensMessage: false
+            },
+            methods: {
+                CastToken: function (token) {
+                    var content =
+                    {
+                        id: defaultDeviceId,
+                        currentDisplay: {
+                            tokenOwnershipUrl: token.permalink,
+                            tokenMetadata: token.description,
+                            tokenImageUrl: token.image_url,
+                            borderWidthPercent: 5,
+                            backgroundColor: token.background_color
+                        }
+                    }
+                    $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature,
+                            content,
+                            function (result) {
+                                if (result == false) {
+                                    alert("Cast Failed");
+                                }
+                                else {
+                                    alert("Casted Token!");
+                                }
+                            });
+                },
+                RemoveToken: function () {
+                    $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&deviceId=" + defaultDeviceId,
+                            function (result) {
+                                if (result == false) {
+                                    alert("Remove Failed");
+                                }
+                                else {
+                                    alert("Removed Token!");
+                                }
+                            });
+                }
+            }
+        });
+    </script>
+</body>

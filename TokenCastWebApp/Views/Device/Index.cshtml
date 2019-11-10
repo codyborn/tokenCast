@@ -1,0 +1,180 @@
+﻿    <head>
+    <script type="text/javascript" src="~/js/qrcode.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript">
+        tokenOwnershipQR = null;
+
+        var body = document.body,
+            html = document.documentElement;
+
+        docHeight = Math.max( body.scrollHeight, body.offsetHeight, 
+            html.clientHeight, html.scrollHeight, html.offsetHeight);
+
+        var deviceId = "";
+
+        function onLoad() {
+            // Get device id from QS param
+            var urlParams = new URLSearchParams(window.location.search);
+            deviceId = urlParams.get("deviceId");
+
+            var qrcode = new QRCode("qrCode", {
+                text: "http://tokencast.net/account?deviceId=" + deviceId,
+                width: 500,
+                height: 500,
+                colorDark: "#000000",
+                colorLight: "#ffffff00",
+                correctLevel: QRCode.CorrectLevel.H
+            });
+            $("#qrCode > img").css({"margin":"auto"});
+            app.deviceId = deviceId;
+        }
+
+        function tryGetContent() {
+
+            $.get("Device/DisplayContent?deviceId=" + deviceId, function (content) {
+                if (content != null) {
+                    // Ignore if already displaying token
+                    if (app.display.tokenImageUrl == content.currentDisplay.tokenImageUrl) {
+                        return;
+                    }
+
+                    app.hideToken = false;
+                    app.display = content.currentDisplay;
+                    if (content.currentDisplay.backgroundColor == null) {
+                        app.tokenBackgroundColor = "#ffffff"
+                    }
+                    else {
+                        app.tokenBackgroundColor = "#" + content.currentDisplay.backgroundColor;
+                    }
+                    var metadataHeight = 0;
+                    if (content.currentDisplay.tokenMetadata != "" &&
+                        content.currentDisplay.tokenMetadata != null) {
+                        metadataHeight = 150;
+                    }
+                    var borderWidthInPx = docHeight * (content.currentDisplay.borderWidthPercent * .01);
+                    app.borderWidthInPx = borderWidthInPx + "px";
+                    var borderHeight = borderWidthInPx * 2;
+                    app.tokenHeight = (docHeight - metadataHeight - borderHeight) + "px";
+
+                    // Display token ownership QR
+                    if (content.currentDisplay.tokenOwnershipUrl != null) {
+                        if (tokenOwnershipQR != null) {
+                            tokenOwnershipQR.clear();
+                            tokenOwnershipQR.makeCode(content.currentDisplay.tokenOwnershipUrl);
+                        }
+                        else {
+                            tokenOwnershipQR = new QRCode("tokenOwnershipQR", {
+                                text: content.currentDisplay.tokenOwnershipUrl,
+                                colorDark: "#000000",
+                                colorLight: "#ffffff00",
+                                correctLevel: QRCode.CorrectLevel.H
+                            });
+                        }
+                        $("#tokenOwnershipQR > img").css({"width":"66px"});
+                    }
+                }
+                else {
+                    app.hideToken = true;
+                }
+            });
+        }
+
+        window.setInterval(tryGetContent, 5000);
+    </script>
+</head>
+    <body onload="onLoad()">
+        <style>
+            .center {
+                display: block;
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            #tokenContainer {
+                background-position: center;
+                background-repeat: no-repeat; 
+                background-size: contain;
+                color:#FFFFFF;
+            }
+
+            #metadataContainer {
+                position: absolute;
+                bottom: 0px;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                display: flex;
+                padding: 1em;
+            }
+
+            #deviceRegistrationContainer {
+                text-align: center;
+            }
+
+            .fullScreen {
+                position: fixed;
+                right: 0;
+                bottom: 0;
+                height: 100%;
+            }
+        </style>
+
+        <video autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5">
+            <source src="~/videos/milan.mp4" type="video/mp4">
+        </video>
+
+        <div id="app" 
+             style="position: relative; 
+                z-index:2; 
+                color: black;
+                background-color: white;" 
+             v-bind:style="{ 
+                backgroundColor: tokenBackgroundColor, 
+                height:docHeight
+             }">
+
+            <div v-bind:style="{
+                padding: borderWidthInPx,
+                textAlign: 'center',
+                display: !hideToken? 'inline' : 'none'
+             }">
+
+                <div id="tokenContainer"
+                     class="center"
+                     v-bind:style="{
+                     backgroundImage: 'url(' + display.tokenImageUrl + ')',
+                     backgroundColor: tokenBackgroundColor,
+                     height: tokenHeight
+                 }">
+                </div>
+                <div id="metadataContainer">
+                    <div style="padding-right: 2em; padding-left: 2em; width: max-content; max-width: 45em;">{{ display.tokenMetadata }}</div>
+                    <div id="tokenOwnershipQR"></div>
+                </div>
+            </div>
+
+            <div id="deviceRegistrationContainer" v-bind:style="{ display: hideToken? 'inline' : 'none' }">
+                <h2 style="padding-top:10%;">Scan the QR code to get started</h2>
+                <div id="qrCode"></div>
+                <br />
+                <h4>Or head to <a href="http://tokencast.net/account">http://tokencast.net/account</a> and enter the following device identifier:</h4>
+                <h4 id="deviceIdText">{{ deviceId }}</h4>
+            </div>
+        </div>
+        <script type="text/javascript">
+            var app = new Vue({
+                el: '#app',
+                data: {
+                    deviceId: '',
+                    display: '',
+                    tokenBackgroundColor: '',
+                    borderWidthInPx: '',
+                    hideToken: true,
+                    tokenHeight: '',
+                    displayQR: this.hideToken ? "inline" : "none",
+                    docHeight: docHeight + "px"
+                }
+            });
+        </script>
+    </body>
