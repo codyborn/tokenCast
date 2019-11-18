@@ -1,8 +1,171 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TokenCast</title>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+</head>
+<body class="noSelect">
+    <script type="module">
+        import * as THREE from "/js/three/src/Three.js"
+
+        var scene = new THREE.Scene();
+        //scene.background = new THREE.Color( 0xffffff );
+        var camera = new THREE.PerspectiveCamera(75, 1.5, 0.1, 1000);
+        camera.position.z = 5;
+        var renderer;
+        var ethertop;
+        var etherbottom;
+
+        renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, canvas: logoCanvas });
+
+        async function loadScene() {
+
+            var lights = [];
+            lights[0] = new THREE.PointLight(0xffffff, 1, 0);
+            lights[1] = new THREE.PointLight(0xffffff, 1, 0);
+            lights[2] = new THREE.PointLight(0xffffff, 1, 0);
+
+            lights[0].position.set(0, 5, 0);
+            lights[1].position.set(2.5, 5, 2.5);
+            lights[2].position.set(-2.5, -5, -2.5);
+
+            scene.add(lights[0]);
+            scene.add(lights[1]);
+            scene.add(lights[2]);
+
+
+            var meshMaterial = new THREE.MeshPhongMaterial({
+                color: 0x156289,
+                emissive: 0x072534,
+                side: THREE.DoubleSide,
+                flatShading: true
+            });
+
+            var lineMaterial = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
+
+            ethertop = new THREE.Group();
+            etherbottom = new THREE.Group();
+
+            var geometry = new THREE.ConeBufferGeometry(1, 1.8, 4);
+
+            ethertop.add(new THREE.LineSegments(geometry, lineMaterial));
+            ethertop.add(new THREE.Mesh(geometry, meshMaterial));
+
+            etherbottom.add(new THREE.LineSegments(geometry, lineMaterial));
+            etherbottom.add(new THREE.Mesh(geometry, meshMaterial));
+
+            etherbottom.position.y = -2.1;
+            etherbottom.rotation.x = 3.2;
+            scene.add(ethertop);
+            scene.add(etherbottom);
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+
+            ethertop.rotation.y += .01;
+            etherbottom.rotation.y -= .01;
+
+            renderer.render(scene, camera);
+        }
+        loadScene();
+    </script>
+    <style>
+        #logoCanvas {
+            width: 22em;
+            height: auto;
+            background: url(images/frame.png) no-repeat;
+            background-size: 22em 15em;
+            padding-bottom: 2em;
+            display:inline-block;
+        }
+
+        .center {
+            position: relative;
+            left: 50%;
+            transform: translate(-50%, 0%);
+        }
+        
+        .button {
+              border: none;
+              color: white;
+              padding: 15px 32px;
+              text-align: center;
+              text-decoration: none;
+              display: inline-block;
+              font-size: 16px;
+              background-color: darkcyan;  
+        }
+        .button a:hover {        
+              color: #FFFFFF;
+              text-decoration: none;  
+        }
+
+        .caption {
+            padding-top: 10%;
+            padding-bottom: 10%;
+        }
+
+        div {
+            padding-top: 10%;
+        }
+
+        #parallaxDiv {
+            color: black;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+    </style>
+
+    <div style="width:80%; max-width: 60em; margin: 0 auto;">
+        <div style="padding-top:10%; padding-bottom:20%;">
+            <h1 style="text-align: center;">TokenCast</h1>
+            <p>
+                As more of our life moves online, digital art becomes an important form of self-expression. Blockchain art has solved the digital
+                scarcity problem, allowing ownership of digital goods to be verifiable on the blockchain. The TokenCast project aims to bring this same verifiable
+                digital art back into the living room.
+            </p>
+            <div class="icon_container center" style="width: fit-content;">
+                <canvas id="logoCanvas"></canvas>
+            </div>
+        </div>
+
+        <div id="parallaxDiv" class="caption">
+            <h3>Verified ownership</h3>
+            <p>
+                Before displaying art in your frame, you first have to prove ownerhip over that art. To do so, simply scan the QR code in your
+                frame and sign a message using any web3 wallet provider. We recommend using <a href="https://play.google.com/store/apps/details?id=io.metamask" target="_blank">Metamask</a>  or
+                <a href="https://www.opera.com/mobile" target="_blank">Opera</a> on mobile. When you display your
+                art, you can display a QR code that will direct viewers to a proof of ownership page.
+            </p>
+            <div class="icon_container">
+                <img id="cryptokitty" class="center" style="width:50%;" src="images/cryptokittyexample.PNG" />
+            </div>
+        </div>
+
+        <div class="caption">
+            <h3>For builders</h3>
+            <p>
+                TokenCast is an <a href="https://github.com/codyborn/tokenCast" target="_blank">open-source DIY project</a> and we welcome contributors.
+                The easiest way to build your own frame is to hook a Raspberry Pi up to an IPS monitor and run the tokenCast client. You
+                can find the full set of instructions <a href="https://github.com/codyborn/tokenCast" target="_blank">on GitHub</a>. If there's a feature
+                you'd like to see added, <a href="https://github.com/codyborn/tokenCast/issues" target="_blank">let us know</a>
+                or send a pull request.
+            </p>
+            <div class="icon_container">
+                <img id="rpi" class="center" style="width:16em;" src="~/images/rpi.png" />
+            </div>
+        </div>
+
+        <div class="caption" style="overflow-y: hidden;">
+            <h3>Get Started Now</h3>
+            <a href="https://github.com/codyborn/tokenCast" class="button center" target="_blank">Build your own</a>
+        </div>
+    </div>
+</body>
+</html>

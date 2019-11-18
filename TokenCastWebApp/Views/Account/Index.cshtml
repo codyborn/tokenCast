@@ -3,123 +3,144 @@
     ViewData["Title"] = "Account";
 }
 
-<head>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
-    <script type="text/javascript">
-        web3Account = "";
-        signature = "";
-        defaultDeviceId = "";
+    <head>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+        <script charset="utf-8"
+                src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
+                type="text/javascript">
+        </script>
 
-        window.addEventListener('load', async () => {
-            // Modern dapp browsers...
-            if (window.ethereum) {
-            window.web3 = new Web3(ethereum);
-            try {
-                // Request account access if needed
-                await ethereum.enable();
-                // Acccounts now exposed
-                await SetWeb3Account();
-            } catch (error) {
-                // User denied account access...
-            }
-            }
-            // Legacy dapp browsers...
-            else if (window.web3) {
-            window.web3 = new Web3(web3.currentProvider);
-            // Acccounts always exposed
-            await SetWeb3Account();
-            }
-            // Non-dapp browsers...
-            else {
-            console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
-            }
-        });
+        <script type="text/javascript">
+            web3Account = "";
+            signature = "";
+            defaultDeviceId = "";
 
-        async function SetWeb3Account() {
-            web3Account = web3.eth.accounts.givenProvider.selectedAddress;
-            app.address = web3Account;
-            await GetSignature();
-        }
-
-        async function GetSignature() {
-                
-            let plain = 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
-            let msg = web3.utils.asciiToHex(plain);
-            let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
-            signature = await web3.eth.personal.sign(msg, web3Account)
-            GetAccountInfo();
-        }
-
-        async function GetAccountInfo() {
-                
-            // Create account if not exist
-            $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
-                if (accountDetails != null) {
-                    app.showSignMessage = false;
-                    app.showFetchingTokensMessage = true;
-                }
-                app.account = accountDetails;
-                CheckAddDevice(accountDetails);
-            });
-        }
-
-        async function CheckAddDevice(accountDetails) {
-
-            // Get device id from QS param
-            // If present, prompt user to add device
-            var urlParams = new URLSearchParams(window.location.search);
-            var deviceId = urlParams.get("deviceId");
-
-            if (deviceId != null &&
-                (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
-                $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
-                    function (result) {
-                        if (result == false) {
-                            console.log("Failed to link device to account");
-                        }
-                        else {
-                            console.log("Successfully linked device to account");
-                            defaultDeviceId = deviceId;
-                            GetAccountInfo();
-                            GetTokens(signature, accountDetails);
-                        }
-                    });
-            }
-            else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
-                defaultDeviceId = accountDetails.devices[0];
-                GetTokens(signature, accountDetails);
-            }
-        }
-
-        async function GetTokens(accountDetails) {
-
-            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature, function( tokenResponse ) {
-                if (tokenResponse == "") {
-                    // no tokens found
-                }
-                var parsedTokens = JSON.parse(tokenResponse);
-                if (parsedTokens == null) {                    
-                    // no tokens found
-                    app.showNoTokensMessage = true;
-                }
-                app.showFetchingTokensMessage = false;
-                app.tokens = [];
-                parsedTokens.assets.forEach(function (token) {
-                    if (token.image_url != "") {
-                        app.tokens.push(token);
+            window.addEventListener('load', async () => {
+                // Modern dapp browsers...
+                if (window.ethereum) {
+                    window.web3 = new Web3(ethereum);
+                    try {
+                        // Request account access if needed
+                        await ethereum.enable();
+                        // Acccounts now exposed
+                        await SetWeb3Account();
+                    } catch (error) {
+                        // User denied account access...
                     }
-                })
+                }
+                // Legacy dapp browsers...
+                else if (window.web3) {
+                    window.web3 = new Web3(web3.currentProvider);
+                    // Acccounts always exposed
+                    await SetWeb3Account();
+                }
+                // Non-dapp browsers...
+                else {
+                    console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+                }
             });
-        }
 
-    </script>
-</head>
+            async function SetWeb3Account() {
+                web3Account = web3Account = (await web3.eth.getAccounts())[0];
+                app.address = web3Account;
+                AttemptReverse(web3Account);
+                await GetSignature();
+            }
+
+            async function AttemptReverse(address) {
+                let provider = new ethers.providers.Web3Provider(web3.currentProvider);
+                provider.lookupAddress(address).then(function(ensName) {
+                    if (ensName != null) {
+                        app.address = ensName;
+                    }
+                });
+            }
+
+            async function GetSignature() {
+
+                let plain = 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
+                let msg = web3.utils.asciiToHex(plain);
+                let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
+                signature = await web3.eth.personal.sign(msg, web3Account);
+                GetAccountInfo();
+            }
+
+            async function GetAccountInfo() {
+
+                // Create account if not exist
+                $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
+                    if (accountDetails != null) {
+                        app.showSignMessage = false;
+                    }
+                    app.account = accountDetails;
+                    app.showAddDeviceButton = true;
+                    CheckAddDevice(accountDetails);
+                });
+            }
+
+            async function CheckAddDevice(accountDetails) {
+
+                // Get device id from QS param
+                // If present, prompt user to add device
+                var urlParams = new URLSearchParams(window.location.search);
+                var deviceId = urlParams.get("deviceId");
+
+                if (deviceId != null &&
+                    (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
+                    AddDevice(deviceId);
+                }
+                else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
+                    defaultDeviceId = accountDetails.devices[0];
+                    GetTokens();
+                }
+            }
+
+            async function AddDevice(deviceId) {
+                $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                        function (result) {
+                            if (result == false) {
+                                console.log("Failed to link device to account");
+                            }
+                            else {
+                                console.log("Successfully linked device to account");
+                                defaultDeviceId = deviceId;
+                                GetAccountInfo();
+                                GetTokens();
+                            }
+                        });
+            }
+
+            async function GetTokens() {
+
+                app.showFetchingTokensMessage = true;
+
+                $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature, function (tokenResponse) {
+                    if (tokenResponse == "") {
+                        // no tokens found
+                        app.showNoTokensMessage = true;
+                    }
+                    var parsedTokens = JSON.parse(tokenResponse);
+                    if (parsedTokens == null) {
+                        // no tokens found
+                        app.showNoTokensMessage = true;
+                    }
+                    app.showFetchingTokensMessage = false;
+                    app.tokens = [];
+                    parsedTokens.assets.forEach(function (token) {
+                        if (token.image_url != "") {
+                            app.tokens.push(token);
+                        }
+                    })
+                });
+            }
+        </script>
+    </head>
 <body>
     <style>
         .tokenGallery {
-            margin-top:5em;
+            margin-top:9em;
             width: 50%;
             min-width: 251px;
             position: relative;
@@ -166,8 +187,11 @@
               padding-bottom: 20px;
         }
 
-        #removeContentButton  {
+        #removeContentButton {
               background-color: darkred;
+        }
+
+        .button {
               border: none;
               color: white;
               padding: 15px 32px;
@@ -176,9 +200,70 @@
               display: inline-block;
               font-size: 16px;
         }
+
+        #addDeviceButtonContainer {
+            position: absolute;
+            top: 4em;
+            right: 2em;
+        }
+
+        #addDeviceButton {
+            background-color: darkcyan;
+        }
+
+        #deviceIdInputModal {
+          position: fixed;
+          z-index: 9998;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background-color: rgba(0, 0, 0, .5);
+          display: table;
+          transition: opacity .3s ease;
+        }
+
+        #deviceIdInputForm {
+            margin: 0px auto;
+            padding: 20px 30px;
+            background-color: #fff;
+            border-radius: 2px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
+            transition: all .3s ease;
+            padding: 3em;
+            position: absolute;
+            left: 50%;
+            transform: translate(-50%, 0%);
+            width: 100%;
+            max-width: 50em;
+        }
+        
+        #addDeviceFormButton {
+            background-color: darkcyan;
+            width: 97%;
+            max-width: 28em;
+            margin-top:1em;
+        }
+
+        #idBar {
+            border-radius: 0px 0px 30px 30px;
+            background-color: lightgray;
+            color: black;
+            padding: 0.5em; 
+            min-width: fit-content; 
+            width: 65%; 
+            padding-left: 1.5em; 
+            padding-right: 1.5em;
+            position: absolute;
+            left: 50%;
+            top: 0px;
+            transform: translate(-50%, 0%);
+        }
     </style>
-    <div id="app" style="text-align:center; padding-top: 10px;">
-        <span>Current user: </span>{{ address }}
+    <div id="app" style="text-align:center;">
+        <div id="idBar">
+            <img src="~/images/profile.png" style="height: auto; width:1em; position:relative; top:-.2em"/> {{ address }}
+        </div>
         <div class="statusMessage" v-if="showSignMessage">Please sign the payload to prove ownership over your account</div>
         <div class="statusMessage" v-if="showFetchingTokensMessage">Fetching tokens...</div>
         <div class="statusMessage" v-if="showNoTokensMessage">Unable to find any tokens :(</div>
@@ -191,7 +276,17 @@
             </div>
         </div>
         <div v-if="tokens != ''" id="removeContentButtonContainer">
-            <button id="removeContentButton" v-on:click="RemoveToken()">Remove Content</button>
+            <button class="button" id="removeContentButton" v-on:click="RemoveToken()">Remove Content</button>
+        </div>
+        <div id="addDeviceButtonContainer" v-if="showAddDeviceButton">
+            <button class="button" id="addDeviceButton" v-on:click="showAddDeviceInput = true">Register New Device</button>
+        </div>
+        <div id="deviceIdInputModal" v-if="showAddDeviceInput">
+            <div id="deviceIdInputForm">
+                <h3 style="padding-bottom: 1em;">Register New Device</h3>
+                <input id="deviceIdInput" type="text" placeholder="Device Id (4 words)" style="font-size: 1.3em; width: 97%; max-width: 28em;" />
+                <button class="button" id="addDeviceFormButton" v-on:click="AddDeviceWithForm()">Add</button>
+            </div>
         </div>
     </div>
 
@@ -207,7 +302,9 @@
                 tokens: '',
                 showSignMessage: true,
                 showFetchingTokensMessage: false,
-                showNoTokensMessage: false
+                showNoTokensMessage: false,
+                showAddDeviceButton: false,
+                showAddDeviceInput: false
             },
             methods: {
                 CastToken: function (token) {
@@ -243,6 +340,12 @@
                                     alert("Removed Token!");
                                 }
                             });
+                },
+                AddDeviceWithForm: function () {
+                    app.showAddDeviceInput = false;
+                    var deviceId = document.getElementById("deviceIdInput").value;
+                    document.getElementById("deviceIdInput").value = "";
+                    AddDevice(deviceId);
                 }
             }
         });

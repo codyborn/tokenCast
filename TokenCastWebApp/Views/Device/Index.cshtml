@@ -19,7 +19,7 @@
             deviceId = urlParams.get("deviceId");
 
             var qrcode = new QRCode("qrCode", {
-                text: "http://tokencast.net/account?deviceId=" + deviceId,
+                text: "https://tokencast.net/account?deviceId=" + deviceId,
                 width: 500,
                 height: 500,
                 colorDark: "#000000",
@@ -158,7 +158,7 @@
                 <h2 style="padding-top:10%;">Scan the QR code to get started</h2>
                 <div id="qrCode"></div>
                 <br />
-                <h4>Or head to <a href="http://tokencast.net/account">http://tokencast.net/account</a> and enter the following device identifier:</h4>
+                <h4>Or head to <a href="https://tokencast.net/account">https://tokencast.net/account</a> and enter the following device identifier:</h4>
                 <h4 id="deviceIdText">{{ deviceId }}</h4>
             </div>
         </div>
