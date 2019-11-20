@@ -27,5 +27,18 @@ namespace TokenCast.Controllers
 
             return Database.GetDeviceContent(deviceId).Result;
         }
+
+        // GET: LastUpdateTime
+        // Used to force refresh of client
+        public long LastUpdateTime()
+        {
+            LastUpdateModel lastUpdated = Database.GetLastUpdateTime().Result;
+            if (lastUpdated == null)
+            {
+                return 0;
+            }
+
+            return lastUpdated.time.Ticks;
+        }
     }
 }

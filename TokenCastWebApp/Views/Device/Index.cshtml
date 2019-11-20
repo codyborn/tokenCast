@@ -3,6 +3,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script type="text/javascript">
+        var loadTimeInTicks = (new Date().getTime() * 10000) + 621355968000000000;
         tokenOwnershipQR = null;
 
         var body = document.body,
@@ -80,7 +81,17 @@
             });
         }
 
+        function getLastSyncTime() {
+            
+            $.get("Device/LastUpdateTime?deviceId=" + deviceId, function (content) {
+                if (content > loadTimeInTicks) {
+                    location.reload();
+                }
+            });
+        }
+
         window.setInterval(tryGetContent, 5000);
+        window.setInterval(getLastSyncTime, 3600000);
     </script>
 </head>
     <body onload="onLoad()">

@@ -10,4 +10,5 @@ frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' ' ' | tr -d "'s" | tr '[:uppe
 echo $frameid >> frameid.txt
 
 # set chromium to open page on start up
-chromium-browser --start-fullscreen http://tokencast.net
+sudo sed -i -e '$i chromium-browser --start-fullscreen https://tokencast.net/device?deviceId=test &\' /etc/rc.local
+sudo chromium-browser --start-fullscreen https://tokencast.net/device?deviceId=test

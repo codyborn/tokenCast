@@ -13,6 +13,9 @@ namespace TokenCast
     {
         private const string accountTableName = "accounts";
         private const string deviceTableName = "devices";
+        private const string systemTableName = "system";
+        private const string dateTimeKey = "datetime_key";
+
         private static Lazy<CloudStorageAccount> storageAccount = new Lazy<CloudStorageAccount>(() =>
         {
             string storageConnectionString = AppSettings.LoadAppSettings().StorageConnectionString;
@@ -46,6 +49,12 @@ namespace TokenCast
         private static Lazy<CloudTable> deviceTable = new Lazy<CloudTable>(() =>
         {
             CloudTable table = tableClient.Value.GetTableReference(deviceTableName);
+            table.CreateIfNotExistsAsync().Wait();
+            return table;
+        });
+        private static Lazy<CloudTable> systemTable = new Lazy<CloudTable>(() =>
+        {
+            CloudTable table = tableClient.Value.GetTableReference(systemTableName);
             table.CreateIfNotExistsAsync().Wait();
             return table;
         });
@@ -131,6 +140,20 @@ namespace TokenCast
             TableOperation retrieveOperation = TableOperation.Retrieve<DatabaseEntity<DeviceModel>>(deviceId, deviceId);
             TableResult result = await deviceTable.Value.ExecuteAsync(retrieveOperation);
             var databaseEntity = result.Result as DatabaseEntity<DeviceModel>;
+
+            if (databaseEntity == null)
+            {
+                return null;
+            }
+
+            return databaseEntity.getEntity();
+        }
+
+        public static async Task<LastUpdateModel> GetLastUpdateTime()
+        {
+            TableOperation retrieveOperation = TableOperation.Retrieve<DatabaseEntity<LastUpdateModel>>(dateTimeKey, dateTimeKey);
+            TableResult result = await systemTable.Value.ExecuteAsync(retrieveOperation);
+            var databaseEntity = result.Result as DatabaseEntity<LastUpdateModel>;
 
             if (databaseEntity == null)
             {
