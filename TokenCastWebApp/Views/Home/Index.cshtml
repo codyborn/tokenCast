@@ -11,7 +11,6 @@
         import * as THREE from "/js/three/src/Three.js"
 
         var scene = new THREE.Scene();
-        //scene.background = new THREE.Color( 0xffffff );
         var camera = new THREE.PerspectiveCamera(75, 1.5, 0.1, 1000);
         camera.position.z = 5;
         var renderer;
@@ -104,9 +103,14 @@
               text-decoration: none;  
         }
 
-        .caption {
+        .section {
             padding-top: 10%;
             padding-bottom: 10%;
+        }
+        .section-text {
+            width:80%; 
+            max-width: 60em; 
+            margin: 0 auto;
         }
 
         div {
@@ -114,16 +118,22 @@
         }
 
         #parallaxDiv {
-            color: black;
+            background: url(images/blueprint.jpg) no-repeat;
+            color: white;
             background-attachment: fixed;
             background-position: center;
             background-repeat: no-repeat;
             background-size: cover;
         }
+
+        .white-text a {
+            color: white; 
+            text-decoration: underline;
+        }
     </style>
 
-    <div style="width:80%; max-width: 60em; margin: 0 auto;">
-        <div style="padding-top:10%; padding-bottom:20%;">
+    <div style="padding-top:10%; padding-bottom:20%;">
+        <div class="section-text">
             <h1 style="text-align: center;">TokenCast</h1>
             <p>
                 As more of our life moves online, digital art becomes an important form of self-expression. Blockchain art has solved the digital
@@ -134,8 +144,10 @@
                 <canvas id="logoCanvas"></canvas>
             </div>
         </div>
+    </div>
 
-        <div id="parallaxDiv" class="caption">
+    <div class="section" style="background-color: #3f3e3c; color: #FFF;">
+        <div class="section-text white-text">
             <h3>Art you own</h3>
             <p>
                 Before displaying art in your frame, you first have to prove ownerhip over that art. To do so, simply scan the QR code in your
@@ -147,8 +159,10 @@
                 <img id="cryptokitty" class="center" style="width:70%;" src="images/cryptokittyexample.PNG" />
             </div>
         </div>
+    </div>
 
-        <div class="caption">
+    <div id="parallaxDiv" class="section white-text">
+        <div class="section-text">
             <h3>For builders</h3>
             <p>
                 TokenCast is an <a href="https://github.com/codyborn/tokenCast" target="_blank">open-source DIY project</a> and we welcome contributors.
@@ -161,8 +175,10 @@
                 <img id="rpi" class="center" style="width:16em;" src="~/images/rpi.png" />
             </div>
         </div>
+    </div>
 
-        <div class="caption" style="overflow-y: hidden;">
+    <div class="section" style="overflow-y: hidden;">
+        <div class="section-text">
             <h3>Get Started Now</h3>
             <a href="https://github.com/codyborn/tokenCast" class="button center" target="_blank">Build your own</a>
         </div>
