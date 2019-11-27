@@ -10,7 +10,9 @@ sudo echo "@unclutter -idle 0.1" >> /etc/rc.local
 
 # generate unique id
 sudo apt-get install --reinstall wamerican
-frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' ' ' | tr -d "'s" | tr '[:upper:]' '[:lower:]')
+frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' '_' | tr -d "'s" | tr '[:upper:]' '[:lower:]')
+frameid=$(echo ${frameid%?})
+rm frameid.txt
 echo $frameid >> frameid.txt
 
 # set chromium to open page on start up
