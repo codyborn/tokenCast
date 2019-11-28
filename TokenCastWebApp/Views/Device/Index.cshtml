@@ -129,6 +129,13 @@
                 bottom: 0;
                 height: 100%;
             }
+
+            #miniDeviceId{
+                position: absolute;
+                bottom: 0;
+                right: .5em;
+                font-size: .6em;
+            }
         </style>
 
         <video autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5">
@@ -163,6 +170,7 @@
                     <div style="padding-right: 2em; padding-left: 2em; width: max-content; max-width: 45em;">{{ display.tokenMetadata }}</div>
                     <div id="tokenOwnershipQR"></div>
                 </div>
+                <div id="miniDeviceId">{{ deviceId }}</div>
             </div>
 
             <div id="deviceRegistrationContainer" v-bind:style="{ display: hideToken? 'inline' : 'none' }">
