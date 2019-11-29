@@ -11,6 +11,7 @@
                 src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
                 type="text/javascript">
         </script>
+        <script src="~/js/vibrant.min.js"></script>
 
         <script type="text/javascript">
             web3Account = "";
@@ -51,7 +52,7 @@
 
             async function AttemptReverse(address) {
                 let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-                provider.lookupAddress(address).then(function(ensName) {
+                provider.lookupAddress(address).then(function (ensName) {
                     if (ensName != null) {
                         app.address = ensName;
                     }
@@ -99,17 +100,17 @@
 
             async function AddDevice(deviceId) {
                 $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
-                        function (result) {
-                            if (result == false) {
-                                console.log("Failed to link device to account");
-                            }
-                            else {
-                                console.log("Successfully linked device to account");
-                                defaultDeviceId = deviceId;
-                                GetAccountInfo();
-                                GetTokens();
-                            }
-                        });
+                    function (result) {
+                        if (result == false) {
+                            console.log("Failed to link device to account");
+                        }
+                        else {
+                            console.log("Successfully linked device to account");
+                            defaultDeviceId = deviceId;
+                            GetAccountInfo();
+                            GetTokens();
+                        }
+                    });
             }
 
             async function GetTokens() {
@@ -156,8 +157,6 @@
           margin: 5px;
           border: 1px solid #ccc;
           float: left;
-          width: 48%;
-          min-width: 250px;
         }
 
         div.gallery:hover {
@@ -238,6 +237,7 @@
             transition: all .3s ease;
             padding: 3em;
             position: absolute;
+            top: 1em;
             left: 50%;
             transform: translate(-50%, 0%);
             width: 100%;
@@ -268,6 +268,43 @@
             top: 0px;
             transform: translate(-50%, 0%);
         }
+        
+        #tokenPreviewContainer {
+            background-position: center;
+            background-repeat: no-repeat; 
+            background-size: contain;
+            color:#FFFFFF;
+        }
+        
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 15px;
+            border-radius: 5px;  
+            background: #d3d3d3;
+            outline: none;
+            opacity: 0.7;
+            -webkit-transition: .2s;
+            transition: opacity .2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%; 
+            background: darkcyan;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
     </style>
     <div id="app" style="text-align:center;">
         <div id="idBar">
@@ -277,7 +314,7 @@
         <div class="statusMessage" v-if="showFetchingTokensMessage">Fetching tokens...</div>
         <div class="statusMessage" v-if="showNoTokensMessage">Unable to find any tokens :(</div>
         <div class="tokenGallery">
-            <div v-for="token in tokens" class="gallery">
+            <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
                 <a v-on:click="TokenSelected(token)">
                     <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400">
                 </a>
@@ -304,7 +341,38 @@
 
         <div class="inputForm" v-if="showTokenDisplayOptions">
             <h3 style="padding-bottom: 1em;">Cast Token</h3>
-            <img class="center" v-bind:src="selectedToken.image_url" style="width:40%; height:auto" />
+            <div class="center" 
+                 v-bind:style="{ 
+                     backgroundColor: selectedBackgroundColor,
+                     width: tokenPreviewWidth + 'px', 
+                     height: tokenPreviewHeight + 'px'
+                 }">
+                <div id="tokenPreviewContainer"
+                     class="center"
+                     style="width:auto;"
+                     v-bind:style="{ 
+                        backgroundImage: 'url(' + selectedToken.image_url + ')',
+                        backgroundColor: selectedBackgroundColor,
+                        height:tokenHeight,
+                        marginTop: borderWidthInPx
+                     }">
+                </div>
+            </div>
+            <div style="padding-top:1em; text-align:left;">
+                <div>Background color</div>
+                <div v-for="color in backgroundColorPallete" 
+                     class="gallery" 
+                     v-on:click="ColorSelected(color)" 
+                     v-bind:style="{ backgroundColor: color }"
+                     style="width: 2em; height: 2em;">
+                </div>
+            </div>
+            <div style="padding-top:1em; text-align:left;">
+                <div>Border width percentage</div>
+                <div style="width:100%">
+                    <input type="range" min="1" max="25" value="5" class="slider" v-model="borderWidthPercent">
+                </div>
+            </div>
             <div style="padding-top:1em; text-align:left;">Device</div>
             <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
                 <option v-for="device in account.devices" :value="device">{{ device }}</option>
@@ -329,17 +397,52 @@
                 showAddDeviceButton: false,
                 showAddDeviceInput: false,
                 showTokenDisplayOptions: false,
-                selectedToken: null
+                selectedToken: null,
+                backgroundColorPallete: [],
+                selectedBackgroundColor: "#ffffff",
+                tokenPreviewHeight: 300,
+                tokenPreviewWidth: 500,
+                borderWidthPercent: 5,
+                borderWidthInPx: ''
             },
             computed: {
                 showModal: function () {
                     return this.showTokenDisplayOptions || this.showAddDeviceInput;
+                },
+                tokenHeight: function () {
+                    var borderWidthInPx = app.borderWidthPercent * .01 * app.tokenPreviewHeight;
+                    app.borderWidthInPx = borderWidthInPx + "px";
+                    var borderHeight = borderWidthInPx * 2;
+                    return (app.tokenPreviewHeight - borderHeight) + "px";
                 }
             },
             methods: {
                 TokenSelected: function (token) {
+                    $('html,body').scrollTop(0);
+                    app.backgroundColorPallete = [];
+                    app.selectedBackgroundColor = "#ffffff";
+                    app.selectedToken = token;     
+                    // Generate color pallete
+                    var vibrantOptions = {
+                        colorCount: 7
+                    };
+                    if (token.background_color != null) {
+                        app.backgroundColorPallete.push("#" + token.background_color);
+                        app.selectedBackgroundColor = "#" + token.background_color;
+                    }
+                    if ("#" + token.background_color != "#ffffff") {
+                        app.backgroundColorPallete.push("#ffffff");
+                    }
+                    if ("#" + token.background_color != "#000000") {
+                        app.backgroundColorPallete.push("#000000");
+                    }
+                    var vibrant = new Vibrant(token.image_url, vibrantOptions);
+                    vibrant.getPalette((err, palette) => {
+                        for (var color in palette){
+                            app.backgroundColorPallete.push(palette[color].hex);
+                        };
+                    });
                     app.showTokenDisplayOptions = true;
-                    app.selectedToken = token;
                 },
                 CastToken: function () {
                     app.showTokenDisplayOptions = false;
@@ -352,8 +455,8 @@
                             tokenOwnershipUrl: token.permalink,
                             tokenMetadata: token.description,
                             tokenImageUrl: token.image_url,
-                            borderWidthPercent: 5,
-                            backgroundColor: token.background_color
+                            borderWidthPercent: app.borderWidthPercent,
+                            backgroundColor: app.selectedBackgroundColor
                         }
                     }
                     $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature,
@@ -387,6 +490,9 @@
                 CloseInputForms: function () {
                     app.showTokenDisplayOptions = false;
                     app.showAddDeviceInput = false;
+                },
+                ColorSelected: function (color) {
+                    app.selectedBackgroundColor = color;
                 }
             }
         });

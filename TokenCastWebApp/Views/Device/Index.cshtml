@@ -46,13 +46,13 @@
                         app.tokenBackgroundColor = "#ffffff"
                     }
                     else {
-                        app.tokenBackgroundColor = "#" + content.currentDisplay.backgroundColor;
+                        app.tokenBackgroundColor = content.currentDisplay.backgroundColor;
                     }
-                    var metadataHeight = 0;
-                    if (content.currentDisplay.tokenMetadata != "" &&
-                        content.currentDisplay.tokenMetadata != null) {
-                        metadataHeight = 150;
-                    }
+                    var metadataHeight = 150;
+                    //if (content.currentDisplay.tokenMetadata != "" &&
+                    //    content.currentDisplay.tokenMetadata != null) {
+                    //    metadataHeight = 150;
+                    //}
                     var borderWidthInPx = docHeight * (content.currentDisplay.borderWidthPercent * .01);
                     app.borderWidthInPx = borderWidthInPx + "px";
                     var borderHeight = borderWidthInPx * 2;
@@ -163,11 +163,18 @@
                      v-bind:style="{
                      backgroundImage: 'url(' + display.tokenImageUrl + ')',
                      backgroundColor: tokenBackgroundColor,
-                     height: tokenHeight
+                     height: tokenHeight,
+                     marginTop: borderWidthInPx
                  }">
                 </div>
                 <div id="metadataContainer">
-                    <div style="padding-right: 2em; padding-left: 2em; width: max-content; max-width: 45em;">{{ display.tokenMetadata }}</div>
+                    <div v-if="display.tokenMetadata != null" 
+                         style="padding-right: 2em; 
+                                padding-left: 2em; 
+                                width: max-content; 
+                                max-width: 45em;">
+                        {{ display.tokenMetadata }}
+                    </div>
                     <div id="tokenOwnershipQR"></div>
                 </div>
                 <div id="miniDeviceId">{{ deviceId }}</div>

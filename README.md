@@ -22,6 +22,7 @@ https://www.raspberrypi.org/documentation/installation/installing-images/
 3. Upon boot up the OS should prompt you to configure the wifi network and install updates.
 4. You can adjust the resolution by opening the start menu, select Preferences, Raspberry Pi Configuration
 5. Run the following script to install TokenCast:
+
 `bash -c "$(curl https://raw.githubusercontent.com/codyborn/tokenCast/master/install.sh)"`
 
 ## Connecting to your device

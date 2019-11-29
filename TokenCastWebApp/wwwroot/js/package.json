@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "node-vibrant": "^3.1.5",
     "web3": "^1.2.2"
   }
 }
