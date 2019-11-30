@@ -342,9 +342,10 @@
         <div class="inputForm" v-if="showTokenDisplayOptions">
             <h3 style="padding-bottom: 1em;">Cast Token</h3>
             <div class="center" 
+                 style="width:100%"
                  v-bind:style="{ 
                      backgroundColor: selectedBackgroundColor,
-                     width: tokenPreviewWidth + 'px', 
+                     maxWidth: tokenPreviewWidth + 'px', 
                      height: tokenPreviewHeight + 'px'
                  }">
                 <div id="tokenPreviewContainer"
@@ -354,7 +355,8 @@
                         backgroundImage: 'url(' + selectedToken.image_url + ')',
                         backgroundColor: selectedBackgroundColor,
                         height:tokenHeight,
-                        marginTop: borderWidthInPx
+                        marginTop: borderWidthInPx,
+                        backgroundSize: fitScreen? 'cover' : 'contain'
                      }">
                 </div>
             </div>
@@ -370,8 +372,10 @@
             <div style="padding-top:1em; text-align:left;">
                 <div>Border width percentage</div>
                 <div style="width:100%">
-                    <input type="range" min="1" max="25" value="5" class="slider" v-model="borderWidthPercent">
+                    <input type="range" min="0" max="25" value="5" class="slider" v-model="borderWidthPercent">
                 </div>
+                <div>Fit screen</div>
+                <input type="checkbox" v-model="fitScreen"/>
             </div>
             <div style="padding-top:1em; text-align:left;">Device</div>
             <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
@@ -403,7 +407,8 @@
                 tokenPreviewHeight: 300,
                 tokenPreviewWidth: 500,
                 borderWidthPercent: 5,
-                borderWidthInPx: ''
+                borderWidthInPx: '',
+                fitScreen: false
             },
             computed: {
                 showModal: function () {
@@ -456,6 +461,7 @@
                             tokenMetadata: token.description,
                             tokenImageUrl: token.image_url,
                             borderWidthPercent: app.borderWidthPercent,
+                            fitScreen: app.fitScreen,
                             backgroundColor: app.selectedBackgroundColor
                         }
                     }

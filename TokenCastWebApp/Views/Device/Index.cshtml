@@ -56,7 +56,8 @@
                     var borderWidthInPx = docHeight * (content.currentDisplay.borderWidthPercent * .01);
                     app.borderWidthInPx = borderWidthInPx + "px";
                     var borderHeight = borderWidthInPx * 2;
-                    app.tokenHeight = (docHeight - metadataHeight - borderHeight) + "px";
+                    //app.tokenHeight = (docHeight - metadataHeight - borderHeight) + "px";
+                    app.tokenHeight = (docHeight - borderHeight) + "px";
 
                     // Display token ownership QR
                     if (content.currentDisplay.tokenOwnershipUrl != null) {
@@ -105,7 +106,6 @@
             #tokenContainer {
                 background-position: center;
                 background-repeat: no-repeat; 
-                background-size: contain;
                 color:#FFFFFF;
             }
 
@@ -114,7 +114,7 @@
                 bottom: 0px;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                background: white;
+                background: #ffffffa0;
                 display: flex;
                 padding: 1em;
             }
@@ -138,22 +138,20 @@
             }
         </style>
 
-        <video autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5">
-            <source src="~/videos/milan.mp4" type="video/mp4">
-        </video>
-
-        <div id="app" 
-             style="position: relative; 
-                z-index:2; 
-                color: black;
-                background-color: white;" 
-             v-bind:style="{ 
-                backgroundColor: tokenBackgroundColor, 
+        <div id="app"
+             style="position: relative;
+                color: black;"
+             v-bind:style="{
+                backgroundColor: hideToken? 'white' : tokenBackgroundColor,
+                padding: borderWidthInPx,
                 height:docHeight
              }">
 
+            <video v-bind:style="{ display: hideToken? 'inline' : 'none' }" autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5; z-index:-1;">
+                <source src="~/videos/milan.mp4" type="video/mp4">
+            </video>
+
             <div v-bind:style="{
-                padding: borderWidthInPx,
                 textAlign: 'center',
                 display: !hideToken? 'inline' : 'none'
              }">
@@ -161,18 +159,19 @@
                 <div id="tokenContainer"
                      class="center"
                      v-bind:style="{
-                     backgroundImage: 'url(' + display.tokenImageUrl + ')',
-                     backgroundColor: tokenBackgroundColor,
-                     height: tokenHeight,
-                     marginTop: borderWidthInPx
+                         backgroundImage: 'url(' + display.tokenImageUrl + ')',
+                         backgroundColor: tokenBackgroundColor,
+                         height: tokenHeight,                     
+                         backgroundSize: display.fitScreen? 'cover' : 'contain'
                  }">
                 </div>
                 <div id="metadataContainer">
-                    <div v-if="display.tokenMetadata != null" 
-                         style="padding-right: 2em; 
-                                padding-left: 2em; 
-                                width: max-content; 
-                                max-width: 45em;">
+                    <div v-if="display.tokenMetadata != null"
+                         style="padding-right: 2em;
+                                padding-left: 2em;
+                                width: max-content;
+                                max-width: 45em;
+                                margin: auto;">
                         {{ display.tokenMetadata }}
                     </div>
                     <div id="tokenOwnershipQR"></div>

@@ -8,6 +8,10 @@ sudo apt-get install chromium-browser --yes
 sudo apt-get install unclutter
 sudo echo "@unclutter -idle 0.1" >> /etc/rc.local
 
+# Prevent raspi from sleeping
+setterm -blank 0 -powerdown 0
+sudo echo "setterm -blank 0 -powerdown 0" >> /etc/rc.local
+
 # generate unique id
 sudo apt-get install --reinstall wamerican
 frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' '_' | tr -d "'s" | tr '[:upper:]' '[:lower:]')
@@ -21,8 +25,8 @@ mkdir /home/pi/.config/autostart
 echo "[Desktop Entry]
 Type=Application
 Name=TokenCast
-Exec=chromium-browser --start-fullscreen https://tokencast.net/device?deviceId=$frameid" >> /home/pi/.config/autostart/tokencast.desktop
+Exec=chromium-browser --kiosk --app=https://tokencast.net/device?deviceId=$frameid" >> /home/pi/.config/autostart/tokencast.desktop
 
 
-chromium-browser --start-fullscreen https://tokencast.net/device?deviceId=$frameid
+chromium-browser --kiosk --app=https://tokencast.net/device?deviceId=$frameid
 

@@ -32,6 +32,8 @@ namespace TokenCast.Models
 
         public int borderWidthPercent { get; set; }
 
+        public bool fitScreen { get; set; }
+
         public string backgroundColor { get; set; }
     }
 }
