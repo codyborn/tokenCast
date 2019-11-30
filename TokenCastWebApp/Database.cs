@@ -72,6 +72,7 @@ namespace TokenCast
 
         public static async Task<AccountModel> GetAccount(string address)
         {
+            address = address.ToLowerInvariant();
             TableOperation retrieveOperation = TableOperation.Retrieve<DatabaseEntity<AccountModel>>(address, address);
             TableResult result = await accountTable.Value.ExecuteAsync(retrieveOperation);
             var databaseEntity = result.Result as DatabaseEntity<AccountModel>;
@@ -86,6 +87,7 @@ namespace TokenCast
 
         public static async Task AddDevice(string address, string deviceId)
         {
+            address = address.ToLowerInvariant();
             AccountModel account = await GetAccount(address);
             if (account == null)
             {

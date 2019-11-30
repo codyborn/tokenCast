@@ -105,8 +105,8 @@
 
             #tokenContainer {
                 background-position: center;
-                background-repeat: no-repeat; 
-                color:#FFFFFF;
+                background-repeat: no-repeat;
+                color: #FFFFFF;
             }
 
             #metadataContainer {
@@ -130,7 +130,7 @@
                 height: 100%;
             }
 
-            #miniDeviceId{
+            #miniDeviceId {
                 position: absolute;
                 bottom: 0;
                 right: .5em;
@@ -138,18 +138,18 @@
             }
         </style>
 
+        <video v-bind:style="{ display: hideToken? 'inline' : 'none' }" autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5; z-index:-1;">
+            <source src="~/videos/milan.mp4" type="video/mp4">
+        </video>
+
         <div id="app"
              style="position: relative;
                 color: black;"
              v-bind:style="{
-                backgroundColor: hideToken? 'white' : tokenBackgroundColor,
+                backgroundColor: hideToken? '' : tokenBackgroundColor,
                 padding: borderWidthInPx,
                 height:docHeight
              }">
-
-            <video v-bind:style="{ display: hideToken? 'inline' : 'none' }" autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5; z-index:-1;">
-                <source src="~/videos/milan.mp4" type="video/mp4">
-            </video>
 
             <div v-bind:style="{
                 textAlign: 'center',
@@ -161,7 +161,7 @@
                      v-bind:style="{
                          backgroundImage: 'url(' + display.tokenImageUrl + ')',
                          backgroundColor: tokenBackgroundColor,
-                         height: tokenHeight,                     
+                         height: tokenHeight,
                          backgroundSize: display.fitScreen? 'cover' : 'contain'
                  }">
                 </div>

@@ -9,8 +9,8 @@ sudo apt-get install unclutter
 sudo echo "@unclutter -idle 0.1" >> /etc/rc.local
 
 # Prevent raspi from sleeping
-setterm -blank 0 -powerdown 0
-sudo echo "setterm -blank 0 -powerdown 0" >> /etc/rc.local
+sudo echo "[SeatDefaults]
+xserver-command=X -s 0 -dpms" >> /etc/lightdm/lightdm.conf
 
 # generate unique id
 sudo apt-get install --reinstall wamerican
@@ -27,6 +27,5 @@ Type=Application
 Name=TokenCast
 Exec=chromium-browser --kiosk --app=https://tokencast.net/device?deviceId=$frameid" >> /home/pi/.config/autostart/tokencast.desktop
 
-
-chromium-browser --kiosk --app=https://tokencast.net/device?deviceId=$frameid
-
+# reboot to have the xserver-command take effect
+sudo reboot

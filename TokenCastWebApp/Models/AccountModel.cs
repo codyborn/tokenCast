@@ -10,7 +10,7 @@ namespace TokenCast.Models
     {
         public AccountModel(string address)
         {
-            this.address = address;
+            this.address = address.ToLowerInvariant();
             this.devices = new List<string>();
         }
 
