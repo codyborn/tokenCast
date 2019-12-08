@@ -99,7 +99,7 @@ namespace TokenCast.Controllers
                 return string.Empty;
             }
 
-            Uri openSeaAPI = new Uri("https://api.opensea.io/api/v1/assets/?owner=" + address);
+            Uri openSeaAPI = new Uri($"https://api.opensea.io/api/v1/assets/?owner={address}&limit=300");
             HttpClient client = new HttpClient();
             var response = client.GetAsync(openSeaAPI).Result;
             if (response.IsSuccessStatusCode)

@@ -36,7 +36,9 @@
             $.get("Device/DisplayContent?deviceId=" + deviceId, function (content) {
                 if (content != null) {
                     // Ignore if already displaying token
-                    if (app.display.tokenImageUrl == content.currentDisplay.tokenImageUrl) {
+                    if (app.display.tokenImageUrl == content.currentDisplay.tokenImageUrl &&
+                        app.display.borderWidthPercent == content.currentDisplay.borderWidthPercent &&
+                        app.display.fitScreen == content.currentDisplay.fitScreen) {
                         return;
                     }
 
