@@ -1,5 +1,10 @@
-# TokenCast
-DIY NFT Art Display - http://tokencast.net/
+---
+layout: default
+title: Overview
+nav_order: 1
+---
+
+DIY NFT Art Display
 
 This guide will walk you through the necessary items and assembly steps to build your frame.
 
