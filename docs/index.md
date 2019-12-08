@@ -93,11 +93,11 @@ After wiring up the Raspberry Pi, find a good position for the board to sit with
 ## ENS Support
 If you've setup a reverse resolver for your Ethereum address, your ENS name will be displayed instead of your Ethereum address.
 
-![ENS example](../images/ens_example.PNG "ENS example")
+![ENS example](https://raw.githubusercontent.com/codyborn/tokenCast/master/images/ens_example.PNG "ENS example")
 
 ## Color Swatches
 Before displaying a token, you can make some customizations including updating the image size and background color. The background color swatch is algorithically derived from the token image. Here are some examples:
-![Swatch example](../images/swatch.PNG "Swatch example")
+![Swatch example](https://raw.githubusercontent.com/codyborn/tokenCast/master/images/swatch.PNG "Swatch example")
 
 # Support this project
 Feedback and contributions are welcome. Token and art donations are appreciated! 
