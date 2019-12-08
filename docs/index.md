@@ -53,7 +53,7 @@ We'll use this for cutting the foam board to fit the monitor and Raspberry Pi.
 ## Setting up your Raspberry Pi
 
 1. Install the Raspbian operating system onto the SD card
-  - https://www.raspberrypi.org/downloads/raspbian/
+  - [https://www.raspberrypi.org/downloads/raspbian/](https://www.raspberrypi.org/downloads/raspbian/)
 2. Insert the SD card, keyboard, and monitor and boot up your Raspberry Pi
 3. Upon boot up the OS should prompt you to configure the wifi network and install updates.
 4. You can adjust the resolution by opening the start menu, select Preferences, Raspberry Pi Configuration
