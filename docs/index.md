@@ -2,6 +2,8 @@
 layout: default
 title: Overview
 nav_order: 1
+sidebar:
+  nav: "docs"
 ---
 
 DIY NFT Art Display
