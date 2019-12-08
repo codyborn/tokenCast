@@ -7,6 +7,13 @@
 
 </head>
 <body class="noSelect">
+    <script type="text/javascript" src="~/js/random-words.js" ></script>
+    <script>
+        window.addEventListener('load', async () => {
+            var deviceId = words({ exactly: 1, wordsPerString:4, separator:'_'})
+            document.getElementById("demoLink").href = "https://tokencast.net/device?demoFrame=true&deviceId=" + deviceId;
+        });
+    </script>
     <script type="module">
         import * as THREE from "/js/three/src/Three.js"
 
@@ -79,7 +86,7 @@
             background: url(images/frame.png) no-repeat;
             background-size: 22em 15em;
             padding-bottom: 2em;
-            display:inline-block;
+            display: inline-block;
         }
 
         .center {
@@ -87,29 +94,31 @@
             left: 50%;
             transform: translate(-50%, 0%);
         }
-        
+
         .button {
-              border: none;
-              color: white;
-              padding: 15px 32px;
-              text-align: center;
-              text-decoration: none;
-              display: inline-block;
-              font-size: 16px;
-              background-color: darkcyan;  
+            border: none;
+            color: white;
+            padding: 15px 32px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            background-color: darkcyan;
         }
-        .button a:hover {        
-              color: #FFFFFF;
-              text-decoration: none;  
-        }
+
+            .button a:hover {
+                color: #FFFFFF;
+                text-decoration: none;
+            }
 
         .section {
             padding-top: 10%;
             padding-bottom: 10%;
         }
+
         .section-text {
-            width:80%; 
-            max-width: 60em; 
+            width: 80%;
+            max-width: 60em;
             margin: 0 auto;
         }
 
@@ -127,8 +136,17 @@
         }
 
         .white-text a {
-            color: white; 
+            color: white;
             text-decoration: underline;
+        }
+
+        @@media only screen and (max-width: 600px) {
+          #demoLink {
+            display:none;
+          }
+          #tokencast_wall {
+              width: 97% !important;
+          }
         }
     </style>
 
@@ -153,10 +171,10 @@
                 Before displaying art in your frame, you first have to prove ownerhip over that art. To do so, simply scan the QR code in your
                 frame and sign a message using any web3 wallet provider. We recommend using <a href="https://play.google.com/store/apps/details?id=io.metamask" target="_blank">Metamask</a>  or
                 <a href="https://www.opera.com/mobile" target="_blank">Opera</a> on mobile. When you display your
-                art, you can display a QR code that will direct viewers to a proof of ownership page.
+                art, you can also add a QR code that will direct viewers to a proof of ownership page.
             </p>
             <div class="icon_container">
-                <img id="cryptokitty" class="center" style="width:70%;" src="images/cryptokittyexample.PNG" />
+                <img id="tokencast_wall" class="center" style="width:70%;" src="~/images/tokencast_wall.jpg" />
             </div>
         </div>
     </div>
@@ -183,5 +201,8 @@
             <a href="https://codyborn.github.io/tokenCast/" class="button center" target="_blank">Build your own frame</a>
         </div>
     </div>
+
+
+    <a id="demoLink" href="" class="button" style="position:fixed; top:0em; right:2em;" target="_blank">Try a demo</a>
 </body>
 </html>

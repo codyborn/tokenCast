@@ -23,8 +23,7 @@ We'll load the Raspberry Pi operating system using this SD card.
 An IPS monitor is great for displaying vivid images and looks great at any angle. You can display images for long periods of time without worrying about image burn-in. These portable monitors work well for the project because they're lightweight, thin, and can be powered via USB (ie. directly from your pi). Don't worry if the bevels are not uniform, we'll use the photo mat to cover everything but the screen.
 
 
-4. External keyboard
-A keyboard will be useful for initially configuring your Raspberry Pi's WIFI settings.
+4. External keyboard - A keyboard will be useful for initially configuring your Raspberry Pi's WIFI settings.
 
 5. Cables
 You'll need a power cable for your Raspberry Pi, a USB cable to power your monitor, and an HDMI to transmit video.  The IPS monitor will likely come with cables but I recommend getting some angled ribbon cables to fit flush against the frame.
@@ -53,14 +52,15 @@ We'll use this for cutting the foam board to fit the monitor and Raspberry Pi.
 
 ## Setting up your Raspberry Pi
 
-1. Install the operating system (OS) onto the SD card
-https://www.raspberrypi.org/documentation/installation/installing-images/
+1. Install the Raspbian operating system onto the SD card
+  - https://www.raspberrypi.org/downloads/raspbian/
 2. Insert the SD card, keyboard, and monitor and boot up your Raspberry Pi
 3. Upon boot up the OS should prompt you to configure the wifi network and install updates.
 4. You can adjust the resolution by opening the start menu, select Preferences, Raspberry Pi Configuration
 5. Run the following script to install TokenCast:
 
 `bash -c "$(curl https://raw.githubusercontent.com/codyborn/tokenCast/master/install.sh)"`
+
 6. The Raspberry Pi will reboot for settings update to take effect and should automatically start tokenCast on reboot
 
 ## Connecting to your device
@@ -69,7 +69,7 @@ After running the installation script, you should be prompted with a QR code and
 For mobile devices, we recommend using [Opera browser](https://www.opera.com/mobile) for Android or MetaMask for [Android](https://play.google.com/store/apps/details?id=io.metamask) or [IOS](http://metamask.app.link/).
 For your PC, [MetaMask](https://metamask.io/) provides a great browser plug-in.
 
-You can connect multiple devices to the same frame. When adding a new device, navigate to https://www.tokencast.net/Account and enter the same device ID. You can always find your device ID by looking in the bottom right corner of your frame.
+You can connect multiple devices to the same frame. When adding a new device, navigate to [https://www.tokencast.net/Account](https://www.tokencast.net/Account) and enter the same device ID. You can always find your device ID by looking in the bottom right corner of your frame.
 
 ## Assembling the frame
 The only tricky part in putting the frame together is cutting the foam board and frame backboard to fit the monitor and the Raspberry Pi. When cutting the foam board, don't forget to take into account the slight offset of the monitor screen (the lower bevel is slightly larger than the upper bevel). In the case of the monitor linked above, the top bevel is 1/4" while the bottom is 7/8". That means that we'll need to position the monitor slightly lower to have the screen centered.

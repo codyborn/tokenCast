@@ -185,13 +185,13 @@
                 <h2 style="padding-top:10%;">Scan the QR code to get started</h2>
                 <div id="qrCode"></div>
                 <br />
-                <h4>Or head to <a href="https://tokencast.net/account">https://tokencast.net/account</a> and enter the following device identifier:</h4>
+                <h4>Or head to <a v-bind:href="accountUrl">https://tokencast.net/account</a> and enter the following device identifier:</h4>
                 <h4 id="deviceIdText">{{ deviceId }}</h4>
             </div>
         </div>
         <script type="text/javascript">
             var app = new Vue({
-                el: '#app',
+                 el: '#app',
                 data: {
                     deviceId: '',
                     display: '',
@@ -201,6 +201,11 @@
                     tokenHeight: '',
                     displayQR: this.hideToken ? "inline" : "none",
                     docHeight: docHeight + "px"
+                },
+                computed: {
+                    accountUrl: function () {
+                        return "https://tokencast.net/account?deviceId=" + this.deviceId;
+                    }
                 }
             });
         </script>

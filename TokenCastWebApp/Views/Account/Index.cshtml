@@ -316,7 +316,7 @@
         <div class="tokenGallery">
             <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
                 <a v-on:click="TokenSelected(token)">
-                    <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400">
+                    <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
                 </a>
                 <div class="desc">{{ token.name }}</div>
             </div>

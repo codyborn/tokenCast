@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "node-vibrant": "^3.1.5",
+    "random-words": "^1.1.0",
     "web3": "^1.2.2"
   }
 }
