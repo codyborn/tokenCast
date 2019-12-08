@@ -9,7 +9,7 @@ sidebar:
 DIY NFT Art Display
 
 This guide will walk you through the necessary items and assembly steps to build your frame.
-
+# Build Guide
 ## Requirements (~$310)
 1. [Raspberry Pi - ($65)](https://www.raspberrypi.org/products/raspberry-pi-4-model-b/)
 This will be the brains of the picture frame. If you're looking to only display still images, you can get by with the 1GB version. Otherwise go with the 4GB version to show off animated artwork.
@@ -84,9 +84,23 @@ Therefore:
 - x (bottom) = 1.25 = 1 1/4"
 - y (top) = 1.875 = 1 7/8"
 
-![Foam Board Dimensions](./images/dimensions.PNG "Foam board dimensions")
+![Foam Board Dimensions](https://raw.githubusercontent.com/codyborn/tokenCast/master/images/dimensions.PNG "Foam board dimensions")
 
 After wiring up the Raspberry Pi, find a good position for the board to sit with the top of the board facing outward (to let heat escape). Since the Raspberry Pi won't be visible from the front, its position is less important. Cut a hole in the second 12"x16" foam board and the frame back panel to fit the Raspberry Pi.
 
-## Support this project
-Feedback and contributions are welcome. 
+# Features
+
+## ENS Support
+If you've setup a reverse resolver for your Ethereum address, your ENS name will be displayed instead of your Ethereum address.
+
+![ENS example](../images/ens_example.PNG "ENS example")
+
+## Color Swatches
+Before displaying a token, you can make some customizations including updating the image size and background color. The background color swatch is algorithically derived from the token image. Here are some examples:
+![Swatch example](../images/swatch.PNG "Swatch example")
+
+# Support this project
+Feedback and contributions are welcome. Token and art donations are appreciated! 
+
+Our public Ethereum address is __TokenCast.eth__
+
