@@ -23,7 +23,7 @@ sudo echo "gpu_mem=512" >> /boot/config.txt
 
 # generate unique id
 sudo apt-get install --reinstall wamerican
-frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' '_' | tr -d "'s" | tr '[:upper:]' '[:lower:]')
+frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' '_' | tr -d "'" | tr '[:upper:]' '[:lower:]')
 frameid=$(echo ${frameid%?})
 rm frameid.txt
 echo $frameid >> frameid.txt

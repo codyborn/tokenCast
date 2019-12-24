@@ -62,7 +62,7 @@ This will help the Raspberry Pi dissipate heat.
 4. You can adjust the resolution by opening the start menu, select Preferences, Raspberry Pi Configuration
 5. Run the following script to install TokenCast:
 
-`bash -c "$(curl https://raw.githubusercontent.com/codyborn/tokenCast/master/install.sh)"`
+`sudo bash -c "$(curl https://raw.githubusercontent.com/codyborn/tokenCast/master/install.sh)"`
 
 6. The Raspberry Pi will reboot for settings update to take effect and should automatically start tokenCast on reboot
 
