@@ -50,6 +50,9 @@ We'll use this to center the monitor in the frame and hold the Raspberry Pi in p
 9. [Exacto knife - ($2.50)](https://amzn.to/2LvKryw)
 We'll use this for cutting the foam board to fit the monitor and Raspberry Pi.
 
+10. [Heat sink ($8)] (https://amzn.to/2ZjZSj3)
+This will help the Raspberry Pi dissipate heat.
+
 ## Setting up your Raspberry Pi
 
 1. Install the Raspbian operating system onto the SD card

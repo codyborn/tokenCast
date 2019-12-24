@@ -10,7 +10,7 @@
     <script type="text/javascript" src="~/js/random-words.js" ></script>
     <script>
         window.addEventListener('load', async () => {
-            var deviceId = words({ exactly: 1, wordsPerString:4, separator:'_'})
+            var deviceId = words({ exactly: 1, wordsPerString:3, separator:'_'}) + "_demo"
             document.getElementById("demoLink").href = "https://tokencast.net/device?demoFrame=true&deviceId=" + deviceId;
         });
     </script>

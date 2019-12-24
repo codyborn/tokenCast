@@ -360,7 +360,7 @@
                      }">
                 </div>
             </div>
-            <div style="padding-top:1em; text-align:left;">
+            <div style="padding-top:3em; text-align:left;">
                 <div>Background color</div>
                 <div v-for="color in backgroundColorPallete" 
                      class="gallery" 
@@ -375,7 +375,9 @@
                     <input type="range" min="0" max="25" value="5" class="slider" v-model="borderWidthPercent">
                 </div>
                 <div>Fit screen</div>
-                <input type="checkbox" v-model="fitScreen"/>
+                <input type="checkbox" v-model="fitScreen" />
+                <div>Rotate orientation</div>
+                <input type="checkbox" v-model="orientationVertical" />
             </div>
             <div style="padding-top:1em; text-align:left;">Device</div>
             <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
@@ -408,7 +410,8 @@
                 tokenPreviewWidth: 500,
                 borderWidthPercent: 5,
                 borderWidthInPx: '',
-                fitScreen: false
+                fitScreen: false,
+                orientationVertical: false
             },
             computed: {
                 showModal: function () {
@@ -462,7 +465,8 @@
                             tokenImageUrl: token.image_url,
                             borderWidthPercent: app.borderWidthPercent,
                             fitScreen: app.fitScreen,
-                            backgroundColor: app.selectedBackgroundColor
+                            backgroundColor: app.selectedBackgroundColor,
+                            orientationVertical: app.orientationVertical
                         }
                     }
                     $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature,

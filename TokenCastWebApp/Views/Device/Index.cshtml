@@ -38,7 +38,9 @@
                     // Ignore if already displaying token
                     if (app.display.tokenImageUrl == content.currentDisplay.tokenImageUrl &&
                         app.display.borderWidthPercent == content.currentDisplay.borderWidthPercent &&
-                        app.display.fitScreen == content.currentDisplay.fitScreen) {
+                        app.display.fitScreen == content.currentDisplay.fitScreen &&
+                        app.display.backgroundColor == content.currentDisplay.backgroundColor &&
+                        app.display.orientationVertical == content.currentDisplay.orientationVertical) {
                         return;
                     }
 
@@ -93,7 +95,7 @@
             });
         }
 
-        window.setInterval(tryGetContent, 5000);
+        window.setInterval(tryGetContent, 10000);
         window.setInterval(getLastSyncTime, 3600000);
     </script>
 </head>
@@ -114,11 +116,10 @@
             #metadataContainer {
                 position: absolute;
                 bottom: 0px;
-                left: 50%;
-                transform: translate(-50%, -50%);
                 background: #ffffffa0;
                 display: flex;
                 padding: 1em;
+                min-height: 5em;
             }
 
             #deviceRegistrationContainer {
@@ -164,19 +165,30 @@
                          backgroundImage: 'url(' + display.tokenImageUrl + ')',
                          backgroundColor: tokenBackgroundColor,
                          height: tokenHeight,
-                         backgroundSize: display.fitScreen? 'cover' : 'contain'
+                         backgroundSize: display.fitScreen? 'cover' : 'contain',
+                         transform: display.orientationVertical? 'rotate(90deg)' : 'none'
                  }">
                 </div>
-                <div id="metadataContainer">
+                <div id="metadataContainer"
+                         v-bind:style="{
+                            writingMode: display.orientationVertical? 'vertical-rl' : 'unset',
+                            left: display.orientationVertical? '5%' : '50%',
+                            transform: display.orientationVertical? 'none' : 'translate(-50%, -50%)',
+                            paddingTop: display.orientationVertical? '2em' : '0em',
+                            paddingBottom: display.orientationVertical? '2em' : '0em',
+                            marginTop: display.orientationVertical? '2em' : '0em',
+                            marginBottom: display.orientationVertical? '2em' : '0em'
+                         }">
                     <div v-if="display.tokenMetadata != null"
-                         style="padding-right: 2em;
-                                padding-left: 2em;
-                                width: max-content;
+                         style="width: max-content;
                                 max-width: 45em;
-                                margin: auto;">
+                                margin: auto;
+                                padding-right: 1em;
+                                margin-top: 1em;
+                                margin-bottom: 1em;">
                         {{ display.tokenMetadata }}
                     </div>
-                    <div id="tokenOwnershipQR"></div>
+                    <div id="tokenOwnershipQR" style="position: relative; top: .5em;"></div>
                 </div>
                 <div id="miniDeviceId">{{ deviceId }}</div>
             </div>

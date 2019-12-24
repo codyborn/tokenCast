@@ -35,5 +35,7 @@ namespace TokenCast.Models
         public bool fitScreen { get; set; }
 
         public string backgroundColor { get; set; }
+
+        public bool orientationVertical { get; set; }
     }
 }
