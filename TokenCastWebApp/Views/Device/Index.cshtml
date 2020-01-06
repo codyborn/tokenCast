@@ -11,6 +11,8 @@
 
         docHeight = Math.max( body.scrollHeight, body.offsetHeight, 
             html.clientHeight, html.scrollHeight, html.offsetHeight);
+        docWidth = Math.max( body.scrollWidth, body.offsetWidth, 
+            html.clientWidth, html.scrollWidth, html.offsetWidth);
 
         var deviceId = "";
 
@@ -62,6 +64,7 @@
                     var borderHeight = borderWidthInPx * 2;
                     //app.tokenHeight = (docHeight - metadataHeight - borderHeight) + "px";
                     app.tokenHeight = (docHeight - borderHeight) + "px";
+                    app.tokenWidth = docWidth + "px";
 
                     // Display token ownership QR
                     if (content.currentDisplay.tokenOwnershipUrl != null) {
@@ -99,7 +102,7 @@
         window.setInterval(getLastSyncTime, 3600000);
     </script>
 </head>
-    <body onload="onLoad()">
+    <body onload="onLoad()" style="overflow:hidden">
         <style>
             .center {
                 display: block;
@@ -164,9 +167,13 @@
                      v-bind:style="{
                          backgroundImage: 'url(' + display.tokenImageUrl + ')',
                          backgroundColor: tokenBackgroundColor,
-                         height: tokenHeight,
+                         height: display.orientationVertical? tokenWidth : tokenHeight,
+                         width: display.orientationVertical? tokenHeight : 'auto',
                          backgroundSize: display.fitScreen? 'cover' : 'contain',
-                         transform: display.orientationVertical? 'rotate(90deg)' : 'none'
+                         transform: display.orientationVertical? 'rotate(90deg)' : 'none',
+                         transformOrigin: display.orientationVertical?  'top left' : 'initial',
+                         position: 'relative',
+                         left: display.orientationVertical? '79.65%' : '0px'
                  }">
                 </div>
                 <div id="metadataContainer"
@@ -177,7 +184,10 @@
                             paddingTop: display.orientationVertical? '2em' : '0em',
                             paddingBottom: display.orientationVertical? '2em' : '0em',
                             marginTop: display.orientationVertical? '2em' : '0em',
-                            marginBottom: display.orientationVertical? '2em' : '0em'
+                            marginBottom: display.orientationVertical? '2em' : '0em',
+                            position: 'absolute',
+                            top: display.orientationVertical? '25%' : '',
+                            bottom: display.orientationVertical? '25%' : ''
                          }">
                     <div v-if="display.tokenMetadata != null"
                          style="width: max-content;
@@ -211,6 +221,7 @@
                     borderWidthInPx: '',
                     hideToken: true,
                     tokenHeight: '',
+                    tokenWidth: '',
                     displayQR: this.hideToken ? "inline" : "none",
                     docHeight: docHeight + "px"
                 },
