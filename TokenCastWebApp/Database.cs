@@ -106,6 +106,50 @@ namespace TokenCast
             }
         }
 
+        public static async Task AddDeviceAlias(string address, string deviceId, string alias)
+        {
+            address = address.ToLowerInvariant();
+            AccountModel account = await GetAccount(address);
+            if (account == null)
+            {
+                throw new StorageException($"Unable to locate account {account.address}");
+            }
+
+            if (account.devices == null || !account.devices.Contains(deviceId))
+            {
+                throw new StorageException($"Unable to locate device {deviceId}");
+            }
+
+            if (account.deviceMapping == null)
+            {
+                account.deviceMapping = new Dictionary<string, string>();
+            }
+
+            account.deviceMapping[deviceId] = alias;
+            await CreateOrUpdateAccount(account);
+        }
+
+        public static async Task DeleteDevice(string address, string deviceId)
+        {
+            address = address.ToLowerInvariant();
+            AccountModel account = await GetAccount(address);
+            if (account == null)
+            {
+                throw new StorageException($"Unable to locate account {account.address}");
+            }
+
+            if (account.devices == null)
+            {
+                account.devices = new List<string>();
+            }
+
+            if (account.devices.Contains(deviceId))
+            {
+                account.devices.Remove(deviceId);
+                await CreateOrUpdateAccount(account);
+            }
+        }
+
         public static async Task SetDeviceContent(DeviceModel device)
         {
             var databaseEntity = new DatabaseEntity<DeviceModel>(device.id, device.id, device);

@@ -12,6 +12,9 @@
                 type="text/javascript">
         </script>
         <script src="~/js/vibrant.min.js"></script>
+        <link rel="stylesheet" href="~/css/Hamburger.css">
+        <link rel="stylesheet" href="~/css/Sidebar.css">
+        <link rel="stylesheet" href="~/css/Button.css">
 
         <script type="text/javascript">
             web3Account = "";
@@ -65,10 +68,10 @@
                 let msg = web3.utils.asciiToHex(plain);
                 let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
                 signature = await web3.eth.personal.sign(msg, web3Account);
-                GetAccountInfo();
+                GetAccountInfo(true);
             }
 
-            async function GetAccountInfo() {
+            async function GetAccountInfo(onPageLoad) {
 
                 // Create account if not exist
                 $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
@@ -77,7 +80,9 @@
                     }
                     app.account = accountDetails;
                     app.showAddDeviceButton = true;
-                    CheckAddDevice(accountDetails);
+                    if (onPageLoad) {
+                        CheckAddDevice(accountDetails);
+                    }
                 });
             }
 
@@ -96,6 +101,10 @@
                     defaultDeviceId = accountDetails.devices[0];
                     GetTokens();
                 }
+                else {
+                    // No devices found
+                    app.showAddDeviceInput = true;
+                }
             }
 
             async function AddDevice(deviceId) {
@@ -109,6 +118,44 @@
                             defaultDeviceId = deviceId;
                             GetAccountInfo();
                             GetTokens();
+                        }
+                    });
+            }
+
+            async function AddDeviceAlias(deviceId, alias) {
+                $.post("Account/AddDeviceAlias?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId + "&alias=" + alias,
+                    function (result) {
+                        if (result == false) {
+                            console.log("Failed to add device alias");
+                        }
+                        else {
+                            console.log("Successfully added device alias");
+                            GetAccountInfo();
+                        }
+                    });
+            }
+
+            async function DeleteDevice(deviceId) {
+                $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                    function (result) {
+                        if (result == false) {
+                            console.log("Failed to delete device");
+                        }
+                        else {
+                            console.log("Successfully deleted device");
+                            GetAccountInfo();
+                        }
+                    });
+            }
+
+            async function RemoveToken(deviceId) {
+                $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                    function (result) {
+                        if (result == false) {
+                            alert("Remove Failed");
+                        }
+                        else {
+                            alert("Removed Token!");
                         }
                     });
             }
@@ -136,12 +183,25 @@
                     })
                 });
             }
+
+            function CopyToClipboard(str) {
+                const el = document.createElement('textarea');
+                el.value = str;
+                el.setAttribute('readonly', '');
+                el.style.position = 'absolute';
+                el.style.left = '-9999px';
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+            };
         </script>
     </head>
 <body>
     <style>
         .center {
-            margin: auto;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .tokenGallery {
@@ -175,8 +235,14 @@
         }
 
         .statusMessage {
-            padding-top: 25%;
+            margin: 0;
+            position: absolute;
+            top: 50%;
+            -ms-transform: translateY(-50%);
+            transform: translateY(-50%);
             font-size: x-large;
+            left: 50%;
+            transform: translate(-50%, -50%);
         }
 
         #removeContentButtonContainer {
@@ -194,29 +260,9 @@
               background-color: darkred;
         }
 
-        .button {
-              border: none;
-              color: white;
-              padding: 15px 32px;
-              text-align: center;
-              text-decoration: none;
-              display: inline-block;
-              font-size: 16px;
-        }
-
-        #addDeviceButtonContainer {
-            position: absolute;
-            top: 4em;
-            right: 2em;
-        }
-
-        #addDeviceButton {
-            background-color: darkcyan;
-        }
-
         .modal {
           position: fixed;
-          z-index: 1;
+          z-index: 1001;
           top: 0;
           left: 0;
           width: 100%;
@@ -227,10 +273,9 @@
         }
 
         .inputForm {
-            z-index: 2;
+            z-index: 1002;
             display: grid;
             margin: 0px auto;
-            padding: 20px 30px;
             background-color: #fff;
             border-radius: 2px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
@@ -245,28 +290,17 @@
             max-height: 80%;
             scroll-behavior: unset;
             overflow-y: auto;
+            text-align: left;
         }
-        
-        #addDeviceFormButton {
-            background-color: darkcyan;
-            width: 97%;
-            max-width: 28em;
-            margin-top:1em;
+
+        .formElement {
+            padding-top: .5em;
+            font-weight: 500;
         }
 
         #idBar {
-            border-radius: 0px 0px 30px 30px;
-            background-color: lightgray;
-            color: black;
-            padding: 0.5em; 
-            min-width: fit-content; 
+            color: white;
             width: 65%; 
-            padding-left: 1.5em; 
-            padding-right: 1.5em;
-            position: absolute;
-            left: 50%;
-            top: 0px;
-            transform: translate(-50%, 0%);
         }
         
         #tokenPreviewContainer {
@@ -305,87 +339,179 @@
             background: #4CAF50;
             cursor: pointer;
         }
+        
+        .deviceListElement {
+            padding-left: 1em;
+            font-size: 1.2em;
+            color: #fff;
+            text-align: left;
+        }
+
+        input[type=text] {
+            font-size: 1.3em;
+            padding-left: 5px;
+        }
+
+        #header {
+            position: absolute;
+            top: 2em;
+            left: 4em;
+        }
+
+        
+        @@media only screen and (max-width: 600px) {
+            .inputForm {
+                padding: 1em;
+            }
+        }
     </style>
     <div id="app" style="text-align:center;">
-        <div id="idBar">
-            <img src="~/images/profile.png" style="height: auto; width:1em; position:relative; top:-.2em" /> {{ address }}
+        <span id="header">
+            <h1>TokenCast</h1>
+        </span>
+        <div id="burger"
+             :class="{ 'active' : showHamburger }"
+             v-on:click="ToggleBurger">
+            <slot>
+                <button type="button" class="burger-button" title="Menu">
+                    <span class="burger-bar burger-bar--1"></span>
+                    <span class="burger-bar burger-bar--2"></span>
+                    <span class="burger-bar burger-bar--3"></span>
+                </button>
+            </slot>
         </div>
+        <div class="sidebar">
+            <div class="sidebar-backdrop" v-on:click="ToggleBurger" v-if="showHamburger"></div>
+            <transition name="slide">
+                <div v-if="showHamburger"
+                     class="sidebar-panel">
+                    <slot>
+                        <ul class="sidebar-panel-nav">
+                            <li>
+                                <span id="idBar">
+                                    {{ shortenedAddress }}
+                                </span>
+                            </li>
+                            <li v-if="showAddDeviceButton">
+                                <span v-on:click="showAddDeviceInput = true" style="cursor:pointer">New Device</span>
+                            </li>
+                            <li v-if="showAddDeviceButton">
+                                <span id="viewDevicesButton" v-on:click="viewDevices = !viewDevices" style="cursor:pointer">
+                                    Linked Devices
+                                </span>
+                                <transition name="slide-down">
+                                    <div>
+                                        <table>
+                                            <tr v-for="device in account.devices">
+                                                <td class="deviceListElement" style="cursor:pointer" v-on:click="DeviceSelected(device)">
+                                                    {{ GetDeviceAlias(device) == "" ? device : GetDeviceAlias(device) }}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </transition>
+                            </li>
+                        </ul>
+                    </slot>
+                </div>
+            </transition>
+        </div>
+
         <div class="statusMessage" v-if="showSignMessage">Please sign the payload to prove ownership over your account</div>
         <div class="statusMessage" v-if="showFetchingTokensMessage">Fetching tokens...</div>
-        <div class="statusMessage" v-if="showNoTokensMessage">Unable to find any tokens :(</div>
-        <div class="tokenGallery">
-            <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
-                <a v-on:click="TokenSelected(token)">
-                    <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
-                </a>
-                <div class="desc">{{ token.name }}</div>
+        <div class="statusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
+            Unable to find any tokens :(
+            <div>Get yours at</div>
+            <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+                <div style="width:40%;"><a class="button center positiveButton" href="https://knownorigin.io/">KnownOrigin</a></div>
+                <div style="width:40%;"><a class="button center positiveButton" href="https://superrare.co/">SuperRare</a></div>
+                <div style="width:40%;"><a class="button center positiveButton" href="https://opensea.io/">OpenSea</a></div>
             </div>
+    </div>
+    <div class="tokenGallery">
+        <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
+            <a v-on:click="TokenSelected(token)">
+                <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
+            </a>
+            <div class="desc">{{ token.name }}</div>
         </div>
-        <div v-if="tokens != ''" id="removeContentButtonContainer">
-            <button class="button" id="removeContentButton" v-on:click="RemoveToken()">Remove Content</button>
+    </div>
+
+    <div class="inputForm" v-if="showAddDeviceInput">
+        <h3 style="padding-bottom: 1em;">Register New Device</h3>
+        <span class="formElement">DeviceId</span>
+        <input id="deviceIdInput" type="text" placeholder="Device Id (ex: zero_one_two_three)" style="width: 97%; max-width: 28em;" />
+        <button class="button center positiveButton largeButton" v-on:click="AddDeviceWithForm()">Add</button>
+    </div>
+
+    <div class="inputForm" v-if="showDeviceEdit">
+        <h3 style="padding-bottom: 1em;">Device</h3>
+        <span class="formElement">DeviceId</span>
+        {{ selectedDeviceId }}
+        <span class="formElement">
+            Device friendly name
+        </span>
+        <input type="text" id="deviceAliasInput" placeholder="ex. Living room" :value="selectedDeviceAlias" style="width:16em" />
+        <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+            <div style="width:40%;"><button class="button flexButton negativeButton" id="deleteDeviceButton" v-on:click="DeleteDeviceWithForm()">Delete</button></div>
+            <div style="width:40%;"><button class="button flexButton defaultButton" id="clearDeviceButton" v-on:click="ClearDeviceWithForm()">Clear</button></div>
+            <div style="width:40%;"><button class="button flexButton defaultButton" id="shareDeviceButton" v-on:click="ShareDeviceWithForm()">Share</button></div>
+            <div style="width:40%;"><button class="button positiveButton" id="updateDeviceButton" v-on:click="UpdateDeviceWithForm()">Update</button></div>
         </div>
+    </div>
 
-        <div id="addDeviceButtonContainer" v-if="showAddDeviceButton">
-            <button class="button" id="addDeviceButton" v-on:click="showAddDeviceInput = true">Register New Device</button>
-        </div>
+    <div class="modal" v-if="showModal" v-on:click="CloseInputForms()">
+    </div>
 
-        <div class="modal" v-if="showModal" v-on:click="CloseInputForms()">
-        </div>
-
-        <div class="inputForm" v-if="showAddDeviceInput">
-            <h3 style="padding-bottom: 1em;">Register New Device</h3>
-            <input id="deviceIdInput" class="center" type="text" placeholder="Device Id (ex: zero_one_two_three)" style="font-size: 1.3em; width: 97%; max-width: 28em; margin-bottom: 1em;" />
-            <button class="button center" id="addDeviceFormButton" v-on:click="AddDeviceWithForm()">Add</button>
-        </div>
-
-
-        <div class="inputForm" v-if="showTokenDisplayOptions">
-            <h3 style="padding-bottom: 1em;">Cast Token</h3>
-            <div class="center" 
-                 style="width:100%"
-                 v-bind:style="{ 
+    <div class="inputForm" v-if="showTokenDisplayOptions">
+        <h3 style="padding-bottom: 1em;">Cast Token</h3>
+        <div class="center"
+             style="width:100%"
+             v-bind:style="{
                      backgroundColor: selectedBackgroundColor,
-                     maxWidth: tokenPreviewWidth + 'px', 
+                     maxWidth: tokenPreviewWidth + 'px',
                      height: tokenPreviewHeight + 'px'
                  }">
-                <div id="tokenPreviewContainer"
-                     class="center"
-                     style="width:auto;"
-                     v-bind:style="{ 
+            <div id="tokenPreviewContainer"
+                 class="center"
+                 style="width:auto;"
+                 v-bind:style="{
                         backgroundImage: 'url(' + selectedToken.image_url + ')',
                         backgroundColor: selectedBackgroundColor,
                         height:tokenHeight,
                         marginTop: borderWidthInPx,
                         backgroundSize: fitScreen? 'cover' : 'contain'
                      }">
-                </div>
             </div>
-            <div style="padding-top:3em; text-align:left;">
-                <div>Background color</div>
-                <div v-for="color in backgroundColorPallete" 
-                     class="gallery" 
-                     v-on:click="ColorSelected(color)" 
-                     v-bind:style="{ backgroundColor: color }"
-                     style="width: 2em; height: 2em;">
-                </div>
-            </div>
-            <div style="padding-top:1em; text-align:left;">
-                <div>Border width percentage</div>
-                <div style="width:100%">
-                    <input type="range" min="0" max="25" value="5" class="slider" v-model="borderWidthPercent">
-                </div>
-                <div>Fit screen</div>
-                <input type="checkbox" v-model="fitScreen" />
-                <div>Rotate orientation</div>
-                <input type="checkbox" v-model="orientationVertical" />
-            </div>
-            <div style="padding-top:1em; text-align:left;">Device</div>
-            <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
-                <option v-for="device in account.devices" :value="device">{{ device }}</option>
-            </select>
-            <button class="button center" id="displayTokenButton" v-on:click="CastToken()" style="background-color: darkcyan; width: 20em; padding:1em;">Cast</button>
         </div>
+        <div style="padding-top:3em; text-align:left;">
+            <div>Background color</div>
+            <div v-for="color in backgroundColorPallete"
+                 class="gallery"
+                 v-on:click="ColorSelected(color)"
+                 v-bind:style="{ backgroundColor: color }"
+                 style="width: 2em; height: 2em;">
+            </div>
+        </div>
+        <div style="padding-top:1em; text-align:left;">
+            <div>Border width percentage</div>
+            <div style="width:100%">
+                <input type="range" min="0" max="25" value="5" class="slider" v-model="borderWidthPercent">
+            </div>
+            <div>Fit screen</div>
+            <input type="checkbox" v-model="fitScreen" />
+            <div>Rotate orientation</div>
+            <input type="checkbox" v-model="orientationVertical" />
+        </div>
+        <div style="padding-top:1em; text-align:left;">Device</div>
+        <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
+            <option v-for="device in account.devices" :value="device">
+                {{ GetDeviceAlias(device) == "" ? device : GetDeviceAlias(device) }}
+            </option>
+        </select>
+        <button class="button center positiveButton largeButton" id="displayTokenButton" v-on:click="CastToken()">Cast</button>
     </div>
+</div>
 
     <script type="text/javascript">
         web3Account = "";
@@ -402,6 +528,8 @@
                 showNoTokensMessage: false,
                 showAddDeviceButton: false,
                 showAddDeviceInput: false,
+                isBurgerActive: false,
+                viewDevices: false,
                 showTokenDisplayOptions: false,
                 selectedToken: null,
                 backgroundColorPallete: [],
@@ -411,25 +539,41 @@
                 borderWidthPercent: 5,
                 borderWidthInPx: '',
                 fitScreen: false,
-                orientationVertical: false
+                orientationVertical: false,
+                selectedDeviceId: '',
+                selectedDeviceAlias: '',
+                showDeviceEdit: false
             },
             computed: {
                 showModal: function () {
-                    return this.showTokenDisplayOptions || this.showAddDeviceInput;
+                    var shouldShowModal = this.showTokenDisplayOptions || this.showAddDeviceInput || this.showDeviceEdit;
+                    if (shouldShowModal) {
+                        $('html,body').scrollTop(0);
+                    }
+                    return shouldShowModal;
                 },
                 tokenHeight: function () {
                     var borderWidthInPx = app.borderWidthPercent * .01 * app.tokenPreviewHeight;
                     app.borderWidthInPx = borderWidthInPx + "px";
                     var borderHeight = borderWidthInPx * 2;
                     return (app.tokenPreviewHeight - borderHeight) + "px";
+                },
+                shortenedAddress: function () {
+                    var addressLength = app.address.length;
+                    if (addressLength > 20) {
+                        return app.address.substring(0, 7) + "..." + app.address.substring(addressLength - 8, addressLength - 1);
+                    }
+                    return app.address;
+                },
+                showHamburger: function () {
+                    return this.isBurgerActive && !this.showModal;
                 }
             },
             methods: {
                 TokenSelected: function (token) {
-                    $('html,body').scrollTop(0);
                     app.backgroundColorPallete = [];
                     app.selectedBackgroundColor = "#ffffff";
-                    app.selectedToken = token;     
+                    app.selectedToken = token;
                     // Generate color pallete
                     var vibrantOptions = {
                         colorCount: 7
@@ -446,11 +590,23 @@
                     }
                     var vibrant = new Vibrant(token.image_url, vibrantOptions);
                     vibrant.getPalette((err, palette) => {
-                        for (var color in palette){
+                        for (var color in palette) {
                             app.backgroundColorPallete.push(palette[color].hex);
                         };
                     });
                     app.showTokenDisplayOptions = true;
+                },
+                DeviceSelected: function (deviceId) {
+                    app.selectedDeviceAlias = this.GetDeviceAlias(deviceId);
+                    app.selectedDeviceId = deviceId;
+                    app.showDeviceEdit = true;
+                },
+                GetDeviceAlias: function (deviceId) {
+                    if (app.account.deviceMapping && deviceId in app.account.deviceMapping) {
+                        return app.account.deviceMapping[deviceId];
+                    }
+
+                    return "";
                 },
                 CastToken: function () {
                     app.showTokenDisplayOptions = false;
@@ -462,7 +618,7 @@
                         currentDisplay: {
                             tokenOwnershipUrl: token.permalink,
                             tokenMetadata: token.description,
-                            tokenImageUrl: token.image_url,
+                            tokenImageUrl: token.image_original_url,
                             borderWidthPercent: app.borderWidthPercent,
                             fitScreen: app.fitScreen,
                             backgroundColor: app.selectedBackgroundColor,
@@ -480,29 +636,57 @@
                                 }
                             });
                 },
-                RemoveToken: function () {
-                    $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&deviceId=" + defaultDeviceId,
-                            function (result) {
-                                if (result == false) {
-                                    alert("Remove Failed");
-                                }
-                                else {
-                                    alert("Removed Token!");
-                                }
-                            });
-                },
                 AddDeviceWithForm: function () {
                     app.showAddDeviceInput = false;
                     var deviceId = document.getElementById("deviceIdInput").value;
                     document.getElementById("deviceIdInput").value = "";
                     AddDevice(deviceId);
                 },
+                UpdateDeviceWithForm: function () {
+                    app.showDeviceEdit = false;
+                    var deviceId = app.selectedDeviceId;
+                    var alias = document.getElementById("deviceAliasInput").value;
+                    AddDeviceAlias(deviceId, alias);
+                },
+                DeleteDeviceWithForm: function () {
+                    app.showDeviceEdit = false;
+                    var deviceId = app.selectedDeviceId;
+                    DeleteDevice(deviceId);
+                },
+                ClearDeviceWithForm: function () {
+                    var deviceId = app.selectedDeviceId;
+                    RemoveToken(deviceId);
+                },
+                ShareDeviceWithForm: function () {
+                    var deviceId = app.selectedDeviceId;
+                    var shareLink = "https://www.tokencast.net/Account?deviceId=" + deviceId;
+
+                    if (navigator.share) {
+                        // From mobile device
+                        navigator.share({
+                            title: 'TokenCast Device',
+                            text: 'Display tokens to this device.',
+                            url: shareLink,
+                        })
+                            .then(() => console.log('Successful share'))
+                            .catch((error) => console.log('Error sharing', error));
+                    }
+                    else {
+                        // From PC
+                        CopyToClipboard(shareLink);
+                        alert("Copied sharable link!");
+                    }
+                },
                 CloseInputForms: function () {
                     app.showTokenDisplayOptions = false;
                     app.showAddDeviceInput = false;
+                    app.showDeviceEdit = false;
                 },
                 ColorSelected: function (color) {
                     app.selectedBackgroundColor = color;
+                },
+                ToggleBurger: function() {
+                    this.isBurgerActive = !this.isBurgerActive
                 }
             }
         });

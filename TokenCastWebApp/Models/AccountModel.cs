@@ -20,5 +20,6 @@ namespace TokenCast.Models
 
         public string address { get; set; }
         public List<string> devices { get; set; }
+        public Dictionary<string, string> deviceMapping { get; set; }
     }
 }

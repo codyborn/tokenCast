@@ -55,6 +55,28 @@ namespace TokenCast.Controllers
             return true;
         }
 
+        public bool DeleteDevice(string address, string signature, string deviceId)
+        {
+            if (!AuthCheck(address, signature))
+            {
+                return false;
+            }
+
+            Database.DeleteDevice(address, deviceId).Wait();
+            return true;
+        }
+
+        public bool AddDeviceAlias(string address, string signature, string deviceId, string alias)
+        {
+            if (!AuthCheck(address, signature))
+            {
+                return false;
+            }
+
+            Database.AddDeviceAlias(address, deviceId, alias).Wait();
+            return true;
+        }
+
         // POST Account/Details?address=0xEeA95EdFC25F15C0c44d4081BBd85026ba298Dc6&signature=...&deviceId=doge...
         /// <summary>
         /// Sets content for the device to display
