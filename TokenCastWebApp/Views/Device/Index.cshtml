@@ -1,5 +1,4 @@
 ﻿    <head>
-    <script type="text/javascript" src="~/js/qrcode.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script type="text/javascript">
@@ -20,16 +19,6 @@
             // Get device id from QS param
             var urlParams = new URLSearchParams(window.location.search);
             deviceId = urlParams.get("deviceId");
-
-            var qrcode = new QRCode("qrCode", {
-                text: "https://tokencast.net/account?deviceId=" + deviceId,
-                width: 500,
-                height: 500,
-                colorDark: "#000000",
-                colorLight: "#ffffff00",
-                correctLevel: QRCode.CorrectLevel.H
-            });
-            $("#qrCode > img").css({"margin":"auto"});
             app.deviceId = deviceId;
         }
 
@@ -55,33 +44,11 @@
                         app.tokenBackgroundColor = content.currentDisplay.backgroundColor;
                     }
                     var metadataHeight = 150;
-                    //if (content.currentDisplay.tokenMetadata != "" &&
-                    //    content.currentDisplay.tokenMetadata != null) {
-                    //    metadataHeight = 150;
-                    //}
                     var borderWidthInPx = docHeight * (content.currentDisplay.borderWidthPercent * .01);
                     app.borderWidthInPx = borderWidthInPx + "px";
                     var borderHeight = borderWidthInPx * 2;
-                    //app.tokenHeight = (docHeight - metadataHeight - borderHeight) + "px";
                     app.tokenHeight = (docHeight - borderHeight) + "px";
                     app.tokenWidth = docWidth + "px";
-
-                    // Display token ownership QR
-                    if (content.currentDisplay.tokenOwnershipUrl != null) {
-                        if (tokenOwnershipQR != null) {
-                            tokenOwnershipQR.clear();
-                            tokenOwnershipQR.makeCode(content.currentDisplay.tokenOwnershipUrl);
-                        }
-                        else {
-                            tokenOwnershipQR = new QRCode("tokenOwnershipQR", {
-                                text: content.currentDisplay.tokenOwnershipUrl,
-                                colorDark: "#000000",
-                                colorLight: "#ffffff00",
-                                correctLevel: QRCode.CorrectLevel.H
-                            });
-                        }
-                        $("#tokenOwnershipQR > img").css({"width":"66px"});
-                    }
                 }
                 else {
                     app.hideToken = true;
@@ -142,11 +109,18 @@
                 right: .5em;
                 font-size: .6em;
             }
-        </style>
 
-        <video v-bind:style="{ display: hideToken? 'inline' : 'none' }" autoplay="" muted="" loop="" class="fullScreen" style="opacity:.5; z-index:-1;">
-            <source src="~/videos/milan.mp4" type="video/mp4">
-        </video>
+            #header {
+                position: absolute;
+                padding-top: 2%;
+                padding-left: 4em;
+                padding-bottom: 1%;
+                width: 100%;
+                background-color: darkcyan;
+                color: white;
+                z-index: 1;
+            }
+        </style>
 
         <div id="app"
              style="position: relative;
@@ -157,10 +131,12 @@
                 height:docHeight
              }">
 
-            <div v-bind:style="{
-                textAlign: 'center',
-                display: !hideToken? 'inline' : 'none'
-             }">
+
+            <span id="header" v-if="hideToken">
+                <h1>TokenCast</h1>
+            </span>
+
+            <div v-if="!hideToken" style="text-align:center">
 
                 <div id="tokenContainer"
                      class="center"
@@ -177,35 +153,42 @@
                  }">
                 </div>
                 <div id="metadataContainer"
-                         v-bind:style="{
+                     v-bind:style="{
                             writingMode: display.orientationVertical? 'vertical-rl' : 'unset',
                             left: display.orientationVertical? '5%' : '50%',
-                            transform: display.orientationVertical? 'none' : 'translate(-50%, -50%)',
-                            paddingTop: display.orientationVertical? '2em' : '0em',
-                            paddingBottom: display.orientationVertical? '2em' : '0em',
-                            marginTop: display.orientationVertical? '2em' : '0em',
-                            marginBottom: display.orientationVertical? '2em' : '0em',
+                            transform: display.orientationVertical? 'translateY(-50%)' : 'translate(-50%, -10%)',
                             position: 'absolute',
-                            top: display.orientationVertical? '25%' : '',
-                            bottom: display.orientationVertical? '25%' : ''
+                            top: display.orientationVertical? '50%' : ''
                          }">
                     <div v-if="display.tokenMetadata != null"
-                         style="width: max-content;
+                         v-bind:style="{
+                            width: display.orientationVertical? '' : 'max-content',
+                            height: display.orientationVertical? 'fit-content' : ''
+                         }"
+                         style="max-height: 45em;
                                 max-width: 45em;
                                 margin: auto;
-                                padding-right: 1em;
-                                margin-top: 1em;
-                                margin-bottom: 1em;">
+                                padding: 1em;">
                         {{ display.tokenMetadata }}
                     </div>
-                    <div id="tokenOwnershipQR" style="position: relative; top: .5em;"></div>
+                    <div v-if="showOwnershipQRCode"
+                         id="tokenOwnershipQR"
+                         v-bind:style="{ backgroundImage:tokenOwnershipQRCode,
+                                         marginTop: display.orientationVertical? 'auto': '',
+                                         marginBottom: display.orientationVertical? 'auto': '',
+                                         width: display.orientationVertical? '100px': '70px',
+                                         height: display.orientationVertical? '100px': '70px'}"
+                         style="background-position: center;
+                                background-size: contain;
+                                background-repeat: no-repeat;"></div>
                 </div>
                 <div id="miniDeviceId">{{ deviceId }}</div>
             </div>
 
-            <div id="deviceRegistrationContainer" v-bind:style="{ display: hideToken? 'inline' : 'none' }">
+            <div id="deviceRegistrationContainer" v-if="hideToken" style="width:100%; height:100%;">
                 <h2 style="padding-top:10%;">Scan the QR code to get started</h2>
-                <div id="qrCode"></div>
+                <img class="center" style="height:50%; max-height: 30em;"
+                     v-bind:src="deviceQRCode" />
                 <br />
                 <h4>Or head to <a v-bind:href="accountUrl">https://tokencast.net/account</a> and enter the following device identifier:</h4>
                 <h4 id="deviceIdText">{{ deviceId }}</h4>
@@ -222,12 +205,22 @@
                     hideToken: true,
                     tokenHeight: '',
                     tokenWidth: '',
-                    displayQR: this.hideToken ? "inline" : "none",
                     docHeight: docHeight + "px"
                 },
                 computed: {
                     accountUrl: function () {
                         return "https://tokencast.net/account?deviceId=" + this.deviceId;
+                    },
+                    deviceQRCode: function () {
+                        var encodedAccountUrl = encodeURI(this.accountUrl);
+                        return "device/GetQRCode?url=" + encodedAccountUrl;
+                    },
+                    tokenOwnershipQRCode: function () {
+                        var encodedOwnershipUrl = encodeURI(this.display.tokenOwnershipUrl);
+                        return "url('device/GetQRCode?url=" + encodedOwnershipUrl + "')";
+                    },
+                    showOwnershipQRCode: function () {
+                        return this.display.tokenOwnershipUrl != "";
                     }
                 }
             });
