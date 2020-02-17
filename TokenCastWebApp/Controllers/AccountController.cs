@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Signer;
+using Nethereum.Web3;
 using TokenCast.Models;
 
 namespace TokenCast.Controllers
@@ -16,6 +17,7 @@ namespace TokenCast.Controllers
     {
         // "TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account."
         private const string ownershipProofMessage = "0x910d6ebf53e411666eb4658ae60b40ebd078e44b5dc66d353d7ceac05900a2b6";
+        private const string rawMessage = "TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.";
 
         // GET: Account
         public ActionResult Index()
@@ -136,7 +138,54 @@ namespace TokenCast.Controllers
         {
             MessageSigner signer = new MessageSigner();
             string signerAddress = signer.EcRecover(ownershipProofMessage.HexToByteArray(), signature);
-            return signerAddress.Equals(address, StringComparison.OrdinalIgnoreCase);
+            if (signerAddress.Equals(address, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return EIP1271AuthCheck(address, rawMessage, signature);
+        }
+
+        private bool EIP1271AuthCheck(string address, string rawMessage, string signature)
+        {
+
+            var abi = @"[{'constant':true,'inputs':[{'name':'_messageHash','type':'bytes'},{'name':'_signature','type':'bytes'}],'name':'isValidSignature','outputs':[{'name':'magicValue','type':'bytes4'}],'payable':false,'stateMutability':'view','type':'function'}]";
+
+            var web3 = new Web3("https://mainnet.infura.io/v3/9d5e849c49914b7092581cc71e3c2580");
+            var contract = web3.Eth.GetContract(abi, address);
+            var magicValue = "20c13b0b";
+
+            var messageInBytes = Encoding.ASCII.GetBytes(rawMessage);
+            var isValidSignatureFunction = contract.GetFunction("isValidSignature");
+            var result = isValidSignatureFunction.CallAsync<byte[]>(messageInBytes, signature.HexToByteArray()).Result;
+            string hexResult = result.ToHex();
+            return hexResult.Equals(magicValue, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static byte[] StringToByteArray(string hex)
+        {
+            if (hex.Length % 2 == 1)
+                throw new Exception("The binary key cannot have an odd number of digits");
+
+            byte[] arr = new byte[hex.Length >> 1];
+
+            for (int i = 0; i < hex.Length >> 1; ++i)
+            {
+                arr[i] = (byte)((GetHexVal(hex[i << 1]) << 4) + (GetHexVal(hex[(i << 1) + 1])));
+            }
+
+            return arr;
+        }
+
+        private static int GetHexVal(char hex)
+        {
+            int val = (int)hex;
+            //For uppercase A-F letters:
+            return val - (val < 58 ? 48 : 55);
+            //For lowercase a-f letters:
+            //return val - (val < 58 ? 48 : 87);
+            //Or the two combined, but a bit slower:
+            //return val - (val < 58 ? 48 : (val < 97 ? 55 : 87));
         }
     }
 }

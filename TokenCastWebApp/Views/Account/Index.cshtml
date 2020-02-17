@@ -11,6 +11,7 @@
                 src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
                 type="text/javascript">
         </script>
+        <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
         <script src="~/js/vibrant.min.js"></script>
         <link rel="stylesheet" href="~/css/Hamburger.css">
         <link rel="stylesheet" href="~/css/Sidebar.css">
@@ -42,10 +43,16 @@
                 }
                 // Non-dapp browsers...
                 else {
-                    console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+                    // Default to Authereum
+                    const authereum = new Authereum('mainnet')
+                    const provider = authereum.getProvider();
+                    window.web3 = new Web3(provider);
+                    await provider.enable();
+                    // Acccounts now exposed
+                    await SetWeb3Account();
                 }
-                
-            },false);
+
+            }, false);
 
             async function SetWeb3Account() {
                 web3Account = web3Account = (await web3.eth.getAccounts())[0];
@@ -78,11 +85,11 @@
                 $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
                     if (accountDetails != null) {
                         app.showSignMessage = false;
-                    }
-                    app.account = accountDetails;
-                    app.showAddDeviceButton = true;
-                    if (onPageLoad) {
-                        CheckAddDevice(accountDetails);
+                        app.account = accountDetails;
+                        app.showAddDeviceButton = true;
+                        if (onPageLoad) {
+                            CheckAddDevice(accountDetails);
+                        }
                     }
                 });
             }
@@ -197,16 +204,16 @@
                 document.body.removeChild(el);
             };
 
-            function grabColorFromPos(e) {                
-                if(e.offsetX) {
+            function grabColorFromPos(e) {
+                if (e.offsetX) {
                     x = e.offsetX;
-                    y = e.offsetY; 
+                    y = e.offsetY;
                 }
-                else if(e.layerX) {
+                else if (e.layerX) {
                     x = e.layerX;
                     y = e.layerY;
                 }
-                        
+
                 var tokenPreviewContainer = document.getElementById('tokenPreviewContainer');
                 var tokenPreviewCanvas = document.getElementById('tokenPreviewCanvas');
 
@@ -222,9 +229,9 @@
 
             function fitImageOn(canvas, imageObj, contain) {
                 var context = canvas.getContext('2d');
-	            var imageAspectRatio = imageObj.naturalWidth / imageObj.naturalHeight;
-	            var canvasAspectRatio = canvas.width / canvas.height;
-	            var renderableHeight, renderableWidth, xStart, yStart;
+                var imageAspectRatio = imageObj.naturalWidth / imageObj.naturalHeight;
+                var canvasAspectRatio = canvas.width / canvas.height;
+                var renderableHeight, renderableWidth, xStart, yStart;
 
                 // Simulate 'cover' if not contain
                 if (!contain) {
@@ -233,44 +240,44 @@
                     renderableWidth = canvas.width;
                     renderableHeight = canvas.width / imageAspectRatio;
                     xStart = 0;
-		            yStart = (canvas.height - renderableHeight) / 2;
+                    yStart = (canvas.height - renderableHeight) / 2;
                 }
-	            // If image's aspect ratio is less than canvas's we fit on height
-	            // and place the image centrally along width
-	            else if(imageAspectRatio < canvasAspectRatio) {
-		            renderableHeight = canvas.height;
-		            renderableWidth = imageObj.naturalWidth * (renderableHeight / imageObj.naturalHeight);
-		            xStart = (canvas.width - renderableWidth) / 2;
-		            yStart = 0;
-	            }
-
-	            // If image's aspect ratio is greater than canvas's we fit on width
-	            // and place the image centrally along height
-	            else if(imageAspectRatio > canvasAspectRatio) {
-		            renderableWidth = canvas.width
-		            renderableHeight = imageObj.naturalHeight * (renderableWidth / imageObj.naturalWidth);
-		            xStart = 0;
-		            yStart = (canvas.height - renderableHeight) / 2;
-	            }
-
-	            // Happy path - keep aspect ratio
-	            else {
-		            renderableHeight = canvas.height;
-		            renderableWidth = canvas.width;
-		            xStart = 0;
-		            yStart = 0;
+                // If image's aspect ratio is less than canvas's we fit on height
+                // and place the image centrally along width
+                else if (imageAspectRatio < canvasAspectRatio) {
+                    renderableHeight = canvas.height;
+                    renderableWidth = imageObj.naturalWidth * (renderableHeight / imageObj.naturalHeight);
+                    xStart = (canvas.width - renderableWidth) / 2;
+                    yStart = 0;
                 }
 
-	            context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
+                // If image's aspect ratio is greater than canvas's we fit on width
+                // and place the image centrally along height
+                else if (imageAspectRatio > canvasAspectRatio) {
+                    renderableWidth = canvas.width
+                    renderableHeight = imageObj.naturalHeight * (renderableWidth / imageObj.naturalWidth);
+                    xStart = 0;
+                    yStart = (canvas.height - renderableHeight) / 2;
+                }
+
+                // Happy path - keep aspect ratio
+                else {
+                    renderableHeight = canvas.height;
+                    renderableWidth = canvas.width;
+                    xStart = 0;
+                    yStart = 0;
+                }
+
+                context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
             };
 
             function rgbToHex(r, g, b) {
-              return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+                return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
             }
 
             function componentToHex(c) {
-              var hex = c.toString(16);
-              return hex.length == 1 ? "0" + hex : hex;
+                var hex = c.toString(16);
+                return hex.length == 1 ? "0" + hex : hex;
             }
         </script>
     </head>
