@@ -600,6 +600,8 @@
                     <input type="checkbox" v-model="fitScreen" v-on:click="borderWidthPercent = !fitScreen? 0 : borderWidthPercent" />
                     <div>Rotate orientation</div>
                     <input type="checkbox" v-model="orientationVertical" />
+                    <div>Show Metadata</div>
+                    <input type="checkbox" v-model="showMetadata" />
                 </div>
                 <div style="padding-top:1em; text-align:left;">Device</div>
                 <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
@@ -644,6 +646,7 @@
                     borderWidthInPx: '0px',
                     fitScreen: false,
                     orientationVertical: false,
+                    showMetadata: true,
                     selectedDeviceId: '',
                     selectedDeviceAlias: '',
                     showDeviceEdit: false,
@@ -682,7 +685,7 @@
                         var b = (rgb >>  0) & 0xff;  // extract blue
 
                         var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
-                        console.log(luma);
+
                         if (luma < 100) {
                             // pick a different colour
                             return "url('images/eye_dropper_white.png')";
@@ -739,8 +742,8 @@
                         {
                             id: device,
                             currentDisplay: {
-                                tokenOwnershipUrl: token.permalink,
-                                tokenMetadata: token.description,
+                                tokenOwnershipUrl: this.showMetadata? token.permalink : "",
+                                tokenMetadata: this.showMetadata? token.description : "",
                                 tokenImageUrl: token.image_original_url,
                                 borderWidthPercent: this.borderWidthPercent,
                                 fitScreen: this.fitScreen,

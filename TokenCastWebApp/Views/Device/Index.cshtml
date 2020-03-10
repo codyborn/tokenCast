@@ -31,7 +31,9 @@
                         app.display.borderWidthPercent == content.currentDisplay.borderWidthPercent &&
                         app.display.fitScreen == content.currentDisplay.fitScreen &&
                         app.display.backgroundColor == content.currentDisplay.backgroundColor &&
-                        app.display.orientationVertical == content.currentDisplay.orientationVertical) {
+                        app.display.orientationVertical == content.currentDisplay.orientationVertical &&
+                        app.display.tokenMetadata == content.currentDisplay.tokenMetadata &&
+                        app.display.tokenOwnershipUrl == content.currentDisplay.tokenOwnershipUrl) {
                         return;
                     }
 
@@ -152,7 +154,7 @@
                          left: display.orientationVertical? '79.65%' : '0px'
                  }">
                 </div>
-                <div id="metadataContainer"
+                <div id="metadataContainer" v-if="showMetadata"
                      v-bind:style="{
                             writingMode: display.orientationVertical? 'vertical-rl' : 'unset',
                             left: display.orientationVertical? '5%' : '50%',
@@ -160,7 +162,7 @@
                             position: 'absolute',
                             top: display.orientationVertical? '50%' : ''
                          }">
-                    <div v-if="display.tokenMetadata != null"
+                    <div v-if="display.tokenMetadata != null && display.tokenMetadata != ''"
                          v-bind:style="{
                             width: display.orientationVertical? '' : 'max-content',
                             height: display.orientationVertical? 'fit-content' : ''
@@ -220,7 +222,10 @@
                         return "url('device/GetQRCode?url=" + encodedOwnershipUrl + "')";
                     },
                     showOwnershipQRCode: function () {
-                        return this.display.tokenOwnershipUrl != "";
+                        return this.display.tokenOwnershipUrl != null && this.display.tokenOwnershipUrl != "";
+                    },
+                    showMetadata: function () {
+                        return this.showOwnershipQRCode || (this.display.tokenMetadata != null && this.display.tokenMetadata != "");
                     }
                 }
             });
