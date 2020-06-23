@@ -744,7 +744,7 @@
                             currentDisplay: {
                                 tokenOwnershipUrl: this.showMetadata? token.permalink : "",
                                 tokenMetadata: this.showMetadata? token.description : "",
-                                tokenImageUrl: token.image_original_url,
+                                tokenImageUrl: token.image_original_url? token.image_original_url : token.image_url,
                                 borderWidthPercent: this.borderWidthPercent,
                                 fitScreen: this.fitScreen,
                                 backgroundColor: this.selectedBackgroundColor,
