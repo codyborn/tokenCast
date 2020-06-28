@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Nethereum.Hex.HexConvertors.Extensions;
 using Nethereum.Signer;
 using Nethereum.Web3;
+using Newtonsoft.Json;
 using TokenCast.Models;
 
 namespace TokenCast.Controllers
@@ -18,6 +19,7 @@ namespace TokenCast.Controllers
         // "TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account."
         private const string ownershipProofMessage = "0x910d6ebf53e411666eb4658ae60b40ebd078e44b5dc66d353d7ceac05900a2b6";
         private const string rawMessage = "TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.";
+        private const int tokensPerPage = 50;
 
         // GET: Account
         public ActionResult Index()
@@ -123,15 +125,42 @@ namespace TokenCast.Controllers
                 return string.Empty;
             }
 
-            Uri openSeaAPI = new Uri($"https://api.opensea.io/api/v1/assets/?owner={address}&limit=300");
-            HttpClient client = new HttpClient();
-            var response = client.GetAsync(openSeaAPI).Result;
-            if (response.IsSuccessStatusCode)
+            TokenList tokenSet = new TokenList();
+            tokenSet.assets = new List<Token>();
+            TokenList nextSet = new TokenList();
+            int currPage = 0;
+            do
             {
-                return response.Content.ReadAsStringAsync().Result;
+                int offset = currPage++ * tokensPerPage;
+                Uri openSeaAPI = new Uri($"https://api.opensea.io/api/v1/assets/?owner={address}&limit={tokensPerPage}&offset={offset}");
+                HttpClient client = new HttpClient();
+                var response = client.GetAsync(openSeaAPI).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonList = response.Content.ReadAsStringAsync().Result;
+                    nextSet = JsonConvert.DeserializeObject<TokenList>(jsonList);
+                    tokenSet.assets.AddRange(nextSet.assets);
+                }
             }
+            while (nextSet.assets.Count > 0);
 
-            return string.Empty;
+            return JsonConvert.SerializeObject(tokenSet);
+        }
+        public class TokenList
+        {
+            public List<Token> assets { get; set; }
+        }
+
+        public class Token
+        {
+            public string token_id { get; set; }
+            public string background_color { get; set; }
+            public string image_url { get; set; }
+            public string image_original_url { get; set; }
+            public string name { get; set; }
+            public string description { get; set; }
+            public string external_link { get; set; }
+            public string permalink { get; set; }
         }
 
         private bool AuthCheck(string address, string signature)
