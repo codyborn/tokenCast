@@ -738,13 +738,23 @@
                         this.showTokenDisplayOptions = false;
                         var token = this.selectedToken;
                         var device = document.getElementById("deviceSelection").value;
+                        // Prefer animation if it exists
+                        var tokenImageUrl = token.animation_url
+                        if (!token.animation_url) {
+                            if (token.image_original_url) {
+                                tokenImageUrl = token.image_original_url
+                            }
+                            else {
+                                tokenImageUrl = token.image_url
+                            }
+                        }
                         var content =
                         {
                             id: device,
                             currentDisplay: {
                                 tokenOwnershipUrl: this.showMetadata? token.permalink : "",
                                 tokenMetadata: this.showMetadata? token.description : "",
-                                tokenImageUrl: token.image_original_url? token.image_original_url : token.image_url,
+                                tokenImageUrl,
                                 borderWidthPercent: this.borderWidthPercent,
                                 fitScreen: this.fitScreen,
                                 backgroundColor: this.selectedBackgroundColor,

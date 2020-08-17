@@ -157,6 +157,7 @@ namespace TokenCast.Controllers
             public string background_color { get; set; }
             public string image_url { get; set; }
             public string image_original_url { get; set; }
+            public string animation_url { get; set; }
             public string name { get; set; }
             public string description { get; set; }
             public string external_link { get; set; }

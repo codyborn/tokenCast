@@ -143,7 +143,7 @@
                 <div id="tokenContainer"
                      class="center"
                      v-bind:style="{
-                         backgroundImage: 'url(' + display.tokenImageUrl + ')',
+                         backgroundImage: isVideo? '' : 'url(' + display.tokenImageUrl + ')',
                          backgroundColor: tokenBackgroundColor,
                          height: display.orientationVertical? tokenWidth : tokenHeight,
                          width: display.orientationVertical? tokenHeight : 'auto',
@@ -153,6 +153,9 @@
                          position: 'relative',
                          left: display.orientationVertical? '79.65%' : '0px'
                  }">
+                    <video v-if="isVideo" style="height:100%; width:auto;" muted loop autoplay>
+                        <source :src="display.tokenImageUrl" type="video/mp4" />
+                    </video>
                 </div>
                 <div id="metadataContainer" v-if="showMetadata"
                      v-bind:style="{
@@ -226,6 +229,9 @@
                     },
                     showMetadata: function () {
                         return this.showOwnershipQRCode || (this.display.tokenMetadata != null && this.display.tokenMetadata != "");
+                    },
+                    isVideo: function () {
+                        return this.display.tokenImageUrl && this.display.tokenImageUrl.includes("mp4");
                     }
                 }
             });
