@@ -489,7 +489,7 @@
                                             <table>
                                                 <tr v-for="device in account.devices">
                                                     <td class="deviceListElement" style="cursor:pointer" v-on:click="DeviceSelected(device)">
-                                                        {{ GetDeviceAlias(device) == "" ? device : GetDeviceAlias(device) }}
+                                                        {{ GetDeviceAlias(device) }}
                                                     </td>
                                                 </tr>
                                             </table>
@@ -606,7 +606,7 @@
                 <div style="padding-top:1em; text-align:left;">Device</div>
                 <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
                     <option v-for="device in account.devices" :value="device">
-                        {{ GetDeviceAlias(device) == "" ? device : GetDeviceAlias(device) }}
+                        {{ GetDeviceAlias(device) }}
                     </option>
                 </select>
                 <button class="button center positiveButton largeButton" id="displayTokenButton" v-on:click="CastToken()">Cast</button>
@@ -732,7 +732,7 @@
                             return this.account.deviceMapping[deviceId];
                         }
 
-                        return "";
+                        return deviceId;
                     },
                     CastToken: function () {
                         this.showTokenDisplayOptions = false;
