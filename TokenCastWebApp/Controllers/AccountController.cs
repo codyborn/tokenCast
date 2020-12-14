@@ -20,6 +20,7 @@ namespace TokenCast.Controllers
         private const string ownershipProofMessage = "0x910d6ebf53e411666eb4658ae60b40ebd078e44b5dc66d353d7ceac05900a2b6";
         private const string rawMessage = "TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.";
         private const int tokensPerPage = 50;
+        private const string communityWallet = "0x7652491068B53B5e1193b8DAA160b43C8a622eE9";
 
         // GET: Account
         public ActionResult Index()
@@ -125,8 +126,29 @@ namespace TokenCast.Controllers
                 return string.Empty;
             }
 
-            TokenList tokenSet = new TokenList();
-            tokenSet.assets = new List<Token>();
+            TokenList tokenList = new TokenList();
+            tokenList.assets = new List<Token>();
+            addTokensForUser(tokenList, address);
+            // Remove spam
+            tokenList.assets.RemoveAll((t) => t.asset_contract.address == "0xc20cf2cda05d2355e218cb59f119e3948da65dfa");
+
+            return JsonConvert.SerializeObject(tokenList);
+        }
+
+        public string CommunityTokens()
+        {
+            TokenList tokenList = new TokenList();
+            tokenList.assets = new List<Token>();
+            addTokensForUser(tokenList, communityWallet, lookupPrices:true);
+            foreach(Token token in tokenList.assets)
+            {
+                token.description += " - Owned by TokenCast Community";
+            }
+            return JsonConvert.SerializeObject(tokenList);
+        }
+
+        private void addTokensForUser(TokenList tokenList, string address, bool lookupPrices = false)
+        {
             TokenList nextSet = new TokenList();
             int currPage = 0;
             do
@@ -139,13 +161,62 @@ namespace TokenCast.Controllers
                 {
                     string jsonList = response.Content.ReadAsStringAsync().Result;
                     nextSet = JsonConvert.DeserializeObject<TokenList>(jsonList);
-                    tokenSet.assets.AddRange(nextSet.assets);
+                    tokenList.assets.AddRange(nextSet.assets);
                 }
             }
             while (nextSet.assets.Count > 0);
 
-            return JsonConvert.SerializeObject(tokenSet);
+            // Add prices
+            if (lookupPrices)
+            {
+                Dictionary<long, string> priceMap = getTokenPrices(address);
+                // Consolidate into a single object
+                foreach (Token token in tokenList.assets)
+                {
+                    if (priceMap.ContainsKey(token.id))
+                    {
+                        token.current_price = priceMap[token.id];
+                    }
+                }
+            }
         }
+
+
+        private Dictionary<long, string> getTokenPrices(string address)
+        {
+            OrderList orderList = new OrderList();
+            orderList.orders = new List<Order>();
+            OrderList nextSet = new OrderList();
+            int currPage = 0;
+            do
+            {
+                int offset = currPage++ * tokensPerPage;
+                Uri openSeaAPI = new Uri($"https://api.opensea.io/wyvern/v1/orders?side=1&owner={address}&limit={tokensPerPage}&offset={offset}");
+                HttpClient client = new HttpClient();
+                var response = client.GetAsync(openSeaAPI).Result;
+                if (response.IsSuccessStatusCode)
+                {
+                    string jsonList = response.Content.ReadAsStringAsync().Result;
+                    nextSet = JsonConvert.DeserializeObject<OrderList>(jsonList);
+                    // Filter out orders not originating from owner
+                    orderList.orders.AddRange(
+                        nextSet.orders.Where((o)=> o != null && 
+                                                o.maker != null && 
+                                                o.maker.address != null && 
+                                                o.maker.address.Equals(address, StringComparison.OrdinalIgnoreCase))
+                    );
+                }
+            }
+            while (nextSet.orders.Count > 0);
+
+            Dictionary<long, string> priceMap = new Dictionary<long, string>();
+            foreach (Order order in orderList.orders)
+            {
+                priceMap[order.asset.id] = order.current_price;
+            }
+            return priceMap;
+        }
+
         public class TokenList
         {
             public List<Token> assets { get; set; }
@@ -153,6 +224,7 @@ namespace TokenCast.Controllers
 
         public class Token
         {
+            public long id { get; set; }
             public string token_id { get; set; }
             public string background_color { get; set; }
             public string image_url { get; set; }
@@ -162,6 +234,41 @@ namespace TokenCast.Controllers
             public string description { get; set; }
             public string external_link { get; set; }
             public string permalink { get; set; }
+            public Owner owner { get; set; }
+            public AssetContract asset_contract { get; set; }
+            public string current_price { get; set; }
+        }
+
+        public class Owner
+        {
+            public string address { get; set; }
+        }
+
+        public class AssetContract
+        {
+            public string address { get; set; }
+        }
+
+        public class OrderList
+        {
+            public List<Order> orders { get; set; }
+        }
+
+        public class Order
+        {
+            public string current_price { get; set; }
+            public Maker maker { get; set; }
+            public Asset asset { get; set; }
+        }
+
+        public class Maker
+        {
+            public string address { get; set; }
+        }
+
+        public class Asset
+        {
+            public long id { get; set; }
         }
 
         private bool AuthCheck(string address, string signature)

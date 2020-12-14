@@ -37,5 +37,7 @@ namespace TokenCast.Models
         public string backgroundColor { get; set; }
 
         public bool orientationVertical { get; set; }
+     
+        public string currentPrice { get; set; }
     }
 }

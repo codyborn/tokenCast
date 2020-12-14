@@ -88,7 +88,7 @@
             #metadataContainer {
                 position: absolute;
                 bottom: 0px;
-                background: #ffffffa0;
+                background: #fffffff0;
                 display: flex;
                 padding: 1em;
                 min-height: 5em;
@@ -165,16 +165,21 @@
                             position: 'absolute',
                             top: display.orientationVertical? '50%' : ''
                          }">
-                    <div v-if="display.tokenMetadata != null && display.tokenMetadata != ''"
-                         v-bind:style="{
+                    <div>
+                        <div v-if="display.tokenMetadata != null && display.tokenMetadata != ''"
+                             v-bind:style="{
                             width: display.orientationVertical? '' : 'max-content',
                             height: display.orientationVertical? 'fit-content' : ''
                          }"
-                         style="max-height: 45em;
+                             style="max-height: 45em;
                                 max-width: 45em;
                                 margin: auto;
                                 padding: 1em;">
-                        {{ display.tokenMetadata }}
+                            {{ display.tokenMetadata }}
+                        </div>
+                        <div id="priceDisplay" v-if="display.currentPrice != null && display.currentPrice != ''">
+                            For Sale - {{ currPriceInEth }} ETH
+                        </div>
                     </div>
                     <div v-if="showOwnershipQRCode"
                          id="tokenOwnershipQR"
@@ -210,7 +215,8 @@
                     hideToken: true,
                     tokenHeight: '',
                     tokenWidth: '',
-                    docHeight: docHeight + "px"
+                    docHeight: docHeight + "px",
+                    currentPrice: ''
                 },
                 computed: {
                     accountUrl: function () {
@@ -232,6 +238,12 @@
                     },
                     isVideo: function () {
                         return this.display.tokenImageUrl && this.display.tokenImageUrl.includes("mp4");
+                    },
+                    currPriceInEth: function () {
+                        if (!this.display.currentPrice || this.display.currentPrice == "") {
+                            return 0
+                        }
+                        return this.display.currentPrice / 1e18
                     }
                 }
             });

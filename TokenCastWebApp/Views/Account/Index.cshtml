@@ -108,6 +108,7 @@
                 else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
                     defaultDeviceId = accountDetails.devices[0];
                     GetTokens();
+                    GetCommunityTokens();
                 }
                 else {
                     // No devices found
@@ -187,6 +188,23 @@
                     parsedTokens.assets.forEach(function (token) {
                         if (token.image_url != "") {
                             app.tokens.push(token);
+                        }
+                    }) 
+                    app.tokensLoaded = true;
+                });
+            }
+
+            async function GetCommunityTokens() {
+
+                app.showFetchingTokensMessage = true;
+
+                $.get("Account/CommunityTokens", function (tokenResponse) {
+                    var parsedTokens = JSON.parse(tokenResponse);
+                    app.showFetchingTokensMessage = false;
+                    app.communityTokens = [];
+                    parsedTokens.assets.forEach(function (token) {
+                        if (token.image_url != "") {
+                            app.communityTokens.push(token);
                         }
                     })
                 });
@@ -289,12 +307,11 @@
             }
 
             .tokenGallery {
-                margin-top: 9em;
                 width: 50%;
                 min-width: 251px;
                 position: relative;
                 left: 50%;
-                transform: translate(-50%, -50%);
+                transform: translate(-50%, 7em);
             }
 
             div.gallery {
@@ -504,18 +521,39 @@
 
             <div class="statusMessage" v-if="showSignMessage">Please sign the payload to prove ownership over your account</div>
             <div class="statusMessage" v-if="showFetchingTokensMessage">Fetching tokens...</div>
-            <div class="statusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
-                Unable to find any tokens :(
-                <div>Get yours at</div>
-                <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
-                    <div style="width:40%;"><a class="button center positiveButton" href="https://knownorigin.io/">KnownOrigin</a></div>
-                    <div style="width:40%;"><a class="button center positiveButton" href="https://superrare.co/">SuperRare</a></div>
-                    <div style="width:40%;"><a class="button center positiveButton" href="https://opensea.io/">OpenSea</a></div>
+            <div class="tokenGallery">
+                <div v-if="tokensLoaded">
+                    <h3>
+                        Art you own
+                    </h3>
+                </div>
+                <div class="statusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
+                    Unable to find any tokens :(
+                    <div>Get yours at</div>
+                    <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+                        <div style="width:40%;"><a class="button center positiveButton" href="https://knownorigin.io/">KnownOrigin</a></div>
+                        <div style="width:40%;"><a class="button center positiveButton" href="https://superrare.co/">SuperRare</a></div>
+                        <div style="width:40%;"><a class="button center positiveButton" href="https://opensea.io/">OpenSea</a></div>
+                    </div>
+                </div>
+                <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
+                    <a v-on:click="TokenSelected(token, true)">
+                        <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
+                    </a>
+                    <div class="desc">{{ token.name }}</div>
                 </div>
             </div>
+
+            <div style="width:100%;height: 3em;display: flex;"></div>
+
             <div class="tokenGallery">
-                <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
-                    <a v-on:click="TokenSelected(token)">
+                <div v-if="tokensLoaded" style="position:relative; top: 1em; z-index:-1;">
+                    <h3>
+                        Art from the community
+                    </h3>
+                </div>
+                <div v-for="token in communityTokens" class="gallery" style="width: 48%; min-width: 250px; position:relative; top: 1em;">
+                    <a v-on:click="TokenSelected(token, false)">
                         <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
                     </a>
                     <div class="desc">{{ token.name }}</div>
@@ -600,8 +638,10 @@
                     <input type="checkbox" v-model="fitScreen" v-on:click="borderWidthPercent = !fitScreen? 0 : borderWidthPercent" />
                     <div>Rotate orientation</div>
                     <input type="checkbox" v-model="orientationVertical" />
-                    <div>Show Metadata</div>
-                    <input type="checkbox" v-model="showMetadata" />
+                    <span v-if="displayingOwnedToken">
+                        <div>Show Metadata</div>
+                        <input type="checkbox" v-model="showMetadata" />
+                    </span>
                 </div>
                 <div style="padding-top:1em; text-align:left;">Device</div>
                 <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
@@ -629,8 +669,10 @@
                     address: '',
                     account: '',
                     tokens: '',
+                    communityTokens: '',
                     showSignMessage: true,
                     showFetchingTokensMessage: false,
+                    tokensLoaded: false,
                     showNoTokensMessage: false,
                     showAddDeviceButton: false,
                     showAddDeviceInput: false,
@@ -651,7 +693,8 @@
                     selectedDeviceAlias: '',
                     showDeviceEdit: false,
                     eyedropperSelectedColor: "#ffffff",
-                    eyedropperHoverColor: "#ffffff"
+                    eyedropperHoverColor: "#ffffff",
+                    displayingOwnedToken: true
                 },
                 computed: {
                     showModal: function () {
@@ -696,7 +739,7 @@
                     }
                 },
                 methods: {
-                    TokenSelected: function (token) {
+                    TokenSelected: function (token, ownedToken) {
                         this.backgroundColorPallete = [];
                         this.selectedBackgroundColor = "#ffffff";
                         this.selectedToken = token;
@@ -721,6 +764,8 @@
                             };
                         });
                         this.showTokenDisplayOptions = true;
+                        this.displayingOwnedToken = ownedToken;
+                        this.showMetadata = true;
                     },
                     DeviceSelected: function (deviceId) {
                         this.selectedDeviceAlias = this.GetDeviceAlias(deviceId);
@@ -758,7 +803,8 @@
                                 borderWidthPercent: this.borderWidthPercent,
                                 fitScreen: this.fitScreen,
                                 backgroundColor: this.selectedBackgroundColor,
-                                orientationVertical: this.orientationVertical
+                                orientationVertical: this.orientationVertical,
+                                currentPrice: token.current_price
                             }
                         }
                         $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature,
