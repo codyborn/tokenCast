@@ -3,302 +3,304 @@
     ViewData["Title"] = "Account";
 }
 
-    <head>
-        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-        <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
-        <script charset="utf-8"
-                src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
-                type="text/javascript">
-        </script>
-        <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
-        <script src="~/js/vibrant.min.js"></script>
-        <link rel="stylesheet" href="~/css/Hamburger.css">
-        <link rel="stylesheet" href="~/css/Sidebar.css">
-        <link rel="stylesheet" href="~/css/Button.css">
+<head>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+    <script charset="utf-8"
+            src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
+            type="text/javascript">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
+    <script src="~/js/vibrant.min.js"></script>
+    <script type="text/javascript" src="~/js/random-words.js"></script>
+    <link rel="stylesheet" href="~/css/Hamburger.css">
+    <link rel="stylesheet" href="~/css/Sidebar.css">
+    <link rel="stylesheet" href="~/css/Button.css">
 
-        <script type="text/javascript">
-            web3Account = "";
-            signature = "";
-            defaultDeviceId = "";
+    <script type="text/javascript">
+        web3Account = "";
+        signature = "";
+        defaultDeviceId = "";
 
-            window.addEventListener('load', async () => {
-                // Modern dapp browsers...
-                if (window.ethereum) {
-                    window.web3 = new Web3(ethereum);
-                    try {
-                        // Request account access if needed
-                        await ethereum.enable();
-                        // Acccounts now exposed
-                        await SetWeb3Account();
-                    } catch (error) {
-                        // User denied account access...
-                    }
-                }
-                // Legacy dapp browsers...
-                else if (window.web3) {
-                    window.web3 = new Web3(web3.currentProvider);
-                    // Acccounts always exposed
-                    await SetWeb3Account();
-                }
-                // Non-dapp browsers...
-                else {
-                    // Default to Authereum
-                    const authereum = new Authereum('mainnet')
-                    const provider = authereum.getProvider();
-                    window.web3 = new Web3(provider);
-                    await provider.enable();
+        window.addEventListener('load', async () => {
+            // Modern dapp browsers...
+            if (window.ethereum) {
+                window.web3 = new Web3(ethereum);
+                try {
+                    // Request account access if needed
+                    await ethereum.enable();
                     // Acccounts now exposed
                     await SetWeb3Account();
+                } catch (error) {
+                    // User denied account access...
                 }
-
-            }, false);
-
-            async function SetWeb3Account() {
-                web3Account = web3Account = (await web3.eth.getAccounts())[0];
-                app.address = web3Account;
-                AttemptReverse(web3Account);
-                await GetSignature();
+            }
+            // Legacy dapp browsers...
+            else if (window.web3) {
+                window.web3 = new Web3(web3.currentProvider);
+                // Acccounts always exposed
+                await SetWeb3Account();
+            }
+            // Non-dapp browsers...
+            else {
+                // Default to Authereum
+                const authereum = new Authereum('mainnet')
+                const provider = authereum.getProvider();
+                window.web3 = new Web3(provider);
+                await provider.enable();
+                // Acccounts now exposed
+                await SetWeb3Account();
             }
 
-            async function AttemptReverse(address) {
-                let provider = new ethers.providers.Web3Provider(web3.currentProvider);
-                provider.lookupAddress(address).then(function (ensName) {
-                    if (ensName != null) {
-                        app.address = ensName;
+        }, false);
+
+        async function SetWeb3Account() {
+            web3Account = web3Account = (await web3.eth.getAccounts())[0];
+            app.address = web3Account;
+            AttemptReverse(web3Account);
+            await GetSignature();
+        }
+
+        async function AttemptReverse(address) {
+            let provider = new ethers.providers.Web3Provider(web3.currentProvider);
+            provider.lookupAddress(address).then(function (ensName) {
+                if (ensName != null) {
+                    app.address = ensName;
+                }
+            });
+        }
+
+        async function GetSignature() {
+
+            let plain = 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
+            let msg = web3.utils.asciiToHex(plain);
+            let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
+            signature = await web3.eth.personal.sign(msg, web3Account);
+            GetAccountInfo(true);
+        }
+
+        async function GetAccountInfo(onPageLoad) {
+
+            // Create account if not exist
+            $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
+                if (accountDetails != null) {
+                    app.showSignMessage = false;
+                    app.account = accountDetails;
+                    app.showAddDeviceButton = true;
+                    if (onPageLoad) {
+                        CheckAddDevice(accountDetails);
+                    }
+                }
+            });
+        }
+
+        async function CheckAddDevice(accountDetails) {
+
+            // Get device id from QS param
+            // If present, prompt user to add device
+            var urlParams = new URLSearchParams(window.location.search);
+            var deviceId = urlParams.get("deviceId");
+
+            if (deviceId != null &&
+                (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
+                AddDevice(deviceId);
+            }
+            else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
+                defaultDeviceId = accountDetails.devices[0];
+                GetTokens();
+            }
+            else {
+                // No devices found
+                app.showAddDeviceInput = true;
+            }
+        }
+
+        async function AddDevice(deviceId) {
+            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                function (result) {
+                    if (result == false) {
+                        console.log("Failed to link device to account");
+                    }
+                    else {
+                        console.log("Successfully linked device to account");
+                        defaultDeviceId = deviceId;
+                        GetAccountInfo();
+                        GetTokens();
                     }
                 });
-            }
+        }
 
-            async function GetSignature() {
-
-                let plain = 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
-                let msg = web3.utils.asciiToHex(plain);
-                let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
-                signature = await web3.eth.personal.sign(msg, web3Account);
-                GetAccountInfo(true);
-            }
-
-            async function GetAccountInfo(onPageLoad) {
-
-                // Create account if not exist
-                $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
-                    if (accountDetails != null) {
-                        app.showSignMessage = false;
-                        app.account = accountDetails;
-                        app.showAddDeviceButton = true;
-                        if (onPageLoad) {
-                            CheckAddDevice(accountDetails);
-                        }
+        async function AddDeviceAlias(deviceId, alias) {
+            $.post("Account/AddDeviceAlias?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId + "&alias=" + alias,
+                function (result) {
+                    if (result == false) {
+                        console.log("Failed to add device alias");
+                    }
+                    else {
+                        console.log("Successfully added device alias");
+                        GetAccountInfo();
                     }
                 });
-            }
+        }
 
-            async function CheckAddDevice(accountDetails) {
-
-                // Get device id from QS param
-                // If present, prompt user to add device
-                var urlParams = new URLSearchParams(window.location.search);
-                var deviceId = urlParams.get("deviceId");
-
-                if (deviceId != null &&
-                    (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
-                    AddDevice(deviceId);
-                }
-                else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
-                    defaultDeviceId = accountDetails.devices[0];
-                    GetTokens();
-                    GetCommunityTokens();
-                }
-                else {
-                    // No devices found
-                    app.showAddDeviceInput = true;
-                }
-            }
-
-            async function AddDevice(deviceId) {
-                $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
-                    function (result) {
-                        if (result == false) {
-                            console.log("Failed to link device to account");
-                        }
-                        else {
-                            console.log("Successfully linked device to account");
-                            defaultDeviceId = deviceId;
-                            GetAccountInfo();
-                            GetTokens();
-                        }
-                    });
-            }
-
-            async function AddDeviceAlias(deviceId, alias) {
-                $.post("Account/AddDeviceAlias?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId + "&alias=" + alias,
-                    function (result) {
-                        if (result == false) {
-                            console.log("Failed to add device alias");
-                        }
-                        else {
-                            console.log("Successfully added device alias");
-                            GetAccountInfo();
-                        }
-                    });
-            }
-
-            async function DeleteDevice(deviceId) {
-                $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
-                    function (result) {
-                        if (result == false) {
-                            console.log("Failed to delete device");
-                        }
-                        else {
-                            console.log("Successfully deleted device");
-                            GetAccountInfo();
-                        }
-                    });
-            }
-
-            async function RemoveToken(deviceId) {
-                $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
-                    function (result) {
-                        if (result == false) {
-                            alert("Remove Failed");
-                        }
-                        else {
-                            alert("Removed Token!");
-                        }
-                    });
-            }
-
-            async function GetTokens() {
-
-                app.showFetchingTokensMessage = true;
-
-                $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature, function (tokenResponse) {
-                    if (tokenResponse == "") {
-                        // no tokens found
-                        app.showNoTokensMessage = true;
+        async function DeleteDevice(deviceId) {
+            $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                function (result) {
+                    if (result == false) {
+                        console.log("Failed to delete device");
                     }
-                    var parsedTokens = JSON.parse(tokenResponse);
-                    if (parsedTokens == null || parsedTokens.assets.length == 0) {
-                        // no tokens found
-                        app.showNoTokensMessage = true;
+                    else {
+                        console.log("Successfully deleted device");
+                        GetAccountInfo();
                     }
-                    app.showFetchingTokensMessage = false;
-                    app.tokens = [];
-                    parsedTokens.assets.forEach(function (token) {
-                        if (token.image_url != "") {
-                            app.tokens.push(token);
-                        }
-                    }) 
-                    app.tokensLoaded = true;
                 });
-            }
+        }
 
-            async function GetCommunityTokens() {
-
-                app.showFetchingTokensMessage = true;
-
-                $.get("Account/CommunityTokens", function (tokenResponse) {
-                    var parsedTokens = JSON.parse(tokenResponse);
-                    app.showFetchingTokensMessage = false;
-                    app.communityTokens = [];
-                    parsedTokens.assets.forEach(function (token) {
-                        if (token.image_url != "") {
-                            app.communityTokens.push(token);
-                        }
-                    })
+        async function RemoveToken(deviceId) {
+            $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+                function (result) {
+                    if (result == false) {
+                        alert("Remove Failed");
+                    }
+                    else {
+                        alert("Removed Token!");
+                    }
                 });
+        }
+
+        async function GetTokens() {
+
+            app.showFetchingTokensMessage = true;
+
+            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature, function (tokenResponse) {
+                if (tokenResponse == "") {
+                    // no tokens found
+                    app.showNoTokensMessage = true;
+                }
+                var parsedTokens = JSON.parse(tokenResponse);
+                if (parsedTokens == null || parsedTokens.assets.length == 0) {
+                    // no tokens found
+                    app.showNoTokensMessage = true;
+                }
+                app.showFetchingTokensMessage = false;
+                app.tokens = [];
+                parsedTokens.assets.forEach(function (token) {
+                    if (token.image_url != "") {
+                        app.tokens.push(token);
+                    }
+                })
+                app.tokensLoaded = true;
+            });
+
+            GetCommunityTokens()
+        }
+
+        async function GetCommunityTokens() {
+
+            app.showFetchingTokensMessage = true;
+
+            $.get("Account/CommunityTokens", function (tokenResponse) {
+                var parsedTokens = JSON.parse(tokenResponse);
+                app.showFetchingTokensMessage = false;
+                app.communityTokens = [];
+                parsedTokens.assets.forEach(function (token) {
+                    if (token.image_url != "") {
+                        app.communityTokens.push(token);
+                    }
+                })
+            });
+        }
+
+        function CopyToClipboard(str) {
+            const el = document.createElement('textarea');
+            el.value = str;
+            el.setAttribute('readonly', '');
+            el.style.position = 'absolute';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        };
+
+        function grabColorFromPos(e) {
+            if (e.offsetX) {
+                x = e.offsetX;
+                y = e.offsetY;
+            }
+            else if (e.layerX) {
+                x = e.layerX;
+                y = e.layerY;
             }
 
-            function CopyToClipboard(str) {
-                const el = document.createElement('textarea');
-                el.value = str;
-                el.setAttribute('readonly', '');
-                el.style.position = 'absolute';
-                el.style.left = '-9999px';
-                document.body.appendChild(el);
-                el.select();
-                document.execCommand('copy');
-                document.body.removeChild(el);
-            };
+            var tokenPreviewContainer = document.getElementById('tokenPreviewContainer');
+            var tokenPreviewCanvas = document.getElementById('tokenPreviewCanvas');
 
-            function grabColorFromPos(e) {
-                if (e.offsetX) {
-                    x = e.offsetX;
-                    y = e.offsetY;
-                }
-                else if (e.layerX) {
-                    x = e.layerX;
-                    y = e.layerY;
-                }
+            tokenPreviewCanvas.width = tokenPreviewContainer.width;
+            tokenPreviewCanvas.height = tokenPreviewContainer.height;
+            fitImageOn(tokenPreviewCanvas, tokenPreviewContainer, tokenPreviewContainer.style.objectFit == "contain");
+            var p = tokenPreviewCanvas.getContext('2d')
+                .getImageData(x, y, 1, 1).data;
 
-                var tokenPreviewContainer = document.getElementById('tokenPreviewContainer');
-                var tokenPreviewCanvas = document.getElementById('tokenPreviewCanvas');
+            var hexColor = rgbToHex(p[0], p[1], p[2]);
+            return hexColor;
+        }
 
-                tokenPreviewCanvas.width = tokenPreviewContainer.width;
-                tokenPreviewCanvas.height = tokenPreviewContainer.height;
-                fitImageOn(tokenPreviewCanvas, tokenPreviewContainer, tokenPreviewContainer.style.objectFit == "contain");
-                var p = tokenPreviewCanvas.getContext('2d')
-                    .getImageData(x, y, 1, 1).data;
+        function fitImageOn(canvas, imageObj, contain) {
+            var context = canvas.getContext('2d');
+            var imageAspectRatio = imageObj.naturalWidth / imageObj.naturalHeight;
+            var canvasAspectRatio = canvas.width / canvas.height;
+            var renderableHeight, renderableWidth, xStart, yStart;
 
-                var hexColor = rgbToHex(p[0], p[1], p[2]);
-                return hexColor;
+            // Simulate 'cover' if not contain
+            if (!contain) {
+                // Width = canvas width
+                // Height = ratio
+                renderableWidth = canvas.width;
+                renderableHeight = canvas.width / imageAspectRatio;
+                xStart = 0;
+                yStart = (canvas.height - renderableHeight) / 2;
+            }
+            // If image's aspect ratio is less than canvas's we fit on height
+            // and place the image centrally along width
+            else if (imageAspectRatio < canvasAspectRatio) {
+                renderableHeight = canvas.height;
+                renderableWidth = imageObj.naturalWidth * (renderableHeight / imageObj.naturalHeight);
+                xStart = (canvas.width - renderableWidth) / 2;
+                yStart = 0;
             }
 
-            function fitImageOn(canvas, imageObj, contain) {
-                var context = canvas.getContext('2d');
-                var imageAspectRatio = imageObj.naturalWidth / imageObj.naturalHeight;
-                var canvasAspectRatio = canvas.width / canvas.height;
-                var renderableHeight, renderableWidth, xStart, yStart;
-
-                // Simulate 'cover' if not contain
-                if (!contain) {
-                    // Width = canvas width
-                    // Height = ratio
-                    renderableWidth = canvas.width;
-                    renderableHeight = canvas.width / imageAspectRatio;
-                    xStart = 0;
-                    yStart = (canvas.height - renderableHeight) / 2;
-                }
-                // If image's aspect ratio is less than canvas's we fit on height
-                // and place the image centrally along width
-                else if (imageAspectRatio < canvasAspectRatio) {
-                    renderableHeight = canvas.height;
-                    renderableWidth = imageObj.naturalWidth * (renderableHeight / imageObj.naturalHeight);
-                    xStart = (canvas.width - renderableWidth) / 2;
-                    yStart = 0;
-                }
-
-                // If image's aspect ratio is greater than canvas's we fit on width
-                // and place the image centrally along height
-                else if (imageAspectRatio > canvasAspectRatio) {
-                    renderableWidth = canvas.width
-                    renderableHeight = imageObj.naturalHeight * (renderableWidth / imageObj.naturalWidth);
-                    xStart = 0;
-                    yStart = (canvas.height - renderableHeight) / 2;
-                }
-
-                // Happy path - keep aspect ratio
-                else {
-                    renderableHeight = canvas.height;
-                    renderableWidth = canvas.width;
-                    xStart = 0;
-                    yStart = 0;
-                }
-
-                context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
-            };
-
-            function rgbToHex(r, g, b) {
-                return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+            // If image's aspect ratio is greater than canvas's we fit on width
+            // and place the image centrally along height
+            else if (imageAspectRatio > canvasAspectRatio) {
+                renderableWidth = canvas.width
+                renderableHeight = imageObj.naturalHeight * (renderableWidth / imageObj.naturalWidth);
+                xStart = 0;
+                yStart = (canvas.height - renderableHeight) / 2;
             }
 
-            function componentToHex(c) {
-                var hex = c.toString(16);
-                return hex.length == 1 ? "0" + hex : hex;
+            // Happy path - keep aspect ratio
+            else {
+                renderableHeight = canvas.height;
+                renderableWidth = canvas.width;
+                xStart = 0;
+                yStart = 0;
             }
-        </script>
-    </head>
+
+            context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
+        };
+
+        function rgbToHex(r, g, b) {
+            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+        }
+
+        function componentToHex(c) {
+            var hex = c.toString(16);
+            return hex.length == 1 ? "0" + hex : hex;
+        }
+    </script>
+</head>
     <body>
         <style>
             .center {
@@ -338,12 +340,21 @@
             .statusMessage {
                 margin: 0;
                 position: absolute;
-                top: 50%;
+                top:50%;
                 -ms-transform: translateY(-50%);
                 transform: translateY(-50%);
                 font-size: x-large;
                 left: 50%;
                 transform: translate(-50%, -50%);
+            }
+            .inlineStatusMessage {
+                margin: 0;
+                position: relative;
+                -ms-transform: translateY(-50%);
+                transform: translateY(-50%);
+                font-size: x-large;
+                left: 50%;
+                transform: translate(-50%, 0%);
             }
 
             #removeContentButtonContainer {
@@ -483,7 +494,7 @@
                 </slot>
             </div>
             <div class="sidebar">
-                <div class="sidebar-backdrop" v-on:click="ToggleBurger" v-if="showHamburger"></div>
+                <div class="sidebar-backdrop" style=" z-index: 1;" v-on:click="ToggleBurger" v-if="showHamburger"></div>
                 <transition name="slide">
                     <div v-if="showHamburger"
                          class="sidebar-panel">
@@ -527,8 +538,8 @@
                         Art you own
                     </h3>
                 </div>
-                <div class="statusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
-                    Unable to find any tokens :(
+                <div class="inlineStatusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
+                    Unable to find any tokens
                     <div>Get yours at</div>
                     <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
                         <div style="width:40%;"><a class="button center positiveButton" href="https://knownorigin.io/">KnownOrigin</a></div>
@@ -536,8 +547,8 @@
                         <div style="width:40%;"><a class="button center positiveButton" href="https://opensea.io/">OpenSea</a></div>
                     </div>
                 </div>
-                <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;">
-                    <a v-on:click="TokenSelected(token, true)">
+                <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;" v-on:click="TokenSelected(token, true)">
+                    <a>
                         <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
                     </a>
                     <div class="desc">{{ token.name }}</div>
@@ -552,8 +563,8 @@
                         Art from the community
                     </h3>
                 </div>
-                <div v-for="token in communityTokens" class="gallery" style="width: 48%; min-width: 250px; position:relative; top: 1em;">
-                    <a v-on:click="TokenSelected(token, false)">
+                <div v-for="token in communityTokens" class="gallery" style="width: 48%; min-width: 250px; position:relative; top: 1em;" v-on:click="TokenSelected(token, false)">
+                    <a>
                         <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
                     </a>
                     <div class="desc">{{ token.name }}</div>
@@ -562,6 +573,7 @@
 
             <div class="inputForm" v-if="showAddDeviceInput">
                 <h3 style="padding-bottom: 1em;">Register New Device</h3>
+                <a id="demoLink" v-on:click="AddDemoDeviceWithForm()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Try a demo instead</a>
                 <span class="formElement">DeviceId</span>
                 <input id="deviceIdInput" type="text" placeholder="Device Id (ex: zero_one_two_three)" style="width: 97%; max-width: 28em;" />
                 <button class="button center positiveButton largeButton" v-on:click="AddDeviceWithForm()">Add</button>
@@ -823,6 +835,15 @@
                         var deviceId = document.getElementById("deviceIdInput").value;
                         document.getElementById("deviceIdInput").value = "";
                         AddDevice(deviceId);
+                    },
+                    AddDemoDeviceWithForm: function () {
+                        this.showAddDeviceInput = false;
+                        var deviceId = words({ exactly: 1, wordsPerString: 3, separator: '_' }) + "_demo";
+                        document.getElementById("deviceIdInput").value = "";
+                        AddDevice(deviceId);
+                        // Open demo link in new tab
+                        var demoLink = "https://tokencast.net/device?demoFrame=true&deviceId=" + deviceId;
+                        window.open(demoLink)
                     },
                     UpdateDeviceWithForm: function () {
                         this.showDeviceEdit = false;

@@ -51,6 +51,11 @@
                     var borderHeight = borderWidthInPx * 2;
                     app.tokenHeight = (docHeight - borderHeight) + "px";
                     app.tokenWidth = docWidth + "px";
+
+                    var video = document.getElementById('video');
+                    video.pause();
+                    video.load();
+                    video.play();
                 }
                 else {
                     app.hideToken = true;
@@ -78,7 +83,11 @@
                 margin-left: auto;
                 margin-right: auto;
             }
-
+            .translateCenter {
+                position: absolute;
+                left: 50%;
+                transform: translate(-50%, 0%);
+            }
             #tokenContainer {
                 background-position: center;
                 background-repeat: no-repeat;
@@ -153,7 +162,15 @@
                          position: 'relative',
                          left: display.orientationVertical? '79.65%' : '0px'
                  }">
-                    <video v-if="isVideo" style="height:100%; width:auto;" loop autoplay>
+                    <video
+                        id="video"
+                        class="translateCenter"
+                        v-if="isVideo" 
+                        v-bind:style="{
+                         height: display.orientationVertical && display.fitScreen? '100%' : 'auto',
+                         width: !display.orientationVertical && display.fitScreen? '100%' : 'auto'
+                        }"
+                           style="height:auto; width:100%;" loop autoplay muted>
                         <source :src="display.tokenImageUrl" type="video/mp4" />
                     </video>
                 </div>
