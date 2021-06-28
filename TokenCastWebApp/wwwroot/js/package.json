@@ -1,0 +1,18 @@
+{
+  "name": "tokencast",
+  "version": "1.0.0",
+  "description": "NFT display",
+  "main": "jquery.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jazzicon": "^1.5.0",
+    "node-vibrant": "^3.1.5",
+    "random-words": "^1.1.0",
+    "vue-burger-menu": "^2.0.3",
+    "web3": "^1.2.2"
+  }
+}
