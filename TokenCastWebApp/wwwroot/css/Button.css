@@ -1,0 +1,81 @@
+﻿.button {
+    border-color: #e7e7e7;
+    color: black;
+    background-color: transparent;
+    padding: 13px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    font-family: Roboto,sans-serif;
+    border: 2px solid;
+    margin-top: 2em;
+}
+
+    .button:hover {
+        background: #e7e7e7;
+        text-decoration: none;
+    }
+
+    .button:visited {
+        text-decoration: none;
+    }
+
+.largeButton {
+    width: 20%;
+    min-width: 12em;
+}
+
+.defaultButton {
+    border-color: #e7e7e7;
+    color: black;
+}
+
+    .defaultButton:hover {
+        background: #e7e7e7;
+    }
+
+.positiveButton {
+    border-color: darkcyan;
+    color: darkcyan;
+}
+
+    .positiveButton:hover {
+        background: darkcyan;
+        color: white;
+    }
+
+.negativeButton {
+    border-color: darkred;
+    color: darkred;
+}
+
+    .negativeButton:hover {
+        background: darkred;
+        color: white;
+    }
+
+.filledButton {
+    border-color: darkcyan;
+    background-color: darkcyan;
+    color: white;
+}
+
+    .filledButton:hover {
+        border-color: #006666;
+        background: #006666;
+        color: white;
+    }
+
+.flexButton {
+    margin-right: 1em;
+}
+
+@media only screen and (max-width: 600px) {
+    .button {
+        padding: 9px 8px !important;
+    }
+    .flexButton {
+        margin-right: .2em;
+    }
+}

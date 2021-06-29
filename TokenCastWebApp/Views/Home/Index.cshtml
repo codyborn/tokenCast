@@ -1,0 +1,312 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TokenCast</title>
+
+    <link rel="stylesheet" href="~/css/Button.css">
+
+    <script type="text/javascript">
+        const sleep = (milliseconds) => {
+            return new Promise(resolve => setTimeout(resolve, milliseconds))
+        }
+        function getRandomInt(max) {
+          return Math.floor(Math.random() * Math.floor(max));
+        }
+
+        // Operate screens
+        const transitionDurationInMs = 1000;
+        async function CycleContent(displayElem, contentSrcList, transitionSrcList) {
+            var frameDurationMin = 3000;
+            var frameDurationMax = 8000;
+            var transitionDuration = 1000;
+            var existingContentIndex = -1;
+
+            while (true) {
+                var frameDuration = frameDurationMin + getRandomInt(frameDurationMax - frameDurationMin);
+                // show frame
+                var contentSrcIndex = getRandomInt(contentSrcList.length);
+                while (contentSrcIndex == existingContentIndex) {
+                    contentSrcIndex = getRandomInt(contentSrcList.length);
+                }
+
+                existingContentIndex = contentSrcIndex;
+                displayElem.style.backgroundImage = "url('"+contentSrcList[contentSrcIndex]+"')";
+                await sleep(frameDuration);
+
+                // show tranistion
+                var transitionSrcIndex = getRandomInt(transitionSrcList.length);
+                displayElem.style.backgroundImage = "url('"+transitionSrcList[transitionSrcIndex]+"')";
+                await sleep(transitionDuration);
+            }
+        }
+
+        window.onload = function () {
+            // Load top screens with content
+            var h0Content = ["https://tokencast.azureedge.net/images/TokenCastLogo.png", "https://tokencast.azureedge.net/images/TokenCastLogo.png"];
+            var h0Transitions = ["https://tokencast.azureedge.net/images/logo_static.gif"];
+            CycleContent(document.getElementById("horizontal0"), h0Content, h0Transitions);
+
+            var h1Content = ["https://tokencast.azureedge.net/images/cryptokitty.jpg", "https://tokencast.azureedge.net/images/car4.jpg", "https://lh3.googleusercontent.com/VQoFbcDpxARYX72T8d4tAa7e6T_c-ZikmhO2EzmvpWvOWDsB_WSwl7XItt_jjjVrwh4DiP0YxoKQioqqHVgFNiwO"];
+            var h1Transitions = ["https://tokencast.azureedge.net/images/static_glitch.gif", "https://tokencast.azureedge.net/images/static_vhs.gif", "https://tokencast.azureedge.net/images/static_tv.gif"];
+            CycleContent(document.getElementById("horizontal1"), h1Content, h1Transitions);
+            
+            var v0Content = ["https://tokencast.azureedge.net/images/godsunchained.jpg", "https://tokencast.azureedge.net/images/diamond2.png", "https://lh3.googleusercontent.com/IFKeHQH-lT4GqMjmaYlgNtvz6Hbg4Ipv-MhOSOLIoCVdTZ7YOlo2l50RhC8TiYFGWVn6BZFaQ307yTeG8xgpFU43"];
+            var v0Transitions = ["https://tokencast.azureedge.net/images/static_glitch.gif", "https://tokencast.azureedge.net/images/static_vhs.gif", "https://tokencast.azureedge.net/images/static_tv.gif"];
+            CycleContent(document.getElementById("vertical0"), v0Content, v0Transitions);
+            
+            var v1Content = ["https://tokencast.azureedge.net/images/blockcities.jpg", "https://tokencast.azureedge.net/images/virus.png"];
+            var v1Transitions = ["https://tokencast.azureedge.net/images/static_glitch.gif", "https://tokencast.azureedge.net/images/static_vhs.gif", "https://tokencast.azureedge.net/images/static_tv.gif"];
+            CycleContent(document.getElementById("vertical1"), v1Content, v1Transitions);         
+        
+            // Update wall content on scroll
+            var frameTopLocation = document.getElementById('tokencast_wall').offsetTop - window.innerHeight + (document.getElementById('tokencast_wall').height / 2);
+            var frameBottomLocation = document.getElementById('tokencast_wall').offsetTop + (document.getElementById('tokencast_wall').height / 2);
+            // Save 10% for transistions
+            var transitionPercentage = .15;
+            var imageDuration = (frameBottomLocation - frameTopLocation) * (1 - (transitionPercentage * 2)) / 3;
+            var transitionDuration = (frameBottomLocation - frameTopLocation) * transitionPercentage;
+            var firstImageLimit = frameTopLocation + imageDuration;
+            var firstStaticLimit = firstImageLimit + transitionDuration;
+            var secondImageLimit = firstStaticLimit + imageDuration;
+            var secondStaticLimit = secondImageLimit + transitionDuration;
+
+            var currentlyDisplayed = 0;
+
+            window.onscroll = function () {
+                var scrollPos = Math.max(document.body.scrollTop, document.documentElement.scrollTop);
+                var imageContainer = document.getElementById("tokencast_wall");
+
+                if (scrollPos <= firstImageLimit) {
+                    if (currentlyDisplayed != 0) {
+                        imageContainer.src = "https://tokencast.azureedge.net/images/tokencast_wall.jpg";
+                    }
+                    currentlyDisplayed = 0;
+                }
+                else if ((scrollPos > firstImageLimit && scrollPos < firstStaticLimit) || 
+                         (scrollPos >= secondImageLimit && scrollPos < secondStaticLimit)) {
+                    if (currentlyDisplayed != -1) {
+                        imageContainer.src = "https://tokencast.azureedge.net/images/tokencast_static.gif";
+                    }
+                    currentlyDisplayed = -1;
+                }
+                else if (scrollPos >= firstStaticLimit && scrollPos < secondImageLimit) {
+                    if (currentlyDisplayed != 1) {
+                        imageContainer.src = "https://tokencast.azureedge.net/images/tokencast_wall1.jpg";
+                    }
+                    currentlyDisplayed = 1;
+                }
+                else {
+                    if (currentlyDisplayed != 2) {
+                        imageContainer.src = "https://tokencast.azureedge.net/images/tokencast_wall2.jpg";
+                    }
+                    currentlyDisplayed = 2;
+                }
+            }
+        }
+    </script>
+</head>
+<body class="noSelect">
+    <style>
+        #logoCanvas {
+            width: 22em;
+            height: auto;
+            background: url(https://tokencast.azureedge.net/images/frame2.png) no-repeat;
+            background-size: 22em 15em;
+            padding-bottom: 3em;
+            display: inline-block;
+        }
+
+        .center {
+            position: relative;
+            left: 50%;
+            transform: translate(-50%, 0%);
+        }
+
+        .section {
+            padding-top: 10%;
+            padding-bottom: 10%;
+        }
+
+        .section-text {
+            width: 80%;
+            max-width: 60em;
+            margin: 0 auto;
+            padding-top: 8%;
+            padding-bottom: 8%;
+        }
+
+        .icon_container {
+            padding-top: 2%;
+        }
+
+        #parallaxDiv {
+            background: linear-gradient(rgba(0, 0, 0, .5), rgba(0, 0, 0, .5)), url(https://tokencast.azureedge.net/images/blueprint.jpg) no-repeat;
+            color: white;
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .white-text a {
+            color: white;
+            text-decoration: underline;
+        }
+
+        #header {
+            position: absolute;
+            top: 2em;
+            left: 4em;
+            z-index: 1;
+        }
+
+        .preload_image {
+            display: none;
+            width: 1px;
+            height: 1px;
+        }
+
+        #footer {
+            position: absolute;
+            bottom: -4em;
+            width: 100%;
+            height: 4em;
+            background-color: darkcyan;
+        }
+
+        #footerIcons {
+            display: flex;
+            position: absolute;
+            bottom: 1em;
+            right: 4em;
+        }
+
+        #footer img {
+            width: 2em;
+            height: 2em;
+            margin-right: 0.5em;
+        }
+
+        @@media only screen and (max-width: 600px) {
+            #loginButton {
+                top: 1em !important;
+                right: 2.5% !important;
+                font-size: 11px;
+            }
+
+            #tokencast_wall {
+                width: 97% !important;
+            }
+
+            h1 {
+                font-size: 1.5rem;
+            }
+
+            #header {
+                top: 1em;
+                left: 1em;
+            }
+        }
+    </style>
+
+    <span id="header">
+        <h1>TokenCast</h1>
+    </span>
+
+    <div style="width:100%; height:auto; background:url(https://tokencast.azureedge.net/images/wallpaper_shadowed.jpg) no-repeat; position:relative; background-size: cover;">
+
+        <img style="width:100%; height:auto; padding-top: 8%" src="https://tokencast.azureedge.net/images/wallframes.png">
+        <div id="vertical0" style="position: absolute;
+                        top: 28%;
+                        left: 16.5%;
+                        width: 14%;
+                        height: 32%;
+                        background-color: black;
+                        background-position: center;
+                        background-size: cover;"></div>
+        <div id="vertical1" style="position: absolute;
+                        top: 28%;
+                        left: 70.8%;
+                        width: 14%;
+                        height: 32%;
+                        background-color: black;
+                        background-position: center;
+                        background-size: cover;"></div>
+        <div id="horizontal0" style="position: absolute;
+                        top: 26.5%;
+                        left: 39.8%;
+                        width: 21.5%;
+                        height: 25%;
+                        background-color: black;
+                        background-size: contain;"></div>
+        <div id="horizontal1" style="position: absolute;
+                        top: 61.8%;
+                        left: 39.8%;
+                        width: 21.5%;
+                        height: 25%;
+                        background-color: black;
+                        background-position: center;
+                        background-size: cover;"></div>
+    </div>
+
+    <div class="center" style="background-color: #3f3e3c; position: relative; top:-5%;"><a class="button center filledButton" href="https://t.me/joinchat/H0n-tFcGerDL1mN1pg0Xtg" target="_blank">Join our Telegram community</a></div>
+
+    <div class="section" style="background-color: #3f3e3c; color: #FFF; padding-top: 0%;">
+        <div class="section-text white-text">
+            <h3>Art you own</h3>
+            <p>
+                Digital artwork can now be tokenized on the blockchain, allowing the ownership and origin of digital goods to be publicly verifiable. The TokenCast project aims to bring this same verifiable
+                digital art back into the living room. TokenCast provides the software and instructions to build a digital picture frame for displaying rare digital art.
+                Only artwork that you verifiably own can be displayed in a TokenCast device. When you display your
+                art, you can also add a QR code that will direct viewers to a proof of ownership page.
+            </p>
+            <div class="icon_container">
+                <img id="tokencast_wall" class="center" style="width:70%;" src="https://tokencast.azureedge.net/images/tokencast_wall.jpg" />
+            </div>
+        </div>
+    </div>
+
+    <div id="parallaxDiv" class="section white-text">
+        <div class="section-text">
+            <h3>For builders</h3>
+            <p>
+                TokenCast is an <a href="https://github.com/codyborn/tokenCast" target="_blank">open-source DIY project</a> and we welcome contributors.
+                The easiest way to build your own frame is to hook a Raspberry Pi up to an IPS monitor and run the tokenCast client. You
+                can find the full set of instructions <a href="https://github.com/codyborn/tokenCast" target="_blank">on GitHub</a>. If there's a feature
+                you'd like to see added, <a href="https://github.com/codyborn/tokenCast/issues" target="_blank">let us know</a>
+                or send a pull request.
+            </p>
+            <div class="icon_container">
+                <img id="rpi" class="center" style="width:16em;" src="https://tokencast.azureedge.net/images/rpi.png" />
+            </div>
+        </div>
+    </div>
+
+    <div class="section" style="overflow-y: hidden;">
+        <div class="section-text">
+            <h3>Get Started Now</h3>
+            <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+                <div style="width:40%; margin-right:1em;"><a class="button center filledButton" href="https://github.com/codyborn/tokenCast" target="_blank">Github</a></div>
+                <div style="width:40%; margin-right:1em;"><a class="button center positiveButton" href="https://codyborn.github.io/tokenCast/" target="_blank">Build your own frame</a></div>
+            </div>
+        </div>
+    </div>
+
+
+    <a id="loginButton" class="button filledButton" style="position:absolute; top:2em; right:5%; margin-top:0em;" href="/Account">Login</a>
+    <img class="preload_image" src="https://tokencast.azureedge.net/images/tokencast_wall.jpg" />
+    <img class="preload_image" src="https://tokencast.azureedge.net/images/tokencast_wall1.jpg" />
+    <img class="preload_image" src="https://tokencast.azureedge.net/images/tokencast_wall2.jpg" />
+    <img class="preload_image" src="https://tokencast.azureedge.net/images/tokencast_static.gif" />
+
+    <div id="footer">
+        <div id="footerIcons">
+            <a href="https://twitter.com/token_cast" target="_blank"><img src="~/images/twtr_icon.png" /></a>
+            <a href="https://t.me/joinchat/H0n-tFcGerDL1mN1pg0Xtg" target="_blank"><img src="~/images/telegram_icon.png" /></a>
+            <a href="https://github.com/codyborn/tokenCast" target="_blank"><img src="~/images/gh_icon.png" /></a>
+        </div>
+    </div>
+</body>
+</html>
