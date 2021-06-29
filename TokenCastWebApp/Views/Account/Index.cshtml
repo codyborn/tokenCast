@@ -11,9 +11,17 @@
             src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
             type="text/javascript">
     </script>
+    
+    <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/evm-chains@0.2.0/dist/umd/index.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/@@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
+    <script type="text/javascript" src="https://unpkg.com/fortmatic@2.0.6/dist/fortmatic.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
     <script src="~/js/vibrant.min.js"></script>
     <script type="text/javascript" src="~/js/random-words.js"></script>
+    <script type="text/javascript" src="js/tezos-beacon.js"></script>
     <link rel="stylesheet" href="~/css/Hamburger.css">
     <link rel="stylesheet" href="~/css/Sidebar.css">
     <link rel="stylesheet" href="~/css/Button.css">
@@ -22,44 +30,172 @@
         web3Account = "";
         signature = "";
         defaultDeviceId = "";
+        vueMounted = false
+        windowLoaded = false        
+        ETHEREUM = "ETHEREUM";
+        TEZOS = "TEZOS";
+        const Web3Modal = window.Web3Modal.default;        
+        const WalletConnectProvider = window.WalletConnectProvider.default;
+        
+         /**
+         * Setup the Web3Modal
+         */
+         function web3ModalInit() {
 
-        window.addEventListener('load', async () => {
-            // Modern dapp browsers...
-            if (window.ethereum) {
-                window.web3 = new Web3(ethereum);
-                try {
-                    // Request account access if needed
-                    await ethereum.enable();
-                    // Acccounts now exposed
-                    await SetWeb3Account();
-                } catch (error) {
-                    // User denied account access...
+            console.log("Initializing example");
+            console.log("WalletConnectProvider is", WalletConnectProvider);
+            console.log("Fortmatic is", Fortmatic);
+            console.log("window.web3 is", window.web3, "window.ethereum is", window.ethereum);
+
+            // Check that the web page is run in a secure context,
+            // as otherwise MetaMask won't be available
+            if (location.protocol !== 'https:') {
+                // https://ethereum.stackexchange.com/a/62217/620
+                return;
+            }
+
+            // Tell Web3modal what providers we have available.
+            // Built-in web browser provider (only one can exist as a time)
+            // like MetaMask, Brave or Opera is added automatically by Web3modal
+            const providerOptions = {
+                authereum: {
+                    package: Authereum // required
+                },
+                walletconnect: {
+                    package: WalletConnectProvider,
+                    options: {
+                        infuraId: "9d5e849c49914b7092581cc71e3c2580",
+                    }
+                },
+                // Bug: https://github.com/Web3Modal/web3modal/issues/231
+                //fortmatic: {
+                //    package: Fortmatic,
+                //    options: {
+                //        key: "pk_test_BCDB8DBBFE1F5B55"
+                //    }
+                //},
+                //bitski: {
+                //    package: Bitski, // required
+                //    options: {
+                //        clientId: "76674289-906f-451a-9aa4-6353f3bc442a", // required
+                //        callbackUrl: "https://tokencast.net/account" // required
+                //    }
+                //}
+            };
+
+            web3Modal = new Web3Modal({
+                cacheProvider: true, // optional
+                providerOptions, // required
+                disableInjectedProvider: false, // optional. For MetaMask / Brave / Opera.
+            });
+
+            console.log("Web3Modal instance is", web3Modal);
+        }
+
+        async function initProvider() {
+            try {
+                provider = await web3Modal.connect();
+            } catch (e) {
+                console.log("Could not get a wallet connection", e);
+                return;
+            }
+
+            // Subscribe to accounts change
+            provider.on("accountsChanged", (accounts) => {
+                LoginUser();
+            });
+
+            // Subscribe to chainId change
+            provider.on("chainChanged", (chainId) => {
+                LoginUser();
+            });
+
+            // Subscribe to networkId change
+            provider.on("networkChanged", (networkId) => {
+                LoginUser();
+            });
+        }
+        
+        async function getTezosAccount() {
+            await initTezosAccount(true);          
+        }
+
+        async function onConnectEthereum() {
+            app.network = ETHEREUM;
+            await initProvider();
+            await LoginUser();
+        }        
+        
+        async function onConnectTezos() {
+            console.log("connecting tezos");
+            app.network = TEZOS;
+            await getTezosAccount();
+            await LoginUser();
+        }
+        
+        async function initEthereumAccount() {
+            app.providedWeb3 = new Web3(provider);
+            web3Account = (await app.providedWeb3.eth.getAccounts())[0];
+            app.address = web3Account;
+            await AttemptReverse(web3Account);
+        }
+        
+        async function initTezosAccount(onConnect) {
+            try {
+                if (!app.dAppClient) {
+                    app.dAppClient = await new beacon.DAppClient({ name: "TokenCast" });
+                }
+                console.log("initTezosAccount");
+                activeAccount = await app.dAppClient.getActiveAccount();
+
+                if (!activeAccount && onConnect) {
+                    console.log("getting permissions");
+                    const permissions = await app.dAppClient.requestPermissions();
+                    activeAccount = await app.dAppClient.getActiveAccount();
+                }
+                if (activeAccount) {
+                    app.address = activeAccount.address;
+                    web3Account = app.address;
+                }
+            } catch (error) {
+                console.log("Tezos Account error:", error);
+            }
+        }
+        
+        async function onLoad(mounted, loaded) {
+            vueMounted = vueMounted || mounted;
+            windowLoaded = windowLoaded || loaded;
+            if (vueMounted && windowLoaded) {
+                //Web3Modal adds the key "WEB3_CONNECT_CACHED_PROVIDER" in localStorage after a successful connection, value is the provider name
+                web3ModalCachedProvider = window.localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER")
+                if (web3ModalCachedProvider !== undefined && web3ModalCachedProvider !== "" && web3ModalCachedProvider !== null) {
+                    web3ModalInit();
+                    await initProvider();
+                    await initEthereumAccount();
+                } else {
+                    await initTezosAccount(false)
                 }
             }
-            // Legacy dapp browsers...
-            else if (window.web3) {
-                window.web3 = new Web3(web3.currentProvider);
-                // Acccounts always exposed
-                await SetWeb3Account();
-            }
-            // Non-dapp browsers...
-            else {
-                // Default to Authereum
-                const authereum = new Authereum('mainnet')
-                const provider = authereum.getProvider();
-                window.web3 = new Web3(provider);
-                await provider.enable();
-                // Acccounts now exposed
-                await SetWeb3Account();
-            }
-
+        }
+        
+        window.addEventListener('load', async () => {
+            web3ModalInit()
         }, false);
-
-        async function SetWeb3Account() {
-            web3Account = web3Account = (await web3.eth.getAccounts())[0];
-            app.address = web3Account;
-            AttemptReverse(web3Account);
-            await GetSignature();
+        
+        async function LoginUser() {
+            if (app.network === TEZOS) {
+                app.showSignMessage = true;
+                await GetSignature();
+            } else {
+                try {
+                    await initEthereumAccount();
+                    await GetSignature();
+                }
+                catch {
+                    app.showSignMessage = true;
+                    web3ModalInit();
+                }
+            }
         }
 
         async function AttemptReverse(address) {
@@ -72,18 +208,33 @@
         }
 
         async function GetSignature() {
-
-            let plain = 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
-            let msg = web3.utils.asciiToHex(plain);
-            let hash = web3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
-            signature = await web3.eth.personal.sign(msg, web3Account);
-            GetAccountInfo(true);
+            console.log("GetSignature " + app.network);
+            if (app.network === TEZOS) {
+                try {
+                    console.log("Getting Tezos signature");
+                    //const response = await app.dAppClient.requestSignPayload({
+                    //    signingType: beacon.SigningType.RAW,
+                    //    payload: app.signatureMessage,
+                    // });
+                    app.tezosWalletConnected = true;
+                    // signature = response.signature;
+                } catch (e) {
+                    console.log(e);
+                }
+            } else { 
+                console.log("Getting Ethereum signature");
+                let plain = app.signatureMessage;
+                let msg = app.providedWeb3.utils.asciiToHex(plain);
+                let hash = app.providedWeb3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
+                signature = await app.providedWeb3.eth.personal.sign(msg, web3Account);
+            }
+            await GetAccountInfo(true);
         }
 
         async function GetAccountInfo(onPageLoad) {
 
             // Create account if not exist
-            $.get("Account/Details?address=" + web3Account + "&signature=" + signature, function (accountDetails) {
+            $.get("Account/Details?address=" + web3Account + "&signature=" + signature + "&network=" + app.network, function (accountDetails) {
                 if (accountDetails != null) {
                     app.showSignMessage = false;
                     app.account = accountDetails;
@@ -117,7 +268,7 @@
         }
 
         async function AddDevice(deviceId) {
-            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to link device to account");
@@ -132,7 +283,7 @@
         }
 
         async function AddDeviceAlias(deviceId, alias) {
-            $.post("Account/AddDeviceAlias?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId + "&alias=" + alias,
+            $.post("Account/AddDeviceAlias?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&alias=" + alias,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to add device alias");
@@ -145,7 +296,7 @@
         }
 
         async function DeleteDevice(deviceId) {
-            $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+            $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to delete device");
@@ -158,7 +309,7 @@
         }
 
         async function RemoveToken(deviceId) {
-            $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&deviceId=" + deviceId,
+            $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId,
                 function (result) {
                     if (result == false) {
                         alert("Remove Failed");
@@ -173,7 +324,7 @@
 
             app.showFetchingTokensMessage = true;
 
-            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature, function (tokenResponse) {
+            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature + "&network=" + app.network, function (tokenResponse) {
                 if (tokenResponse == "") {
                     // no tokens found
                     app.showNoTokensMessage = true;
@@ -306,6 +457,30 @@
             .center {
                 margin-left: auto;
                 margin-right: auto;
+            }
+
+            .transformCenter {
+                 margin: 0;
+                 position: absolute;
+                 top: 50%;
+                 -ms-transform: translateY(-50%);
+                 transform: translateY(-50%);
+                 font-size: x-large;
+                 left: 50%;
+                 transform: translate(-50%, -50%);
+            }
+                        
+            .networkSelection {
+                position: absolute;
+                display: inline;
+                left: 50%;
+                top: 50%;
+                transform: translate(-50%, -50%);
+            }
+            
+            .networkButton {
+                width: 200px;
+                font-size: x-large;
             }
 
             .tokenGallery {
@@ -484,7 +659,8 @@
             </span>
             <div id="burger"
                  :class="{ 'active' : showHamburger }"
-                 v-on:click="ToggleBurger">
+                 v-on:click="ToggleBurger"
+                 v-if="walletConnected">
                 <slot>
                     <button type="button" class="burger-button" title="Menu">
                         <span class="burger-bar burger-bar--1"></span>
@@ -529,9 +705,12 @@
                     </div>
                 </transition>
             </div>
-
-            <div class="statusMessage" v-if="showSignMessage">Please sign the payload to prove ownership over your account</div>
-            <div class="statusMessage" v-if="showFetchingTokensMessage">Fetching tokens...</div>
+            <div class="networkSelection" v-if="!walletConnected">
+                <div class="networkButton button positiveButton" id="web3ConnectButton" v-on:click="EthereumConnect">Ethereum</div>
+                <div class="networkButton button positiveButton" id="tezozWalletConnect" v-on:click="TezosConnect">Tezos</div>
+            </div>
+            <div class="transformCenter" v-if="walletConnected && showSignMessage">Please sign the payload to prove ownership over your account</div>
+            <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
             <div class="tokenGallery">
                 <div v-if="tokensLoaded">
                     <h3>
@@ -680,6 +859,7 @@
                 data: {
                     address: '',
                     account: '',
+                    network: '',
                     tokens: '',
                     communityTokens: '',
                     showSignMessage: true,
@@ -706,9 +886,15 @@
                     showDeviceEdit: false,
                     eyedropperSelectedColor: "#ffffff",
                     eyedropperHoverColor: "#ffffff",
-                    displayingOwnedToken: true
+                    displayingOwnedToken: true,
+                    providedWeb3: '',
+                    dAppClient: '',
+                    tezosWalletConnected: false
                 },
                 computed: {
+                    walletConnected: function () {
+                        return this.providedWeb3 !== '' || this.tezosWalletConnected === true
+                    },
                     showModal: function () {
                         var shouldShowModal = this.showTokenDisplayOptions || this.showAddDeviceInput || this.showDeviceEdit;
                         if (shouldShowModal) {
@@ -751,6 +937,12 @@
                     }
                 },
                 methods: {
+                    EthereumConnect: function () {
+                        onConnectEthereum();
+                    },                    
+                    TezosConnect: function () {
+                        onConnectTezos();
+                    },
                     TokenSelected: function (token, ownedToken) {
                         this.backgroundColorPallete = [];
                         this.selectedBackgroundColor = "#ffffff";
@@ -819,7 +1011,7 @@
                                 currentPrice: token.current_price
                             }
                         }
-                        $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature,
+                        $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network,
                             content,
                             function (result) {
                                 if (result == false) {

@@ -30,9 +30,9 @@ namespace TokenCast.Controllers
 
         // GET: Account/Details?address=0xEeA95EdFC25F15C0c44d4081BBd85026ba298Dc6&signature=...
         // https://developpaper.com/use-taifang-block-chain-to-ensure-asp-net-cores-api-security-part-2/
-        public AccountModel Details(string address, string signature)
+        public AccountModel Details(string address, string signature, string network)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return null;
             }
@@ -49,9 +49,9 @@ namespace TokenCast.Controllers
 
         // POST Account/Details?address=0xEeA95EdFC25F15C0c44d4081BBd85026ba298Dc6&signature=...&deviceId=doge...
         [HttpPost]
-        public bool AddDevice(string address, string signature, string deviceId)
+        public bool AddDevice(string address, string signature, string network, string deviceId)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return false;
             }
@@ -60,9 +60,9 @@ namespace TokenCast.Controllers
             return true;
         }
 
-        public bool DeleteDevice(string address, string signature, string deviceId)
+        public bool DeleteDevice(string address, string signature, string network, string deviceId)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return false;
             }
@@ -71,9 +71,9 @@ namespace TokenCast.Controllers
             return true;
         }
 
-        public bool AddDeviceAlias(string address, string signature, string deviceId, string alias)
+        public bool AddDeviceAlias(string address, string signature, string network, string deviceId, string alias)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return false;
             }
@@ -89,13 +89,16 @@ namespace TokenCast.Controllers
         /// <param name="address">user address</param>
         /// <param name="signature">user signature</param>
         /// <param name="deviceDisplay">details for displaying content</param>
+        /// <param name="network">Ethereum or Tezos address indication</param>
         /// <returns>success status</returns>
         [HttpPost]
         public bool SetDeviceContent(string address,
             string signature,
+            string network,
+            string whitelabeler,
             [FromForm] DeviceModel deviceDisplay)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return false;
             }
@@ -108,9 +111,10 @@ namespace TokenCast.Controllers
         [HttpPost]
         public bool RemoveDeviceContent(string address,
             string signature,
-            string deviceId)
+            string deviceId,
+            string network)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return false;
             }
@@ -119,18 +123,27 @@ namespace TokenCast.Controllers
             return true;
         }
 
-        public string Tokens(string address, string signature)
+        public string Tokens(string address, string signature, string network)
         {
-            if (!AuthCheck(address, signature))
+            if (!AuthCheck(address, signature, network))
             {
                 return string.Empty;
             }
 
             TokenList tokenList = new TokenList();
             tokenList.assets = new List<Token>();
-            addTokensForUser(tokenList, address);
+            if (network.Equals("ETHEREUM", StringComparison.OrdinalIgnoreCase))
+            {
+                addEthereumTokensForUser(tokenList, address);
+            }
+            else
+            {
+                // addTezosTokensForUser(tokenList, "tz1NDaRsyv7BkRTMxipcWc4mtbxii62XsxZE");
+            }
+
             // Remove spam
             tokenList.assets.RemoveAll((t) => t.asset_contract.address == "0xc20cf2cda05d2355e218cb59f119e3948da65dfa");
+            addTezosTokensForUser(tokenList, address);
 
             return JsonConvert.SerializeObject(tokenList);
         }
@@ -139,7 +152,7 @@ namespace TokenCast.Controllers
         {
             TokenList tokenList = new TokenList();
             tokenList.assets = new List<Token>();
-            addTokensForUser(tokenList, communityWallet, lookupPrices:true);
+            addEthereumTokensForUser(tokenList, communityWallet, lookupPrices:true);
             foreach(Token token in tokenList.assets)
             {
                 token.description += " - Owned by TokenCast Community";
@@ -147,7 +160,7 @@ namespace TokenCast.Controllers
             return JsonConvert.SerializeObject(tokenList);
         }
 
-        private void addTokensForUser(TokenList tokenList, string address, bool lookupPrices = false)
+        private void addEthereumTokensForUser(TokenList tokenList, string address, bool lookupPrices = false)
         {
             TokenList nextSet = new TokenList();
             int currPage = 0;
@@ -164,7 +177,7 @@ namespace TokenCast.Controllers
                     tokenList.assets.AddRange(nextSet.assets);
                 }
             }
-            while (nextSet.assets.Count > 0);
+            while (nextSet.assets != null && nextSet.assets.Count > 0);
 
             // Add prices
             if (lookupPrices)
@@ -181,6 +194,60 @@ namespace TokenCast.Controllers
             }
         }
 
+        private void addTezosTokensForUser(TokenList tokenList, string address)
+        {
+            Uri hicetnuncAPI = new Uri($"https://51rknuvw76.execute-api.us-east-1.amazonaws.com/dev/tz?tz={address}");
+            HttpClient client = new HttpClient();
+            var response = client.GetAsync(hicetnuncAPI).Result;
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonList = response.Content.ReadAsStringAsync().Result;
+                TezosTokenList tezosTokens = JsonConvert.DeserializeObject<TezosTokenList>(jsonList);
+                foreach(TezosToken tezosToken in tezosTokens.result)
+                {
+                    Token transformedToken = new Token();
+                    // transformedToken.current_price = tezosToken.price.ToString();
+                    transformedToken.id = tezosToken.piece;
+                    transformedToken.name = tezosToken.token_info.name;
+                    transformedToken.description = tezosToken.token_info.description;
+                    string imageUrl = ipfsToHttp(tezosToken.token_info.displayUri);
+                    transformedToken.image_original_url = imageUrl;
+                    transformedToken.image_url = imageUrl;
+                    if (tezosToken.token_info.formats.Count > 0)
+                    {
+                        MediaFormat format = tezosToken.token_info.formats.First();
+                        if (format.mimeType == "video/mp4")
+                        {
+                            // Add "mp4" to the end to make it easy to determine the content type
+                            string url = string.Concat(ipfsToHttp(format.uri), "?type=mp4");
+                            transformedToken.animation_url = url;
+                            transformedToken.image_url = url;
+                        }
+                        else
+                        {
+                            string url = ipfsToHttp(format.uri);
+                            transformedToken.image_original_url = url;
+                            transformedToken.image_url = url;
+                        }
+                    }
+                    tokenList.assets.Add(transformedToken);
+                }
+            }
+        }
+
+        private string ipfsToHttp(string endpoint)
+        {
+            if (String.IsNullOrWhiteSpace(endpoint) || endpoint.StartsWith("https://") || endpoint.StartsWith("http://"))
+            {
+                return endpoint;
+            }
+            if (!endpoint.StartsWith("ipfs://"))
+            {
+                throw new Exception($"Expected {endpoint} to be an IPFS endpoint");
+            }
+            string id = endpoint.Substring("ipfs://".Length);
+            return $"https://ipfs.io/ipfs/{id}";
+        }
 
         private Dictionary<long, string> getTokenPrices(string address)
         {
@@ -238,6 +305,34 @@ namespace TokenCast.Controllers
             public AssetContract asset_contract { get; set; }
             public string current_price { get; set; }
         }
+        public class TezosTokenList
+        {
+            public List<TezosToken> result { get; set; }
+        }
+
+
+        public class TezosToken
+        {
+            public long price { get; set; }
+            public long piece { get; set; }
+            public TokenInfo token_info { get; set; }
+        }
+
+        public class TokenInfo
+        {
+            public string name { get; set; }
+            public string description { get; set; }
+            public string artifactUri { get; set; }
+            public string displayUri { get; set; }
+            public string thumbnailUri { get; set; }
+            public List<MediaFormat> formats { get;set;}
+        }
+
+        public class MediaFormat
+        {
+            public string uri { get; set; }
+            public string mimeType { get; set; }
+        }
 
         public class Owner
         {
@@ -271,8 +366,17 @@ namespace TokenCast.Controllers
             public long id { get; set; }
         }
 
-        private bool AuthCheck(string address, string signature)
+        private bool AuthCheck(string address, string signature, string network)
         {
+            //replace with authentication (below) 
+            if (network.Equals("TEZOS", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            if (signature == null || signature.Equals("null"))
+            {
+                return false;
+            }
             MessageSigner signer = new MessageSigner();
             string signerAddress = signer.EcRecover(ownershipProofMessage.HexToByteArray(), signature);
             if (signerAddress.Equals(address, StringComparison.OrdinalIgnoreCase))
@@ -295,6 +399,10 @@ namespace TokenCast.Controllers
             var messageInBytes = Encoding.ASCII.GetBytes(rawMessage);
             var isValidSignatureFunction = contract.GetFunction("isValidSignature");
             var result = isValidSignatureFunction.CallAsync<byte[]>(messageInBytes, signature.HexToByteArray()).Result;
+            if (result == null)
+            {
+                return false;
+            }
             string hexResult = result.ToHex();
             return hexResult.Equals(magicValue, StringComparison.OrdinalIgnoreCase);
         }
