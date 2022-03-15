@@ -15,12 +15,6 @@ xserver-command=X -s 0 -dpms" >> /etc/lightdm/lightdm.conf
 # Remove temperature warning icon
 sudo echo "avoid_warnings=1" >> /boot/config.txt
 
-# Run with Fake KMS driver (openGL drivers)
-sudo echo "dtoverlay=vc4-fkms-v3d" >> /boot/config.txt
-
-# Max out memory for GPU
-sudo echo "gpu_mem=512" >> /boot/config.txt
-
 # generate unique id
 sudo apt-get install --reinstall wamerican
 frameid=$(shuf -n4 /usr/share/dict/words | tr '\n' '_' | tr -d "'" | tr '[:upper:]' '[:lower:]')
