@@ -34,7 +34,7 @@ If you've setup a reverse resolver for your Ethereum address, your ENS name will
 ![ENS example](https://raw.githubusercontent.com/codyborn/tokenCast/master/images/ens_example.PNG "ENS example")
 
 ### Color Swatches
-Before displaying a token, you can make some customizations including updating the image size and background color. The background color swatch is algorithically derived from the token image. Here are some examples:
+Before displaying a token, you can make some customizations including updating the image size and background color. The background color swatch is algorithmically derived from the token image. Here are some examples:
 ![Swatch example](https://raw.githubusercontent.com/codyborn/tokenCast/master/images/swatch.PNG "Swatch example")
 
 ## Support this project

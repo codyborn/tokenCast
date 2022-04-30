@@ -11,6 +11,14 @@ namespace TokenCast.Models
 
         public Display currentDisplay { get; set; }
 
+        public List<Display> castedTokens { get; set; }
+
+        public string whiteLabeler { get; set; }
+
+        public bool isCanviaDevice { get; set; }
+        
+        public int frequencyOfRotation { get; set; }
+
         public DeviceModel()
         {
 
@@ -24,6 +32,8 @@ namespace TokenCast.Models
 
     public class Display
     {
+        public string tokenName { get; set; }
+        
         public Uri tokenOwnershipUrl { get; set; }
 
         public string tokenMetadata { get; set; }

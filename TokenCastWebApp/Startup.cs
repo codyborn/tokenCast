@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,6 +24,19 @@ namespace TokenCast
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                options.AddDefaultPolicy(
+                    builder =>
+                    {
+                        builder.WithOrigins("https://tokencast.net",
+                                            "http://localhost",
+                                            "http://localhost:4200",
+                                            "https://canvia.art",
+                                            "https://my.canvia.art",
+                                            "https://canvia.netlify.app");
+                    });
+            });
             services.AddControllersWithViews();
         }
 
@@ -43,6 +57,7 @@ namespace TokenCast
             app.UseStaticFiles();
 
             app.UseRouting();
+            app.UseCors();
 
             app.UseAuthorization();
 
