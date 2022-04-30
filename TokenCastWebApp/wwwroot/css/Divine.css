@@ -1,0 +1,129 @@
+﻿
+body {
+    background-color:#333633 !important;
+    color: white !important;
+}
+
+.inputForm {
+    background-color: #333633 !important;
+}
+
+select {
+    background-color: #24241C !important;
+    color: white !important;
+}
+.slider {
+    background-color: #24241C !important;
+}
+
+    .slider::-webkit-slider-thumb {
+        background: #F4C459 !important;
+    }
+
+    .slider::-moz-range-thumb {
+        background: #24241C !important;
+    }
+
+#header {
+    background-color: #333633 !important;
+}
+h1 {
+    color: white !important;
+}
+    h1 a {
+        color: white !important;
+    }
+
+    h1 a:hover {
+        color: white !important;
+    }
+
+h2 {
+    color: white !important;
+}
+h3 {
+    color: #F4C459 !important;
+}
+
+h4 {
+    color: white !important;
+}
+    h4 a {
+        color: #F4C459 !important;
+    }
+
+        h4 a:hover {
+            color: #F4C459 !important;
+        }
+
+.sidebar-panel {
+    background: #24241C !important;
+}
+
+
+.burger-bar {
+    background: white !important;
+}
+
+#idBar {
+    color: #F4C459 !important;
+}
+
+.button {
+    border-color: #F4C459 !important;
+    border-radius: 10px !important;
+    color: #F4C459 !important;
+}
+
+    .button:hover {
+        background: #F4C459 !important;
+    }
+
+.defaultButton {
+    border-color: #F4C459 !important;
+}
+
+    .defaultButton:hover {
+        background: #F4C459 !important;
+        color: black !important;
+    }
+
+.positiveButton {
+    border-color: #F4C459 !important;
+    color: #F4C459 !important;
+}
+
+    .positiveButton:hover {
+        background: #F4C459 !important;
+        color: black !important;
+    }
+
+.negativeButton {
+    border-color: #F4C459 !important;
+    color: #F4C459 !important;
+}
+
+    .negativeButton:hover {
+        background: #F4C459 !important;
+        color: black !important;
+    }
+
+.filledButton {
+    border-color: #F4C459 !important;
+    background-color: #F4C459 !important;
+    color: black !important;
+}
+
+    .filledButton:hover {
+        border-color: #F4C459 !important;
+        background: #F4C459 !important;
+        color: black !important;
+    }
+
+.flexButton {
+    margin-right: 1em;
+}
+
+#demoLink {
+    color: #F4C459 !important;
+}

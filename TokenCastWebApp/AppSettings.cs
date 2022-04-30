@@ -9,6 +9,9 @@ namespace TokenCast
     public class AppSettings
     {
         public string StorageConnectionString { get; set; }
+        public string IPFSSecret { get; set; }
+        public string CanviaSecret { get; set; }
+        public string AlchemySecret { get; set; }
         public static AppSettings LoadAppSettings()
         {
             IConfigurationRoot configRoot = new ConfigurationBuilder()

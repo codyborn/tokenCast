@@ -1,4 +1,4 @@
-﻿
+
 @{
     ViewData["Title"] = "Account";
 }
@@ -11,36 +11,78 @@
             src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
             type="text/javascript">
     </script>
-    
+
     <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
     <script type="text/javascript" src="https://unpkg.com/evm-chains@0.2.0/dist/umd/index.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/@@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
     <script type="text/javascript" src="https://unpkg.com/fortmatic@2.0.6/dist/fortmatic.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>    
     <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
+
     <script src="~/js/vibrant.min.js"></script>
-    <script type="text/javascript" src="~/js/random-words.js"></script>
-    <script type="text/javascript" src="js/tezos-beacon.js"></script>
+    <script src="~/js/whiteLabelers.js"></script>
     <link rel="stylesheet" href="~/css/Hamburger.css">
     <link rel="stylesheet" href="~/css/Sidebar.css">
     <link rel="stylesheet" href="~/css/Button.css">
-
+    <link rel="stylesheet" href="~/css/MenuFont.css">
+    
+    <script type="text/javascript" src="js/random-words.js"></script>
+    <script type="text/javascript" src="js/tezos-beacon.js"></script>
     <script type="text/javascript">
+        (function (w) {
+            w.URLSearchParams = w.URLSearchParams || function (searchString) {
+                var self = this;
+                self.searchString = searchString;
+                self.get = function (name) {
+                    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(self.searchString);
+                    if (results == null) {
+                        return null;
+                    }
+                    else {
+                        return decodeURI(results[1]).toLowerCase() || 0;
+                    }
+                };
+            }
+        })(window)
+
+        function loadStylesheet(url) {
+            if (document.createStyleSheet) {
+                document.createStyleSheet(url);
+            } else {
+                var styles = "@@import url(" + url + ");";
+                var newSS = document.createElement('link');
+                newSS.rel = 'stylesheet';
+                newSS.href = 'data:text/css,' + escape(styles);
+                document.getElementsByTagName("head")[0].appendChild(newSS);
+            }
+        }
+
+        function setFavicon(url) {
+            var link = document.querySelector("link[rel~='icon']");
+            if (!link) {
+                link = document.createElement('link');
+                link.rel = 'icon';
+                document.getElementsByTagName('head')[0].appendChild(link);
+            }
+            link.href = url;
+        }
+
         web3Account = "";
         signature = "";
         defaultDeviceId = "";
         vueMounted = false
-        windowLoaded = false        
+        windowLoaded = false
+        outstandingSignatureRequest = false;
+        const Web3Modal = window.Web3Modal.default;
+        const WalletConnectProvider = window.WalletConnectProvider.default;
         ETHEREUM = "ETHEREUM";
         TEZOS = "TEZOS";
-        const Web3Modal = window.Web3Modal.default;        
-        const WalletConnectProvider = window.WalletConnectProvider.default;
-        
-         /**
+
+        /**
          * Setup the Web3Modal
          */
-         function web3ModalInit() {
+        function web3ModalInit() {
 
             console.log("Initializing example");
             console.log("WalletConnectProvider is", WalletConnectProvider);
@@ -127,12 +169,59 @@
         }        
         
         async function onConnectTezos() {
-            console.log("connecting tezos");
             app.network = TEZOS;
             await getTezosAccount();
             await LoginUser();
         }
-        
+
+        async function onLoad(mounted, loaded) {
+            vueMounted = vueMounted || mounted;
+            windowLoaded = windowLoaded || loaded;
+            if (vueMounted && windowLoaded) {
+                //Web3Modal adds the key "WEB3_CONNECT_CACHED_PROVIDER" in localStorage after a successful connection, value is the provider name
+                web3ModalCachedProvider = window.localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER")
+                if (web3ModalCachedProvider !== undefined && web3ModalCachedProvider !== "" && web3ModalCachedProvider !== null) {
+                    web3ModalInit();
+                    await initProvider();
+                    await initEthereumAccount();
+                    await GetAccountIfSignatureExists(ETHEREUM);
+                } else {
+                    await initTezosAccount(false)
+                    await GetAccountIfSignatureExists(TEZOS);
+                }
+            }
+        }
+
+        function checkWhitelabel() {
+            for (var whiteLabeler in whiteLabelers) {
+                if (window.location.origin.indexOf(whiteLabelers[whiteLabeler].url) >= 0) {
+                    app.whitelabeler = whiteLabeler;
+                    break;
+                }
+            }
+            if (!app.whitelabeled) {
+                var urlParams = new URLSearchParams(window.location.search);
+                whitelabeler = urlParams.get("whitelabel");
+                app.whitelabeler = whitelabeler;
+            }
+            if (app.whitelabeled) {
+                document.title = whiteLabelers[app.whitelabeler].title;
+                if (whiteLabelers[app.whitelabeler].css !== undefined) {
+                    loadStylesheet(window.location.origin + "/css/" + whiteLabelers[app.whitelabeler].css, document)
+                }
+                if (whiteLabelers[app.whitelabeler].favicon !== undefined) {
+                    setFavicon(window.location.origin + "/images/" + whiteLabelers[app.whitelabeler].favicon)
+                }
+            }
+
+        }
+
+        window.addEventListener('load', async () => {
+            checkWhitelabel();
+            web3ModalInit()
+            getLastUsedDevice();
+        }, false);
+
         async function initEthereumAccount() {
             app.providedWeb3 = new Web3(provider);
             web3Account = (await app.providedWeb3.eth.getAccounts())[0];
@@ -145,9 +234,8 @@
                 if (!app.dAppClient) {
                     app.dAppClient = await new beacon.DAppClient({ name: "TokenCast" });
                 }
-                console.log("initTezosAccount");
                 activeAccount = await app.dAppClient.getActiveAccount();
-
+                
                 if (!activeAccount && onConnect) {
                     console.log("getting permissions");
                     const permissions = await app.dAppClient.requestPermissions();
@@ -161,27 +249,7 @@
                 console.log("Tezos Account error:", error);
             }
         }
-        
-        async function onLoad(mounted, loaded) {
-            vueMounted = vueMounted || mounted;
-            windowLoaded = windowLoaded || loaded;
-            if (vueMounted && windowLoaded) {
-                //Web3Modal adds the key "WEB3_CONNECT_CACHED_PROVIDER" in localStorage after a successful connection, value is the provider name
-                web3ModalCachedProvider = window.localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER")
-                if (web3ModalCachedProvider !== undefined && web3ModalCachedProvider !== "" && web3ModalCachedProvider !== null) {
-                    web3ModalInit();
-                    await initProvider();
-                    await initEthereumAccount();
-                } else {
-                    await initTezosAccount(false)
-                }
-            }
-        }
-        
-        window.addEventListener('load', async () => {
-            web3ModalInit()
-        }, false);
-        
+
         async function LoginUser() {
             if (app.network === TEZOS) {
                 app.showSignMessage = true;
@@ -198,8 +266,21 @@
             }
         }
 
+        async function GetAccountIfSignatureExists(network) {
+            signature = getCachedSignature(web3Account, network);
+            if (signature !== undefined && signature !== "" && signature !== null) {
+                if (network === TEZOS) {
+                    app.tezosWalletConnected = true;
+                } 
+                app.showSignMessage = false;
+                app.network = network;
+                await app.FetchCanviaDevices();
+                await GetAccountInfo(true);
+            }
+        }
+
         async function AttemptReverse(address) {
-            let provider = new ethers.providers.Web3Provider(web3.currentProvider);
+            let provider = new ethers.providers.Web3Provider(app.providedWeb3.currentProvider);
             provider.lookupAddress(address).then(function (ensName) {
                 if (ensName != null) {
                     app.address = ensName;
@@ -207,34 +288,71 @@
             });
         }
 
+        function getSignatureKey(address, walletNetwork) {
+            return address + '_signature' + '_' + walletNetwork
+        }
+        function getCachedSignature(address, walletNetwork) {
+            var key = getSignatureKey(address, walletNetwork);
+            var cachedSignature = window.localStorage.getItem(key);
+            return cachedSignature
+        }
+        function cacheSignature(signature, address, walletNetwork) {
+            var key = getSignatureKey(address, walletNetwork);
+            window.localStorage.setItem(key, signature);
+        }
+
+        function storeLastUsedDevice(deviceId) {
+            app.selected = deviceId;
+            window.localStorage.setItem("lastDevice", deviceId);
+        }
+        function getLastUsedDevice() {
+            var deviceId = window.localStorage.getItem("lastDevice");
+            app.selected = deviceId;
+            return deviceId;
+        }
+
         async function GetSignature() {
-            console.log("GetSignature " + app.network);
-            if (app.network === TEZOS) {
-                try {
-                    console.log("Getting Tezos signature");
-                    //const response = await app.dAppClient.requestSignPayload({
-                    //    signingType: beacon.SigningType.RAW,
-                    //    payload: app.signatureMessage,
-                    // });
-                    app.tezosWalletConnected = true;
-                    // signature = response.signature;
-                } catch (e) {
-                    console.log(e);
+            signature = getCachedSignature(web3Account, app.network);
+            if (signature === undefined || signature === "" || signature === null) {
+                if (!outstandingSignatureRequest) {
+                    outstandingSignatureRequest = true;
+                    try {
+                        if (app.network === TEZOS) {
+                            try {
+                                console.log("Getting Tezos signature");
+                                //const response = await app.dAppClient.requestSignPayload({
+                                //    signingType: beacon.SigningType.RAW,
+                                //    payload: app.signatureMessage,
+                                //});
+                                app.tezosWalletConnected = true;
+                                //signature = response.signature;
+                            }
+                            catch (e) {
+                                console.log(e);
+                            }
+                         } else {
+                             console.log("Getting Ethereum signature");
+                             let plain = app.signatureMessage;
+                             let msg = app.providedWeb3.utils.asciiToHex(plain);
+                             let hash = app.providedWeb3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
+                             signature = await app.providedWeb3.eth.personal.sign(msg, web3Account);
+                         }
+                        cacheSignature(signature, web3Account, app.network)
+                    }
+                    finally {
+                        outstandingSignatureRequest = false;
+                    }
                 }
-            } else { 
-                console.log("Getting Ethereum signature");
-                let plain = app.signatureMessage;
-                let msg = app.providedWeb3.utils.asciiToHex(plain);
-                let hash = app.providedWeb3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
-                signature = await app.providedWeb3.eth.personal.sign(msg, web3Account);
+            }
+            if (signature !== undefined && signature !== "" && signature !== null) {
+                await app.FetchCanviaDevices();
             }
             await GetAccountInfo(true);
         }
 
         async function GetAccountInfo(onPageLoad) {
-
             // Create account if not exist
-            $.get("Account/Details?address=" + web3Account + "&signature=" + signature + "&network=" + app.network, function (accountDetails) {
+            $.get("Account/Details?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler, function (accountDetails) {
                 if (accountDetails != null) {
                     app.showSignMessage = false;
                     app.account = accountDetails;
@@ -242,6 +360,8 @@
                     if (onPageLoad) {
                         CheckAddDevice(accountDetails);
                     }
+                } else {
+                    console.log("Error fetching account details");
                 }
             });
         }
@@ -268,7 +388,7 @@
         }
 
         async function AddDevice(deviceId) {
-            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId,
+            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to link device to account");
@@ -282,8 +402,22 @@
                 });
         }
 
-        async function AddDeviceAlias(deviceId, alias) {
-            $.post("Account/AddDeviceAlias?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&alias=" + alias,
+        async function AddCanviaDevices(code, address) {
+            $.post("Account/AddCanviaDevices?address=" + address + "&signature=" + signature + "&network=" + app.network + "&code=" + code + "&whitelabeler=" + app.whitelabeler,
+                function (result) {
+                    if (result === false) {
+                        console.log("Failed to link Canvia account");
+                    }
+                    else {
+                        console.log("Successfully linked Canvia account. Devices Added!");
+                        app.showAddDeviceInput = false;
+                        GetAccountInfo(true);
+                    }
+                });
+        }
+
+        async function UpdateDevice(deviceId, alias, frequency) {
+            $.post("Account/UpdateDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&alias=" + alias + "&frequency=" + frequency + "&whitelabeler=" + app.whitelabeler,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to add device alias");
@@ -293,10 +427,22 @@
                         GetAccountInfo();
                     }
                 });
+        }        
+        
+        async function GetDeviceRotationFrequency(deviceId) {
+            $.post("Account/GetDeviceFrequency?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
+                function (result) {
+                    if (result == null) {
+                        console.log("Failed to fetch device rotation frequency");
+                    }
+                    else {
+                        app.rotationFrequency = parseInt(result);
+                    }
+                });
         }
 
         async function DeleteDevice(deviceId) {
-            $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId,
+            $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to delete device");
@@ -308,8 +454,8 @@
                 });
         }
 
-        async function RemoveToken(deviceId) {
-            $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId,
+        async function RemoveAllTokens(deviceId) {
+            $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
                 function (result) {
                     if (result == false) {
                         alert("Remove Failed");
@@ -318,13 +464,40 @@
                         alert("Removed Token!");
                     }
                 });
+        }        
+        
+        async function RemoveSingleToken(deviceId, index) {
+            $.post("Account/RemoveIndexFromQueue?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&index=" + index + "&whitelabeler=" + app.whitelabeler,
+                function (result) {
+                    if (result == false) {
+                        alert("Remove Failed");
+                    }
+                    else {
+                        alert(`Removed Token number ${index + 1}!`);
+                        var parsedTokens = JSON.parse(result);
+                        app.tokensByDevice = parsedTokens;
+                    }
+                });
+        }
+        
+        async function GetCastedTokensForDevice(deviceId) {
+            $.post("Account/GetCastedTokensForDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
+                function (result) {
+                    if (result == false) {
+                        console.log("Could not get tokens for device");
+                    }
+                    else {
+                        var parsedTokens = JSON.parse(result);
+                        app.tokensByDevice = parsedTokens;
+                        console.log("Fetched tokens on queue! " + parsedTokens)
+                    }
+            });
         }
 
         async function GetTokens() {
-
             app.showFetchingTokensMessage = true;
-
-            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature + "&network=" + app.network, function (tokenResponse) {
+            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler, function (tokenResponse) {
+                app.showNoTokensMessage = false;
                 if (tokenResponse == "") {
                     // no tokens found
                     app.showNoTokensMessage = true;
@@ -390,7 +563,7 @@
 
             tokenPreviewCanvas.width = tokenPreviewContainer.width;
             tokenPreviewCanvas.height = tokenPreviewContainer.height;
-            fitImageOn(tokenPreviewCanvas, tokenPreviewContainer, tokenPreviewContainer.style.objectFit == "contain");
+             fitImageOn(tokenPreviewCanvas, tokenPreviewContainer, tokenPreviewContainer.style.objectFit == "contain");
             var p = tokenPreviewCanvas.getContext('2d')
                 .getImageData(x, y, 1, 1).data;
 
@@ -454,6 +627,15 @@
 </head>
     <body>
         <style>
+            h1 a {
+                text-decoration: none;
+                color: black;
+            }
+            h1 a:hover {
+                text-decoration: none;
+                color: black;
+            }
+
             .center {
                 margin-left: auto;
                 margin-right: auto;
@@ -495,10 +677,14 @@
                 margin: 5px;
                 border: 1px solid #ccc;
                 float: left;
+                border-radius: 5px;
             }
 
                 div.gallery:hover {
-                    border: 1px solid #777;
+                      box-shadow: 0px 0px 40px rgba(0,0,0,0.4);
+                      transform: scale(1.01,1.01);
+                      border-radius: 5px;
+                      transition: opacity 0.3s ease-in-out;
                 }
 
                 div.gallery img {
@@ -506,16 +692,44 @@
                     height: 250px;
                     padding: 15px;
                 }
+                div.gallery video {
+                    width: auto;
+                    height: 250px;
+                    padding: 15px;
+                }
+                           
+            div.queueGallery {
+                margin: 5px;
+                border: 1px solid #ccc;
+                float: left;
+                border-radius: 5px;
+            }
+                div.queueGallery:hover {
+                    box-shadow: 0px 0px 40px rgba(0,0,0,0.4);
+                    transform: scale(1.01,1.01);
+                    border-radius: 5px;
+                    transition: opacity 0.3s ease-in-out;
+                }                          
+                div.queueGallery img {
+                    width: 100px;
+                    height: 100px;
+                }
+                div.queueGallery video {
+                    width: 100px;
+                    height: 100px;
+                }
 
             div.desc {
                 padding: 15px;
                 text-align: center;
+                font-size: 18px;
+                color: #679289;
             }
 
             .statusMessage {
                 margin: 0;
                 position: absolute;
-                top:50%;
+                top: 50%;
                 -ms-transform: translateY(-50%);
                 transform: translateY(-50%);
                 font-size: x-large;
@@ -652,10 +866,22 @@
                     padding: 1em;
                 }
             }
+            
+            /*Hide arrow keys from number inputs*/
+            /* Chrome, Safari, Edge, Opera */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }                    
+            /* Firefox */
+            input[type=number] {
+                -moz-appearance: textfield;
+            }
         </style>
         <div id="app" style="text-align:center;">
             <span id="header">
-                <h1>TokenCast</h1>
+                <h1><a v-bind:href="homeUrl"><img id="logoImg" v-if="hasLogo" v-bind:src="logoImageUrl"></img><span v-if="!hasLogo">{{ title }}</span></a></h1>
             </span>
             <div id="burger"
                  :class="{ 'active' : showHamburger }"
@@ -700,6 +926,11 @@
                                         </div>
                                     </transition>
                                 </li>
+                                <li style="padding-top:1em">
+                                    <span style="cursor:pointer" v-on:click="SignOut">
+                                        Sign Out
+                                    </span>
+                                </li>
                             </ul>
                         </slot>
                     </div>
@@ -714,21 +945,28 @@
             <div class="tokenGallery">
                 <div v-if="tokensLoaded">
                     <h3>
-                        Art you own
+                        Browse your NFTs
                     </h3>
                 </div>
                 <div class="inlineStatusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
                     Unable to find any tokens
                     <div>Get yours at</div>
-                    <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+                    <div v-if="network === 'ETHEREUM'" style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
                         <div style="width:40%;"><a class="button center positiveButton" href="https://knownorigin.io/">KnownOrigin</a></div>
                         <div style="width:40%;"><a class="button center positiveButton" href="https://superrare.co/">SuperRare</a></div>
                         <div style="width:40%;"><a class="button center positiveButton" href="https://opensea.io/">OpenSea</a></div>
                     </div>
+                    <div v-if="network === 'TEZOS'" style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+                        <div style="width:40%;" class="center">
+                            <a class="button center positiveButton" href="https://www.hicetnunc.xyz/">
+                                <img src="https://www.hicetnunc.xyz/hen-pride.gif" style="width: 11em; height: auto; ">
+                             </a></div>
+                    </div>
                 </div>
-                <div v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;" v-on:click="TokenSelected(token, true)">
-                    <a>
-                        <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
+                <div v-if="tokensLoaded" v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;" v-on:click="TokenSelected(token, true)">
+                    <a v-lazyload>
+                        <div class="loader center"></div>
+                        <img  :data-url="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 95%">
                     </a>
                     <div class="desc">{{ token.name }}</div>
                 </div>
@@ -739,12 +977,12 @@
             <div class="tokenGallery">
                 <div v-if="tokensLoaded" style="position:relative; top: 1em; z-index:-1;">
                     <h3>
-                        Art from the community
+                        Discover new NFTs
                     </h3>
                 </div>
-                <div v-for="token in communityTokens" class="gallery" style="width: 48%; min-width: 250px; position:relative; top: 1em;" v-on:click="TokenSelected(token, false)">
+                <div v-if="tokensLoaded" v-for="token in communityTokens" class="gallery" style="width: 48%; min-width: 250px; position:relative; top: 1em;" v-on:click="TokenSelected(token, false)">
                     <a>
-                        <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 99%">
+                        <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 95%">
                     </a>
                     <div class="desc">{{ token.name }}</div>
                 </div>
@@ -753,24 +991,61 @@
             <div class="inputForm" v-if="showAddDeviceInput">
                 <h3 style="padding-bottom: 1em;">Register New Device</h3>
                 <a id="demoLink" v-on:click="AddDemoDeviceWithForm()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Try a demo instead</a>
+                <a id="canviaDeviceLink" v-if="!whitelabeled" v-on:click="OAuthWithCanvia()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Connect with Canvia</a>
                 <span class="formElement">DeviceId</span>
                 <input id="deviceIdInput" type="text" placeholder="Device Id (ex: zero_one_two_three)" style="width: 97%; max-width: 28em;" />
                 <button class="button center positiveButton largeButton" v-on:click="AddDeviceWithForm()">Add</button>
             </div>
 
             <div class="inputForm" v-if="showDeviceEdit">
-                <h3 style="padding-bottom: 1em;">Device</h3>
-                <span class="formElement">DeviceId</span>
-                {{ selectedDeviceId }}
-                <span class="formElement">
-                    Device friendly name
-                </span>
-                <input type="text" id="deviceAliasInput" placeholder="ex. Living room" :value="selectedDeviceAlias" style="width:16em" />
-                <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
-                    <div style="width:40%;"><button class="button flexButton negativeButton" id="deleteDeviceButton" v-on:click="DeleteDeviceWithForm()">Delete</button></div>
-                    <div style="width:40%;"><button class="button flexButton defaultButton" id="clearDeviceButton" v-on:click="ClearDeviceWithForm()">Clear</button></div>
-                    <div style="width:40%;"><button class="button flexButton defaultButton" id="shareDeviceButton" v-on:click="ShareDeviceWithForm()">Share</button></div>
-                    <div style="width:40%;"><button class="button positiveButton" id="updateDeviceButton" v-on:click="UpdateDeviceWithForm()">Update</button></div>
+                <h1 style="padding-bottom: 1em;">Device</h1>
+                <div class="formElement">
+                    <h4 class="menuFont">Name</h4>
+                    <input type="text" id="deviceAliasInput" placeholder="ex. Living room" :value="selectedDeviceAlias" style="width:16em" />
+                </div>
+                <div style="padding-top: 1em">
+                    <h4 class="menuFont">Options</h4>
+                    <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
+                        <div style="width:40%;"><button class="button flexButton negativeButton" id="deleteDeviceButton" v-on:click="DeleteDeviceWithForm()">Delete</button></div>
+                        <div style="width:40%; border-color: darkred;"><button class="button flexButton defaultButton" id="clearDeviceButton" v-on:click="ClearDeviceWithForm()">Clear</button></div>
+                        <div style="width:40%; border-color: darkred;"><button class="button flexButton defaultButton" id="shareDeviceButton" v-on:click="ShareDeviceWithForm()">Share</button></div>
+                        <div style="width:40%;"><button class="button positiveButton" id="updateDeviceButton" v-on:click="UpdateDeviceWithForm()">Update</button></div>
+                    </div>
+                </div>
+
+                <div v-if="tokensByDevice.length > 0 && !isCanviaDevice" style="padding-top: 1em">
+                    <span><h4 class="menuFont">On Queue <i>(select to remove)</i></h4></span>
+                </div>
+                <div>
+                    <div v-if="!isCanviaDevice"
+                         v-for="(token, index) in tokensByDevice"
+                         class="queueGallery"
+                         style="width: 100px; height: 100px; display: flex;"
+                         :key="token.tokenImageUrl">
+                        <a v-lazyload>
+                          <img v-on:click="RemoveTokenFromDevice(index);" v-if="token.tokenImageUrl.indexOf('mp4') === -1" 
+                                 :data-url="token.tokenImageUrl" v-bind:alt="token.tokenName" width="100" height="100" style="padding-right:10px"/>
+                            <video id="video"
+                                   v-on:click="RemoveTokenFromDevice(index);"
+                                   v-if="token.tokenImageUrl.indexOf('mp4') > -1"
+                                   width="100" height="100"
+                                   style="padding-right:10px;"
+                                   loop autoplay muted>
+                                <source :src="token.tokenImageUrl" type="video/mp4"/>
+                            </video>
+                        </a>
+                    </div>
+                </div>
+                <div v-if="!isCanviaDevice" style="padding-top: 1em">
+                    <div class="formElement">
+                        <h4 class="menuFont">Queue Rotation Frequency</h4>
+                        <input type="range" id="frequencyOfRotation" min="1" max="10" 
+                               v-on:input="GetLogOf()"
+                               :value=Math.log2(rotationFrequency)
+                               style="width: 50%"
+                        >
+                        <output id="frequencyOutputValue">{{ rotationFrequency }}</output><b> minutes</b>
+                    </div>
                 </div>
             </div>
 
@@ -778,7 +1053,7 @@
             </div>
 
             <div class="inputForm" v-if="showTokenDisplayOptions">
-                <h3 style="padding-bottom: 1em;">Cast Token</h3>
+                <h2 style="padding-bottom: 1em;">Cast your token</h2>
                 <div class="center"
                      style="width:100%"
                      v-bind:style="{
@@ -802,7 +1077,7 @@
                      }" />
                 </div>
                 <div style="padding-top:3em; text-align:left;">
-                    <div>Background color</div>
+                    <div class="menuFont">Background color</div>
                     <div v-for="color in backgroundColorPallete"
                          class="gallery"
                          v-on:click="ColorSelected(color)"
@@ -821,21 +1096,21 @@
                     </div>
                 </div>
                 <div style="padding-top:1em; text-align:left;">
-                    <div>Border width percentage</div>
+                    <div class="menuFont">Border width percentage</div>
                     <div style="width:100%">
-                        <input type="range" min="0" max="25" value="5" class="slider" v-model="borderWidthPercent">
+                        <input type="range" min="0" max="35" value="5" class="slider" v-model="borderWidthPercent">
                     </div>
-                    <div>Fit screen</div>
+                    <div class="menuFont">Fit screen</div>
                     <input type="checkbox" v-model="fitScreen" v-on:click="borderWidthPercent = !fitScreen? 0 : borderWidthPercent" />
-                    <div>Rotate orientation</div>
+                    <div class="menuFont">Rotate orientation</div>
                     <input type="checkbox" v-model="orientationVertical" />
                     <span v-if="displayingOwnedToken">
-                        <div>Show Metadata</div>
+                        <div class="menuFont">Show Metadata</div>
                         <input type="checkbox" v-model="showMetadata" />
                     </span>
                 </div>
-                <div style="padding-top:1em; text-align:left;">Device</div>
-                <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em;">
+                <div style="padding-top:1em; text-align:left;" class="menuFont">Device</div>
+                <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em; " v-model="selected">
                     <option v-for="device in account.devices" :value="device">
                         {{ GetDeviceAlias(device) }}
                     </option>
@@ -852,7 +1127,7 @@
 
         <script type="text/javascript">
             web3Account = "";
-            signature = "";
+            signature = ""
 
             var app = new Vue({
                 el: '#app',
@@ -865,6 +1140,7 @@
                     showSignMessage: true,
                     showFetchingTokensMessage: false,
                     tokensLoaded: false,
+                    tokensByDevice: [],
                     showNoTokensMessage: false,
                     showAddDeviceButton: false,
                     showAddDeviceInput: false,
@@ -883,13 +1159,20 @@
                     showMetadata: true,
                     selectedDeviceId: '',
                     selectedDeviceAlias: '',
+                    isCanviaDevice: '',
+                    rotationFrequency: '',
                     showDeviceEdit: false,
                     eyedropperSelectedColor: "#ffffff",
                     eyedropperHoverColor: "#ffffff",
                     displayingOwnedToken: true,
                     providedWeb3: '',
                     dAppClient: '',
-                    tezosWalletConnected: false
+                    tezosWalletConnected: false,
+                    whitelabeler: '',
+                    selected: ''
+                },
+                mounted: async function () {
+                    await onLoad(true, false);                      
                 },
                 computed: {
                     walletConnected: function () {
@@ -911,7 +1194,7 @@
                     shortenedAddress: function () {
                         var addressLength = this.address.length;
                         if (addressLength > 20) {
-                            return this.address.substring(0, 7) + "..." + this.address.substring(addressLength - 8, addressLength - 1);
+                            return this.address.substring(0, 7) + "..." + this.address.substring(addressLength - 8, addressLength);
                         }
                         return this.address;
                     },
@@ -934,6 +1217,39 @@
                         else {
                             return "url('images/eye_dropper.png')";
                         }
+                    },
+                    whitelabeled: function () {
+                        return !!this.whitelabeler && !!whiteLabelers[this.whitelabeler]
+                    },
+                    title: function () {
+                        if (!this.whitelabeled) {
+                            return "TokenCast";
+                        }
+                        return whiteLabelers[this.whitelabeler].title
+                    },
+                    homeUrl: function () {
+                        if (!this.whitelabeled) {
+                            return "https://tokencast.net";
+                        }
+                        return whiteLabelers[this.whitelabeler].url + "/account?whitelabel=" + this.whitelabeler
+                    },
+                    hasLogo: function () {
+                        if (!this.whitelabeled) {
+                            return false;
+                        }
+                        return whiteLabelers[this.whitelabeler].logo !== undefined
+                    },
+                    logoImageUrl: function () {
+                        if (!this.whitelabeled) {
+                            return false;
+                        }
+                        return "images/" + whiteLabelers[this.whitelabeler].logo
+                    },
+                    signatureMessage: function () {
+                        if (!this.whitelabeled || !whiteLabelers[this.whitelabeler].signatureMessage) {
+                            return 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
+                        }
+                        return whiteLabelers[this.whitelabeler].signatureMessage
                     }
                 },
                 methods: {
@@ -943,6 +1259,31 @@
                     TezosConnect: function () {
                         onConnectTezos();
                     },
+                    SignOut: async function () {
+                        this.isBurgerActive = false;
+                        await web3Modal.clearCachedProvider();
+                        this.providedWeb3 = '';
+                        this.tokensLoaded = false;
+                        this.tezosWalletConnected = false;
+                        this.showNoTokensMessage = false;
+                        window.localStorage.removeItem(getSignatureKey(app.address, app.network));
+                        if (app.dAppClient) {
+                            await app.dAppClient.clearActiveAccount();
+                        }
+                    },
+                    FetchCanviaDevices: async function () {
+                        const queryString = window.location.search;
+                        const urlParams = new URLSearchParams(queryString);
+                        const code = urlParams.get('code');
+                        if (code !== null) {
+                            await AddCanviaDevices(code, app.address);
+                        }                      
+                    },
+                    OAuthWithCanvia: function () {
+                        this.showAddDeviceInput = false;
+                        const canviaLoginlink = "https://prod.palacio.life/backend/oauth/login.html?client_id=659fb248-18dc-497e-9b31-3419935e555f&grant_type=authorization_code&response_type=code";                         
+                        window.open(canviaLoginlink);
+                    },                                          
                     TokenSelected: function (token, ownedToken) {
                         this.backgroundColorPallete = [];
                         this.selectedBackgroundColor = "#ffffff";
@@ -973,8 +1314,11 @@
                     },
                     DeviceSelected: function (deviceId) {
                         this.selectedDeviceAlias = this.GetDeviceAlias(deviceId);
+                        this.isCanviaDevice = this.GetIsCanviaDevice(this.selectedDeviceAlias);
                         this.selectedDeviceId = deviceId;
                         this.showDeviceEdit = true;
+                        GetDeviceRotationFrequency(deviceId)
+                        this.GetTokensOnQueue()
                     },
                     GetDeviceAlias: function (deviceId) {
                         if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
@@ -982,11 +1326,19 @@
                         }
 
                         return deviceId;
+                    },                    
+                    GetIsCanviaDevice: function (deviceId) {
+                        if (this.account.canviaAccount.canviaDevices && deviceId in this.account.canviaAccount.canviaDevices) {
+                            return true
+                        }
+
+                        return false;
                     },
                     CastToken: function () {
                         this.showTokenDisplayOptions = false;
                         var token = this.selectedToken;
                         var device = document.getElementById("deviceSelection").value;
+                        storeLastUsedDevice(device)
                         // Prefer animation if it exists
                         var tokenImageUrl = token.animation_url
                         if (!token.animation_url) {
@@ -1001,24 +1353,26 @@
                         {
                             id: device,
                             currentDisplay: {
+                                tokenName: this.showMetadata? token.name : "",
                                 tokenOwnershipUrl: this.showMetadata? token.permalink : "",
                                 tokenMetadata: this.showMetadata? token.description : "",
                                 tokenImageUrl,
                                 borderWidthPercent: this.borderWidthPercent,
+                                rotationFrequency: this.rotationFrequency,
                                 fitScreen: this.fitScreen,
                                 backgroundColor: this.selectedBackgroundColor,
                                 orientationVertical: this.orientationVertical,
                                 currentPrice: token.current_price
                             }
                         }
-                        $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network,
+                        $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
                             content,
                             function (result) {
                                 if (result == false) {
                                     alert("Cast Failed");
                                 }
                                 else {
-                                    alert("Casted Token!");
+                                    alert("Token Added To Queue!");
                                 }
                             });
                     },
@@ -1041,7 +1395,12 @@
                         this.showDeviceEdit = false;
                         var deviceId = this.selectedDeviceId;
                         var alias = document.getElementById("deviceAliasInput").value;
-                        AddDeviceAlias(deviceId, alias);
+                        var frequency = document.getElementById("frequencyOutputValue").value;
+                        UpdateDevice(deviceId, alias, frequency);
+                    },                    
+                    GetTokensOnQueue: function () {
+                        var deviceId = this.selectedDeviceId;
+                        GetCastedTokensForDevice(deviceId);
                     },
                     DeleteDeviceWithForm: function () {
                         this.showDeviceEdit = false;
@@ -1050,7 +1409,11 @@
                     },
                     ClearDeviceWithForm: function () {
                         var deviceId = this.selectedDeviceId;
-                        RemoveToken(deviceId);
+                        RemoveAllTokens(deviceId);
+                    },                    
+                    RemoveTokenFromDevice: function (index) {
+                        var deviceId = this.selectedDeviceId;
+                        RemoveSingleToken(deviceId, index);
                     },
                     ShareDeviceWithForm: function () {
                         var deviceId = this.selectedDeviceId;
@@ -1094,8 +1457,65 @@
                     },
                     TokenPreviewMouseout: function () {
                         this.eyedropperHoverColor = this.eyedropperSelectedColor;
+                    },
+                    GetLogOf: function (){
+                        var input = document.getElementById("frequencyOfRotation")
+                        this.rotationFrequency = Math.pow(2, input.value)
+                    }
+                },
+                directives: {
+                    lazyload: {
+                        inserted: function(el) {
+                            function loadImage() {
+                                const imageElement = Array.from(el.children).find(
+                                    el => el.nodeName === "IMG"
+                                );
+                                if (imageElement) {
+                                    imageElement.addEventListener("load", () => {
+                                        setTimeout(() => el.classList.add("loaded"), 100);
+                                    });
+                                    imageElement.addEventListener("error", () => console.log("error"));
+                                    imageElement.src = imageElement.dataset.url;
+                                }
+                                const loaderElement = Array.from(el.children).find(
+                                    el => el.nodeName === "DIV"
+                                );
+
+                                if (loaderElement) {
+                                    loaderElement.style.display = "none"
+                                }
+                            }
+
+                            function handleIntersect(entries, observer) {
+                                entries.forEach(entry => {
+                                    if (entry.isIntersecting) {
+                                        loadImage();
+                                        observer.unobserve(el);
+                                    }
+                                });
+                            }
+
+                            function createObserver() {
+                                const options = {
+                                    root: null,
+                                    threshold: "0"
+                                };
+                                const observer = new IntersectionObserver(handleIntersect, options);
+                                observer.observe(el);
+                            }
+                            if (window["IntersectionObserver"]) {
+                                createObserver();
+                            } else {
+                                loadImage();
+                            }
+                        }
                     }
                 }
             });
+
+
+            window.onload = function () {
+                onLoad(false, true);
+            }
         </script>
     </body>

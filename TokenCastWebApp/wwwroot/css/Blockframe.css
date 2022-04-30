@@ -1,0 +1,87 @@
+﻿#logoImg {
+    height: 2em !important;
+}
+    .slider::-webkit-slider-thumb {
+        background: #0082cc !important;
+    }
+
+h3 {
+    color: #0082cc !important;
+}
+
+    h4 a {
+        color: #0082cc !important;
+    }
+
+        h4 a:hover {
+            color: #0082cc !important;
+        }
+
+#idBar {
+    color: #0082cc !important;
+}
+
+.button {
+    border-color: #0082cc !important;
+    color: #0082cc !important;
+}
+
+    .button:hover {
+        background: #0082cc !important;
+    }
+
+.defaultButton {
+    border-color: #0082cc !important;
+}
+
+    .defaultButton:hover {
+        background: #0082cc !important;
+        color: black !important;
+    }
+
+.positiveButton {
+    border-color: #0082cc !important;
+    color: #0082cc !important;
+}
+
+    .positiveButton:hover {
+        background: #0082cc !important;
+        color: black !important;
+    }
+
+.negativeButton {
+    border-color: #0082cc !important;
+    color: #0082cc !important;
+}
+
+    .negativeButton:hover {
+        background: #0082cc !important;
+        color: black !important;
+    }
+
+.filledButton {
+    border-color: #0082cc !important;
+    background-color: #0082cc !important;
+    color: black !important;
+}
+
+    .filledButton:hover {
+        border-color: #0082cc !important;
+        background: #0082cc !important;
+        color: black !important;
+    }
+
+div.desc {
+    color: black !important;
+}
+.menuFont {
+    color: black !important;
+}
+
+#demoLink {
+    color: #0082cc !important;
+}
+
+#header {
+    background-color: #0082cc !important;
+}

@@ -10,6 +10,7 @@
     font-family: Roboto,sans-serif;
     border: 2px solid;
     margin-top: 2em;
+    cursor: pointer;
 }
 
     .button:hover {

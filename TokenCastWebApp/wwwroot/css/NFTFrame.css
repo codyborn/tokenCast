@@ -1,0 +1,79 @@
+﻿#logoImg {
+    height: 2em !important;
+}
+    .slider::-webkit-slider-thumb {
+        background: #ED1C24 !important;
+    }
+
+#idBar {
+    color: white !important;
+}
+
+.button {
+    border-color: #ED1C24 !important;
+    color: #ED1C24 !important;
+}
+
+    .button:hover {
+        background: #ED1C24 !important;
+    }
+
+.defaultButton {
+    border-color: #ED1C24 !important;
+}
+
+    .defaultButton:hover {
+        background: #ED1C24 !important;
+        color: black !important;
+    }
+
+.positiveButton {
+    border-color: #ED1C24 !important;
+    color: #ED1C24 !important;
+}
+
+    .positiveButton:hover {
+        background: #ED1C24 !important;
+        color: white !important;
+    }
+
+.negativeButton {
+    border-color: #ED1C24 !important;
+    color: #ED1C24 !important;
+}
+
+    .negativeButton:hover {
+        background: #ED1C24 !important;
+        color: white !important;
+    }
+
+.filledButton {
+    border-color: #ED1C24 !important;
+    background-color: #ED1C24 !important;
+    color: white !important;
+}
+
+    .filledButton:hover {
+        border-color: #ED1C24 !important;
+        background: #ED1C24 !important;
+        color: white !important;
+    }
+
+div.desc {
+    color: black !important;
+}
+.menuFont {
+    color: black !important;
+}
+
+#demoLink {
+    color: #ED1C24 !important;
+}
+
+.sidebar-panel {
+    background: #333633 !important;
+}
+
+#header {
+    background-color: #ED1C24 !important;
+}

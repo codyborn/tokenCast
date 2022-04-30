@@ -1,31 +1,96 @@
 ﻿    <head>
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+    <script src="~/js/whiteLabelers.js"></script>
     <script type="text/javascript">
+        (function (w) {
+            w.URLSearchParams = w.URLSearchParams || function (searchString) {
+                var self = this;
+                self.searchString = searchString;
+                self.get = function (name) {
+                    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(self.searchString);
+                    if (results == null) {
+                        return null;
+                    }
+                    else {
+                        return decodeURI(results[1]) || 0;
+                    }
+                };
+            }
+        })(window)
+
+        function loadStylesheet(url) {
+            if (document.createStyleSheet) {
+                document.createStyleSheet(url);
+            } else {
+                var styles = "@@import url(" + url + ");";
+                var newSS = document.createElement('link');
+                newSS.rel = 'stylesheet';
+                newSS.href = 'data:text/css,' + escape(styles);
+                document.getElementsByTagName("head")[0].appendChild(newSS);
+            }
+        }
+
         var loadTimeInTicks = (new Date().getTime() * 10000) + 621355968000000000;
         tokenOwnershipQR = null;
 
         var body = document.body,
             html = document.documentElement;
 
-        docHeight = Math.max( body.scrollHeight, body.offsetHeight, 
+        docHeight = Math.max(body.scrollHeight, body.offsetHeight,
             html.clientHeight, html.scrollHeight, html.offsetHeight);
-        docWidth = Math.max( body.scrollWidth, body.offsetWidth, 
+        docWidth = Math.max(body.scrollWidth, body.offsetWidth,
             html.clientWidth, html.scrollWidth, html.offsetWidth);
 
         var deviceId = "";
+
+        function checkWhitelabel() {
+            for (var whiteLabeler in whiteLabelers) {
+                if (window.location.origin.indexOf(whiteLabelers[whiteLabeler].url) >= 0) {
+                    app.whitelabeler = whiteLabeler;
+                    break;
+                }
+            }
+            if (!app.whitelabeled) {
+                var urlParams = new URLSearchParams(window.location.search);
+                whitelabeler = urlParams.get("whitelabel");
+                app.whitelabeler = whitelabeler;
+            }
+            if (app.whitelabeled) {
+                document.title = whiteLabelers[app.whitelabeler].title;
+                if (whiteLabelers[app.whitelabeler].css !== undefined) {
+                    loadStylesheet(window.location.origin + "/css/" + whiteLabelers[app.whitelabeler].css, document)
+                }
+                if (whiteLabelers[app.whitelabeler].favicon !== undefined) {
+                    setFavicon(window.location.origin + "/images/" + whiteLabelers[app.whitelabeler].favicon)
+                }
+            }
+
+        }
 
         function onLoad() {
             // Get device id from QS param
             var urlParams = new URLSearchParams(window.location.search);
             deviceId = urlParams.get("deviceId");
             app.deviceId = deviceId;
+            checkWhitelabel();
+            $.post("Device/SetDeviceWhitelabeler?deviceId=" + deviceId + "&whitelabel=" + whitelabeler);
         }
 
         function tryGetContent() {
 
             $.get("Device/DisplayContent?deviceId=" + deviceId, function (content) {
-                if (content != null) {
+                if (content != null &&
+                    ((content.castedTokens !== null && content.castedTokens.length > 0) ||
+                        content.currentDisplay !== null)) {
+
+                    app.hideToken = false;
+
+                    if (content.castedTokens !== null) {
+                        const rotationInMins = content.frequencyOfRotation != null ? content.frequencyOfRotation : 5;;
+                        const tokenIndex = Math.floor(Date.now() / 1000 / 60 / rotationInMins) % content.castedTokens.length;
+                        content.currentDisplay = content.castedTokens[tokenIndex]
+                    }
                     // Ignore if already displaying token
                     if (app.display.tokenImageUrl == content.currentDisplay.tokenImageUrl &&
                         app.display.borderWidthPercent == content.currentDisplay.borderWidthPercent &&
@@ -37,7 +102,6 @@
                         return;
                     }
 
-                    app.hideToken = false;
                     app.display = content.currentDisplay;
                     if (content.currentDisplay.backgroundColor == null) {
                         app.tokenBackgroundColor = "#ffffff"
@@ -50,12 +114,19 @@
                     app.borderWidthInPx = borderWidthInPx + "px";
                     var borderHeight = borderWidthInPx * 2;
                     app.tokenHeight = (docHeight - borderHeight) + "px";
-                    app.tokenWidth = docWidth + "px";
+                    app.tokenWidth = (docWidth - borderHeight) + "px";
 
                     var video = document.getElementById('video');
-                    video.pause();
-                    video.load();
-                    video.play();
+                    if (video) {
+                        try {
+                            video.load();
+                            video.pause();
+                            video.play();
+                        }
+                        catch (error) {
+                            console.log(error)
+                        }
+                    }
                 }
                 else {
                     app.hideToken = true;
@@ -64,7 +135,7 @@
         }
 
         function getLastSyncTime() {
-            
+
             $.get("Device/LastUpdateTime?deviceId=" + deviceId, function (content) {
                 if (content > loadTimeInTicks) {
                     location.reload();
@@ -92,6 +163,7 @@
                 background-position: center;
                 background-repeat: no-repeat;
                 color: #FFFFFF;
+                position: absolute;
             }
 
             #metadataContainer {
@@ -142,35 +214,38 @@
                 height:docHeight
              }">
 
-
             <span id="header" v-if="hideToken">
-                <h1>TokenCast</h1>
+                <h1><img id="logoImg" v-if="hasLogo" v-bind:src="logoImageUrl"></img><span v-if="!hasLogo">{{ title }}</span></h1>
             </span>
 
-            <div v-if="!hideToken" style="text-align:center">
-
+            <div v-if="!hideToken" style="text-align: center; width: 100vw; height: 100vh; position:absolute; top:0em; left:0em;">
                 <div id="tokenContainer"
                      class="center"
                      v-bind:style="{
                          backgroundImage: isVideo? '' : 'url(' + display.tokenImageUrl + ')',
                          backgroundColor: tokenBackgroundColor,
-                         height: display.orientationVertical? tokenWidth : tokenHeight,
-                         width: display.orientationVertical? tokenHeight : 'auto',
+                         height: !isVideo && display.orientationVertical? '100vw' : tokenHeight,
+                         width: !isVideo && display.orientationVertical? '100vh' : tokenWidth,
                          backgroundSize: display.fitScreen? 'cover' : 'contain',
-                         transform: display.orientationVertical? 'rotate(90deg)' : 'none',
-                         transformOrigin: display.orientationVertical?  'top left' : 'initial',
-                         position: 'relative',
-                         left: display.orientationVertical? '79.65%' : '0px'
+                         transform: !isVideo && display.orientationVertical? 'rotate(90deg)' : 'none',
+                         transformOrigin: display.orientationVertical? 'bottom left' : 'none',
+                         marginLeft: !isVideo && display.fitScreen && display.orientationVertical? '0em' : !display.fitScreen && !display.orientationVertical? borderWidthInPx : 'initial',
+                         marginTop: !isVideo && display.orientationVertical? '-100vw': !display.fitScreen && !display.orientationVertical? borderWidthInPx : 'initial'
                  }">
-                    <video
-                        id="video"
-                        class="translateCenter"
-                        v-if="isVideo" 
-                        v-bind:style="{
-                         height: display.orientationVertical && display.fitScreen? '100%' : 'auto',
-                         width: !display.orientationVertical && display.fitScreen? '100%' : 'auto'
-                        }"
-                           style="height:auto; width:100%;" loop autoplay muted>
+                    <video id="video"
+                           v-if="isVideo"
+                           v-bind:style="{
+                             transform:  !display.fitScreen? (display.orientationVertical? 'rotate(90deg)' : 'initial') : display.orientationVertical? 'rotate(90deg) translate(0%, 50%)' : 'initial',
+                             transformOrigin: display.orientationVertical && display.fitScreen?  'bottom left' : 'initial',
+                             height: !display.fitScreen? '100%' : display.orientationVertical? '100vw' : 'auto',
+                             width: !display.fitScreen? '100%' : display.orientationVertical? '100vh' : 'auto',
+                             marginTop: display.orientationVertical && display.fitScreen? '-100vw' : 'initial',
+                             position: !display.fitScreen || !display.orientationVertical? 'initial' : 'absolute',
+                             top: !display.fitScreen || display.orientationVertical? 'initial' : '0em',
+                             left: !display.fitScreen || display.orientationVertical? 'initial' : '0em',
+                             objectFit: !display.fitScreen? 'contain' : 'cover'
+                            }"
+                           loop autoplay muted controls>
                         <source :src="display.tokenImageUrl" type="video/mp4" />
                     </video>
                 </div>
@@ -179,7 +254,7 @@
                             writingMode: display.orientationVertical? 'vertical-rl' : 'unset',
                             left: display.orientationVertical? '5%' : '50%',
                             transform: display.orientationVertical? 'translateY(-50%)' : 'translate(-50%, -10%)',
-                            position: 'absolute',
+                            position: display.fitScreen && display.orientationVertical && !isVideo? 'relative' : 'absolute',
                             top: display.orientationVertical? '50%' : ''
                          }">
                     <div>
@@ -209,7 +284,6 @@
                                 background-size: contain;
                                 background-repeat: no-repeat;"></div>
                 </div>
-                <div id="miniDeviceId">{{ deviceId }}</div>
             </div>
 
             <div id="deviceRegistrationContainer" v-if="hideToken" style="width:100%; height:100%;">
@@ -217,7 +291,12 @@
                 <img class="center" style="height:50%; max-height: 30em;"
                      v-bind:src="deviceQRCode" />
                 <br />
-                <h4>Or head to <a v-bind:href="accountUrl">https://tokencast.net/account</a> and enter the following device identifier:</h4>
+                <h4>
+                    Or head to
+                    <a v-bind:href="accountUrl">
+                        <span >{{accountUrlBase}}</span>
+                    </a> and enter the following device identifier:
+                </h4>
                 <h4 id="deviceIdText">{{ deviceId }}</h4>
             </div>
         </div>
@@ -233,15 +312,28 @@
                     tokenHeight: '',
                     tokenWidth: '',
                     docHeight: docHeight + "px",
-                    currentPrice: ''
+                    currentPrice: '',
+                    whitelabeler: ''
                 },
                 computed: {
+                    accountUrlBase: function () {
+                        return this.baseUrl + "/account";
+                    },
                     accountUrl: function () {
-                        return "https://tokencast.net/account?deviceId=" + this.deviceId;
+                        return this.accountUrlBase + "?deviceId=" + this.deviceId + "&whitelabel=" + this.whitelabeler;
+                    },
+                    whitelabeled: function () {
+                        return !!this.whitelabeler && !!whiteLabelers[this.whitelabeler]
+                    },
+                    qrColor: function () {
+                        if (!this.whitelabeled) {
+                            return "black";
+                        }
+                        return whiteLabelers[this.whitelabeler].qrColor
                     },
                     deviceQRCode: function () {
                         var encodedAccountUrl = encodeURI(this.accountUrl);
-                        return "device/GetQRCode?url=" + encodedAccountUrl;
+                        return "device/GetQRCode?url=" + encodedAccountUrl + "&color=" + this.qrColor;
                     },
                     tokenOwnershipQRCode: function () {
                         var encodedOwnershipUrl = encodeURI(this.display.tokenOwnershipUrl);
@@ -254,13 +346,37 @@
                         return this.showOwnershipQRCode || (this.display.tokenMetadata != null && this.display.tokenMetadata != "");
                     },
                     isVideo: function () {
-                        return this.display.tokenImageUrl && this.display.tokenImageUrl.includes("mp4");
+                        return this.display.tokenImageUrl && this.display.tokenImageUrl.indexOf("mp4") > -1;
                     },
                     currPriceInEth: function () {
                         if (!this.display.currentPrice || this.display.currentPrice == "") {
                             return 0
                         }
                         return this.display.currentPrice / 1e18
+                    },
+                    title: function () {
+                        if (!this.whitelabeled) {
+                            return "TokenCast";
+                        }
+                        return whiteLabelers[this.whitelabeler].title
+                    },
+                    baseUrl: function () {
+                        if (!this.whitelabeled) {
+                            return "https://tokencast.net";
+                        }
+                        return whiteLabelers[this.whitelabeler].url
+                    },
+                    hasLogo: function () {
+                        if (!this.whitelabeled) {
+                            return false;
+                        }
+                        return whiteLabelers[this.whitelabeler].logo !== undefined
+                    },
+                    logoImageUrl: function () {
+                        if (!this.whitelabeled) {
+                            return false;
+                        }
+                        return "images/" + whiteLabelers[this.whitelabeler].logo
                     }
                 }
             });
