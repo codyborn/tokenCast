@@ -19,7 +19,14 @@ namespace TokenCast.Controllers
     public class AccountController : Controller
     {
         private const string Ethereum = "ETHEREUM";
-        
+
+        private readonly IDatabase Database;
+
+        public AccountController(IDatabase database)
+        {
+            Database = database;
+        }
+
         private class MessageHash
         {
             public string rawMessage;

@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,11 +8,55 @@ using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Table;
 using TokenCast.Controllers;
 using TokenCast.Models;
+using TokenCastWebApp.Managers.Interfaces;
 
 namespace TokenCast
 {
-    public static class Database
+    public interface IDatabase
     {
+        Task CreateOrUpdateAccount(AccountModel account);
+
+        Task<AccountModel> GetAccount(string address);
+
+        Task AddDevice(string address, string deviceId);
+
+        Task AddCanviaDevicesToAccount(string address);
+
+        Task AddDeviceAlias(string address, string deviceId, string alias);
+
+        Task UpdateDeviceFrequency(string deviceId, int frequency);
+
+        Task DeleteDevice(string address, string deviceId);
+
+        Task ReorderCastedTokensOnDevice(DeviceModel device, IEnumerable<int> order);
+
+        Task SetDeviceContent(DeviceModel device);
+
+        Task AddDeviceContent(DeviceModel device);
+
+        Task SetDeviceWhiteLabeler(string deviceId, string whitelabel);
+
+        Task RemoveDeviceContent(string deviceId);
+
+        Task RemoveATokenFromDevice(string deviceId, int index);
+
+        Task<DeviceModel> GetDeviceContent(string deviceId);
+
+        Task<List<DeviceModel>> GetAllDevices();
+
+        Task<LastUpdateModel> GetLastUpdateTime();
+    }
+
+    public class Database : IDatabase
+    {
+        private readonly IWebSocketConnectionManager _webSocketConnectionManager;
+
+        public Database(IWebSocketConnectionManager webSocketConnectionManager)
+        {
+            _webSocketConnectionManager = webSocketConnectionManager;
+        }
+
+
         private const string accountTableName = "accounts";
         private const string deviceTableName = "devices";
         private const string systemTableName = "system";
@@ -36,31 +81,35 @@ namespace TokenCast
                 throw;
             }
         });
+
         private static Lazy<CloudTableClient> tableClient = new Lazy<CloudTableClient>(() =>
         {
             // Create a table client for interacting with the table service
             return storageAccount.Value.CreateCloudTableClient();
         });
-        private static Lazy<CloudTable> accountTable = new Lazy<CloudTable>(() =>
+
+        private Lazy<CloudTable> accountTable = new Lazy<CloudTable>(() =>
         {
             CloudTable table = tableClient.Value.GetTableReference(accountTableName);
             table.CreateIfNotExistsAsync().Wait();
             return table;
         });
-        private static Lazy<CloudTable> deviceTable = new Lazy<CloudTable>(() =>
+
+        private Lazy<CloudTable> deviceTable = new Lazy<CloudTable>(() =>
         {
             CloudTable table = tableClient.Value.GetTableReference(deviceTableName);
             table.CreateIfNotExistsAsync().Wait();
             return table;
         });
-        private static Lazy<CloudTable> systemTable = new Lazy<CloudTable>(() =>
+
+        private Lazy<CloudTable> systemTable = new Lazy<CloudTable>(() =>
         {
             CloudTable table = tableClient.Value.GetTableReference(systemTableName);
             table.CreateIfNotExistsAsync().Wait();
             return table;
         });
 
-        public static async Task CreateOrUpdateAccount(AccountModel account)
+        public async Task CreateOrUpdateAccount(AccountModel account)
         {
             var databaseEntity = new DatabaseEntity<AccountModel>(account.address, account.address, account);
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(databaseEntity);
@@ -71,7 +120,7 @@ namespace TokenCast
             }
         }
 
-        public static async Task<AccountModel> GetAccount(string address)
+        public async Task<AccountModel> GetAccount(string address)
         {
             address = address.ToLowerInvariant();
             TableOperation retrieveOperation = TableOperation.Retrieve<DatabaseEntity<AccountModel>>(address, address);
@@ -86,7 +135,7 @@ namespace TokenCast
             return databaseEntity.getEntity();
         }
 
-        public static async Task AddDevice(string address, string deviceId)
+        public async Task AddDevice(string address, string deviceId)
         {
             address = address.ToLowerInvariant();
             AccountModel account = await GetAccount(address);
@@ -108,7 +157,7 @@ namespace TokenCast
             }
         }
 
-        public static async Task AddCanviaDevicesToAccount(string address)
+        public async Task AddCanviaDevicesToAccount(string address)
         {
             address = address.ToLowerInvariant();
             AccountModel account = await GetAccount(address);
@@ -126,13 +175,13 @@ namespace TokenCast
             foreach (var (name, identifier) in account.canviaAccount.canviaDevices)
             {
                 var deviceModel = new DeviceModel {id = identifier, isCanviaDevice = true};
-                AddDevice(address, identifier).Wait();
-                UpdateDevice(deviceModel).Wait();
-                AddDeviceAlias(address, identifier, name).Wait();
+                await AddDevice(address, identifier);
+                await UpdateDevice(deviceModel);
+                await AddDeviceAlias(address, identifier, name);
             }
         }
 
-        public static async Task AddDeviceAlias(string address, string deviceId, string alias)
+        public async Task AddDeviceAlias(string address, string deviceId, string alias)
         {
             address = address.ToLowerInvariant();
             AccountModel account = await GetAccount(address);
@@ -155,9 +204,9 @@ namespace TokenCast
             await CreateOrUpdateAccount(account);
         }        
         
-        public static async Task UpdateDeviceFrequency(string deviceId, int frequency)
+        public async Task UpdateDeviceFrequency(string deviceId, int frequency)
         {
-            DeviceModel device = Database.GetDeviceContent(deviceId).Result;
+            DeviceModel device = await GetDeviceContent(deviceId);
             
             if (device == null)
             {
@@ -169,7 +218,7 @@ namespace TokenCast
             await UpdateDevice(device);
         }
 
-        public static async Task DeleteDevice(string address, string deviceId)
+        public async Task DeleteDevice(string address, string deviceId)
         {
             address = address.ToLowerInvariant();
             AccountModel account = await GetAccount(address);
@@ -190,7 +239,7 @@ namespace TokenCast
             }
         }
 
-        public static Task ReorderCastedTokensOnDevice(DeviceModel device, IEnumerable<int> order)
+        public Task ReorderCastedTokensOnDevice(DeviceModel device, IEnumerable<int> order)
         {
             var reorderedTokens = order.Select(t => device.castedTokens[t]).ToList();
             device.castedTokens = reorderedTokens;
@@ -198,7 +247,7 @@ namespace TokenCast
         }
 
 
-        private static async Task UpdateDevice(DeviceModel device)
+        private async Task UpdateDevice(DeviceModel device)
         {
             var databaseEntity = new DatabaseEntity<DeviceModel>(device.id, device.id, device);
             TableOperation insertOrMergeOperation = TableOperation.InsertOrMerge(databaseEntity);
@@ -207,22 +256,29 @@ namespace TokenCast
             {
                 throw new StorageException($"Unable to add content for device {device.id}");
             }
+
+            _webSocketConnectionManager.SendMessage(device.id, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
         }
 
-        public static Task SetDeviceContent(DeviceModel device)
-        {
-            var prevDevice = Database.GetDeviceContent(device.id).Result;
+        public async Task SetDeviceContent(DeviceModel device)
+        { 
+            var prevDevice = await GetDeviceContent(device.id);
             if (prevDevice != null && !string.IsNullOrEmpty(prevDevice.whiteLabeler))
             {
                 device.whiteLabeler = prevDevice.whiteLabeler;
             }
 
-            return UpdateDevice(device);
+            await UpdateDevice(device);
         }
 
-        public static Task AddDeviceContent(DeviceModel device)
+        public async Task AddDeviceContent(DeviceModel device)
         {
-            var prevDevice = Database.GetDeviceContent(device.id).Result;
+            var prevDevice = await GetDeviceContent(device.id);
             if (prevDevice == null)
             {
                 prevDevice = new DeviceModel(device.id, device.currentDisplay);
@@ -233,15 +289,15 @@ namespace TokenCast
             }
             prevDevice.castedTokens.Add(device.currentDisplay);
             prevDevice.currentDisplay = device.currentDisplay;
-            return UpdateDevice(prevDevice);
+            await UpdateDevice(prevDevice);
         }
 
-        public static Task SetDeviceWhiteLabeler(string deviceId, string whitelabel)
+        public async Task SetDeviceWhiteLabeler(string deviceId, string whitelabel)
         {
-            var device = Database.GetDeviceContent(deviceId).Result;
+            var device = await GetDeviceContent(deviceId);
             if (device != null && !string.IsNullOrEmpty(device.whiteLabeler))
             {
-                return Task.FromResult(0);
+                return;
             }
             if (device == null)
             {
@@ -250,27 +306,27 @@ namespace TokenCast
 
             device.id = deviceId;
             device.whiteLabeler = whitelabel;
-            return UpdateDevice(device);
+            await UpdateDevice(device);
         }
 
-        public static Task RemoveDeviceContent(string deviceId)
+        public async Task RemoveDeviceContent(string deviceId)
         {
-            var prevDevice = Database.GetDeviceContent(deviceId).Result;
+            var prevDevice = await GetDeviceContent(deviceId);
             if (prevDevice == null)
             {
-                return Task.FromResult(0);
+                return;
             }
             prevDevice.castedTokens = new List<Display>();
             prevDevice.currentDisplay = null;
-            return UpdateDevice(prevDevice);
+            await UpdateDevice(prevDevice);
         }        
         
-        public static Task RemoveATokenFromDevice(string deviceId, int index)
+        public async Task RemoveATokenFromDevice(string deviceId, int index)
         {
-            var prevDevice = Database.GetDeviceContent(deviceId).Result;
+            var prevDevice = await GetDeviceContent(deviceId);
             if (prevDevice == null)
             {
-                return Task.FromResult(0);
+                return;
             }
 
             if (index == 0 && prevDevice.castedTokens.Count > 1)
@@ -280,10 +336,10 @@ namespace TokenCast
             
             prevDevice.castedTokens.RemoveAt(index);
             
-            return UpdateDevice(prevDevice);
+            await UpdateDevice(prevDevice);
         }
 
-        public static async Task<DeviceModel> GetDeviceContent(string deviceId)
+        public async Task<DeviceModel> GetDeviceContent(string deviceId)
         {
             TableOperation retrieveOperation = TableOperation.Retrieve<DatabaseEntity<DeviceModel>>(deviceId, deviceId);
             TableResult result = await deviceTable.Value.ExecuteAsync(retrieveOperation);
@@ -297,7 +353,7 @@ namespace TokenCast
             return databaseEntity.getEntity();
         }
 
-        public static async Task<List<DeviceModel>> GetAllDevices()
+        public async Task<List<DeviceModel>> GetAllDevices()
         {
             TableContinuationToken token = null;
             var entities = new List<DeviceModel>();
@@ -311,7 +367,7 @@ namespace TokenCast
             return entities;
         }
 
-        public static async Task<LastUpdateModel> GetLastUpdateTime()
+        public async Task<LastUpdateModel> GetLastUpdateTime()
         {
             TableOperation retrieveOperation = TableOperation.Retrieve<DatabaseEntity<LastUpdateModel>>(dateTimeKey, dateTimeKey);
             TableResult result = await systemTable.Value.ExecuteAsync(retrieveOperation);
