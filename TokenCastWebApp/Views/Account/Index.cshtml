@@ -845,7 +845,7 @@
             .deviceListElement {
                 padding-left: 1em;
                 font-size: 1.2em;
-                color: #fff;
+                color: #000;
                 text-align: left;
             }
 
@@ -856,8 +856,6 @@
 
             #header {
                 position: absolute;
-                top: 2em;
-                left: 4em;
             }
 
 
@@ -866,7 +864,14 @@
                     padding: 1em;
                 }
             }
-            
+
+        .navbar-title {
+            position: relative;
+            display: inline-block;
+            font-size: 22px;
+            padding-left: 10%;
+            color: #ffffff;
+        }
             /*Hide arrow keys from number inputs*/
             /* Chrome, Safari, Edge, Opera */
             input::-webkit-outer-spin-button,
@@ -880,8 +885,8 @@
             }
         </style>
         <div id="app" style="text-align:center;background-color:#000000">
-            <span id="header">
-                <h1><a v-bind:href="homeUrl"><img id="logoImg" v-if="hasLogo" v-bind:src="logoImageUrl"></img><span v-if="!hasLogo">{{ title }}</span></a></h1>
+            <span id="header" class="navbar-title">
+                <a>Snitch</a>
             </span>
             <div id="burger"
                  :class="{ 'active' : showHamburger }"
