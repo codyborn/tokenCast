@@ -31,6 +31,7 @@
 }
 
 .sidebar-panel {
+    border-radius: 4em 0em 0em 0em !important;
     overflow-y: auto;
     background-color: #ffffff;
     position: fixed;

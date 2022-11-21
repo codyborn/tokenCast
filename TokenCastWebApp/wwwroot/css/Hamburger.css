@@ -2,8 +2,8 @@
 #burger {
     z-index: 1000;
     position: fixed;
-    top: 1em;
-    right: 1em;
+    top: 2em;
+    right: 2em;
 }
 
 .hidden {
@@ -33,13 +33,15 @@ button:focus {
 }
 
 .burger-bar {
-    background-color: #130f40;
+    background-color: #000000;
     position: absolute;
     top: 50%;
     right: 6px;
     left: 6px;
     height: 2px;
     width: auto;
+    color: #fff !important;
+    background-color: #fff !important;
     margin-top: -1px;
     transition: transform .6s cubic-bezier(.165,.84,.44,1),opacity .3s cubic-bezier(.165,.84,.44,1),background-color .6s cubic-bezier(.165,.84,.44,1);
 }
@@ -71,7 +73,7 @@ button:focus {
 }
 
 #burger.active .burger-bar {
-    background-color: #fff;
+    background-color: black !important;
 }
 
 #burger.active .burger-bar--1 {

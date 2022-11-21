@@ -26,7 +26,7 @@
     <link rel="stylesheet" href="~/css/Sidebar.css">
     <link rel="stylesheet" href="~/css/Button.css">
     <link rel="stylesheet" href="~/css/MenuFont.css">
-    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <script type="text/javascript" src="js/random-words.js"></script>
     <script type="text/javascript" src="js/tezos-beacon.js"></script>
     <script type="text/javascript">
@@ -626,7 +626,7 @@
     </script>
 </head>
     <body>
-        <style>
+        <style style="background-color:#000000">
             h1 a {
                 text-decoration: none;
                 color: white;
@@ -720,10 +720,13 @@
                 }
 
             div.desc {
-                padding: 15px;
                 text-align: center;
-                font-size: 18px;
-                color: #679289;
+                color: white;
+                font-family: 'Roboto';
+                font-style: normal;
+                font-weight: 400;
+                font-size: 20px;
+                line-height: 305%;
             }
 
             .statusMessage {
@@ -869,8 +872,9 @@
             position: relative;
             display: inline-block;
             font-size: 22px;
-            padding-left: 10%;
             color: #ffffff;
+            padding-top: 1.7em!important;
+            padding-left: 2em!important;
         }
             /*Hide arrow keys from number inputs*/
             /* Chrome, Safari, Edge, Opera */
@@ -884,11 +888,13 @@
                 -moz-appearance: textfield;
             }
         </style>
-        <div id="app" style="text-align:center;background-color:#000000">
-            <span id="header" class="navbar-title">
-                <a>Snitch</a>
-            </span>
-            <div id="burger"
+        <div id="app">
+            <div style="position:fixed; top:0em!important; left:0em!important; width:100%; height: 5em; background-color:black; z-index:999;">
+                <span id="header" class="navbar-title">
+                    <a>Snitch</a>
+                </span>
+            </div>
+                <div id="burger"
                  :class="{ 'active' : showHamburger }"
                  v-on:click="ToggleBurger"
                  v-if="walletConnected">
@@ -949,11 +955,19 @@
             <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
             <div class="tokenGallery">
                 <div v-if="tokensLoaded">
-                    <h3>
-                        Browse your NFTs
-                    </h3>
+                    <p style="text-align:center; color:white!important;font-family: 'Roboto';font-style: normal;font-weight: 400;font-size: 80px;line-height: 105%;">
+                        Browse your
+                        <span style="background: linear-gradient(99.77deg, #8C50ED 9.08%, #EF88C6 99.58%);-webkit-background-clip: text;-webkit-text-fill-color: transparent;background-clip: text;text-fill-color: transparent;">NFTs</span>
+                    </p>
+                <div style="background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px;" class="input-group mb-4">
+                    <input style="background-color:black; border: 1px solid #8C51EE; border-radius: 40px;font-size:1em;" type="text" class="form-control" placeholder="Search whatever you want..." aria-label="Search whatever you want..." aria-describedby="basic-addon2">
+                      <div class="input-group-append">
+                        <button class="btn btn-search" style=" color:white; background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px; font-size:1em;" type="button">Search</button>
+                      </div>
+                    </div>
+
                 </div>
-                <div class="inlineStatusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 13em;">
+                <div class="inlineStatusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 10em;">
                     Unable to find any tokens
                     <div>Get yours at</div>
                     <div v-if="network === 'ETHEREUM'" style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
@@ -968,16 +982,18 @@
                              </a></div>
                     </div>
                 </div>
-                <div v-if="tokensLoaded" v-for="token in tokens" class="gallery" style="width: 48%; min-width: 250px;" v-on:click="TokenSelected(token, true)">
-                    <a v-lazyload>
-                        <div class="loader center"></div>
-                        <img  :data-url="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 95%">
-                    </a>
-                    <div class="desc">{{ token.name }}</div>
+                <div v-if="tokensLoaded" class="row">
+                <div style="min-height:150px; max-height:250px; border-radius: 60px" class="col-sm-6" v-for="token in tokens" v-on:click="TokenSelected(token, true)">
+                        <a v-lazyload>
+                            <div class="loader center"></div>
+                            <img  :data-url="token.image_url" v-bind:alt="token.name" style="max-width: 95%">
+                        </a>
+                        <div class="desc">{{ token.name }}</div>
+                    </div>
                 </div>
             </div>
 
-            <div style="width:100%;height: 3em;display: flex;"></div>
+           @* <div style="width:100%;height: 3em;display: flex;"></div>
 
             <div class="tokenGallery" style="background-color:#000000">
                 <div v-if="tokensLoaded" style="position:relative; top: 1em; z-index:-1;">
@@ -991,7 +1007,7 @@
                     </a>
                     <div class="desc">{{ token.name }}</div>
                 </div>
-            </div>
+            </div>*@
 
             <div class="inputForm" v-if="showAddDeviceInput">
                 <h3 style="padding-bottom: 1em;">Register New Device</h3>
