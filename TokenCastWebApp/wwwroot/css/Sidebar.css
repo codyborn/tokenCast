@@ -1,4 +1,4 @@
-﻿.slide-enter-active,
+.slide-enter-active,
 .slide-leave-active {
     transition: transform 0.2s ease;
 }
@@ -72,8 +72,8 @@ ul.sidebar-panel-nav > li > span {
 .walletblock {
     background: #EFEFEF !important;
     border-radius: 65.0225px;
-    width: 259.27px;
-    height: 255.11px;
+    width: 300px;
+    height: 300px;
 }
 
 .walletcontainer {

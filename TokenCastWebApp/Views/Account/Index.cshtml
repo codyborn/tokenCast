@@ -4,1645 +4,767 @@
 }
 
 <head>
-    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
-    <script charset="utf-8"
-            src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
-            type="text/javascript">
-    </script>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-    <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/evm-chains@0.2.0/dist/umd/index.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/@@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
-    <script type="text/javascript" src="https://unpkg.com/fortmatic@2.0.6/dist/fortmatic.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
+  <script charset="utf-8"
+          src="https://cdn.ethers.io/scripts/ethers-v4.min.js"
+          type="text/javascript">
+  </script>
 
-    <script src="~/js/vibrant.min.js"></script>
-    <script src="~/js/whiteLabelers.js"></script>
-    <link rel="stylesheet" href="~/css/Hamburger.css">
-    <link rel="stylesheet" href="~/css/Sidebar.css">
-    <link rel="stylesheet" href="~/css/Button.css">
-    <link rel="stylesheet" href="~/css/MenuFont.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <script type="text/javascript" src="js/random-words.js"></script>
-    <script type="text/javascript" src="js/tezos-beacon.js"></script>
-    <script type="text/javascript">
-        (function (w) {
-            w.URLSearchParams = w.URLSearchParams || function (searchString) {
-                var self = this;
-                self.searchString = searchString;
-                self.get = function (name) {
-                    var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(self.searchString);
-                    if (results == null) {
-                        return null;
-                    }
-                    else {
-                        return decodeURI(results[1]).toLowerCase() || 0;
-                    }
-                };
-            }
-        })(window)
+  <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/evm-chains@0.2.0/dist/umd/index.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/@@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/fortmatic@2.0.6/dist/fortmatic.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-        function loadStylesheet(url) {
-            if (document.createStyleSheet) {
-                document.createStyleSheet(url);
-            } else {
-                var styles = "@@import url(" + url + ");";
-                var newSS = document.createElement('link');
-                newSS.rel = 'stylesheet';
-                newSS.href = 'data:text/css,' + escape(styles);
-                document.getElementsByTagName("head")[0].appendChild(newSS);
-            }
-        }
+  <script src="/js/vibrant.min.js"></script>
+  <script src="/js/whiteLabelers.js"></script>
+  <script type="text/javascript" src="/js/random-words.js"></script>
+  <script type="text/javascript" src="/js/tezos-beacon.js"></script>
+  <script src="/js/main.js"></script>
 
-        function setFavicon(url) {
-            var link = document.querySelector("link[rel~='icon']");
-            if (!link) {
-                link = document.createElement('link');
-                link.rel = 'icon';
-                document.getElementsByTagName('head')[0].appendChild(link);
-            }
-            link.href = url;
-        }
-
-        web3Account = "";
-        signature = "";
-        defaultDeviceId = "";
-        vueMounted = false
-        windowLoaded = false
-        outstandingSignatureRequest = false;
-        const Web3Modal = window.Web3Modal.default;
-        const WalletConnectProvider = window.WalletConnectProvider.default;
-        ETHEREUM = "ETHEREUM";
-        TEZOS = "TEZOS";
-
-        /**
-         * Setup the Web3Modal
-         */
-        function web3ModalInit() {
-
-            console.log("Initializing example");
-            console.log("WalletConnectProvider is", WalletConnectProvider);
-            console.log("Fortmatic is", Fortmatic);
-            console.log("window.web3 is", window.web3, "window.ethereum is", window.ethereum);
-
-            // Check that the web page is run in a secure context,
-            // as otherwise MetaMask won't be available
-            if (location.protocol !== 'https:') {
-                // https://ethereum.stackexchange.com/a/62217/620
-                return;
-            }
-
-            // Tell Web3modal what providers we have available.
-            // Built-in web browser provider (only one can exist as a time)
-            // like MetaMask, Brave or Opera is added automatically by Web3modal
-            const providerOptions = {
-                authereum: {
-                    package: Authereum // required
-                },
-                walletconnect: {
-                    package: WalletConnectProvider,
-                    options: {
-                        infuraId: "9d5e849c49914b7092581cc71e3c2580",
-                    }
-                },
-                // Bug: https://github.com/Web3Modal/web3modal/issues/231
-                //fortmatic: {
-                //    package: Fortmatic,
-                //    options: {
-                //        key: "pk_test_BCDB8DBBFE1F5B55"
-                //    }
-                //},
-                //bitski: {
-                //    package: Bitski, // required
-                //    options: {
-                //        clientId: "76674289-906f-451a-9aa4-6353f3bc442a", // required
-                //        callbackUrl: "https://tokencast.net/account" // required
-                //    }
-                //}
-            };
-
-            web3Modal = new Web3Modal({
-                cacheProvider: true, // optional
-                providerOptions, // required
-                disableInjectedProvider: false, // optional. For MetaMask / Brave / Opera.
-            });
-
-            console.log("Web3Modal instance is", web3Modal);
-        }
-
-        async function initProvider() {
-            try {
-                provider = await web3Modal.connect();
-            } catch (e) {
-                console.log("Could not get a wallet connection", e);
-                return;
-            }
-
-            // Subscribe to accounts change
-            provider.on("accountsChanged", (accounts) => {
-                LoginUser();
-            });
-
-            // Subscribe to chainId change
-            provider.on("chainChanged", (chainId) => {
-                LoginUser();
-            });
-
-            // Subscribe to networkId change
-            provider.on("networkChanged", (networkId) => {
-                LoginUser();
-            });
-        }
-        
-        async function getTezosAccount() {
-            await initTezosAccount(true);          
-        }
-
-        async function onConnectEthereum() {
-            app.network = ETHEREUM;
-            await initProvider();
-            await LoginUser();
-        }        
-        
-        async function onConnectTezos() {
-            app.network = TEZOS;
-            await getTezosAccount();
-            await LoginUser();
-        }
-
-        async function onLoad(mounted, loaded) {
-            vueMounted = vueMounted || mounted;
-            windowLoaded = windowLoaded || loaded;
-            if (vueMounted && windowLoaded) {
-                //Web3Modal adds the key "WEB3_CONNECT_CACHED_PROVIDER" in localStorage after a successful connection, value is the provider name
-                web3ModalCachedProvider = window.localStorage.getItem("WEB3_CONNECT_CACHED_PROVIDER")
-                if (web3ModalCachedProvider !== undefined && web3ModalCachedProvider !== "" && web3ModalCachedProvider !== null) {
-                    web3ModalInit();
-                    await initProvider();
-                    await initEthereumAccount();
-                    await GetAccountIfSignatureExists(ETHEREUM);
-                } else {
-                    await initTezosAccount(false)
-                    await GetAccountIfSignatureExists(TEZOS);
-                }
-            }
-        }
-
-        function checkWhitelabel() {
-            for (var whiteLabeler in whiteLabelers) {
-                if (window.location.origin.indexOf(whiteLabelers[whiteLabeler].url) >= 0) {
-                    app.whitelabeler = whiteLabeler;
-                    break;
-                }
-            }
-            if (!app.whitelabeled) {
-                var urlParams = new URLSearchParams(window.location.search);
-                whitelabeler = urlParams.get("whitelabel");
-                app.whitelabeler = whitelabeler;
-            }
-            if (app.whitelabeled) {
-                document.title = whiteLabelers[app.whitelabeler].title;
-                if (whiteLabelers[app.whitelabeler].css !== undefined) {
-                    loadStylesheet(window.location.origin + "/css/" + whiteLabelers[app.whitelabeler].css, document)
-                }
-                if (whiteLabelers[app.whitelabeler].favicon !== undefined) {
-                    setFavicon(window.location.origin + "/images/" + whiteLabelers[app.whitelabeler].favicon)
-                }
-            }
-
-        }
-
-        window.addEventListener('load', async () => {
-            checkWhitelabel();
-            web3ModalInit()
-            getLastUsedDevice();
-        }, false);
-
-        async function initEthereumAccount() {
-            app.providedWeb3 = new Web3(provider);
-            web3Account = (await app.providedWeb3.eth.getAccounts())[0];
-            app.address = web3Account;
-            await AttemptReverse(web3Account);
-        }
-        
-        async function initTezosAccount(onConnect) {
-            try {
-                if (!app.dAppClient) {
-                    app.dAppClient = await new beacon.DAppClient({ name: "TokenCast" });
-                }
-                activeAccount = await app.dAppClient.getActiveAccount();
-                
-                if (!activeAccount && onConnect) {
-                    console.log("getting permissions");
-                    const permissions = await app.dAppClient.requestPermissions();
-                    activeAccount = await app.dAppClient.getActiveAccount();
-                }
-                if (activeAccount) {
-                    app.address = activeAccount.address;
-                    web3Account = app.address;
-                }
-            } catch (error) {
-                console.log("Tezos Account error:", error);
-            }
-        }
-
-        async function LoginUser() {
-            if (app.network === TEZOS) {
-                app.showSignMessage = true;
-                await GetSignature();
-            } else {
-                try {
-                    await initEthereumAccount();
-                    await GetSignature();
-                }
-                catch {
-                    app.showSignMessage = true;
-                    web3ModalInit();
-                }
-            }
-        }
-
-        async function GetAccountIfSignatureExists(network) {
-            signature = getCachedSignature(web3Account, network);
-            if (signature !== undefined && signature !== "" && signature !== null) {
-                if (network === TEZOS) {
-                    app.tezosWalletConnected = true;
-                } 
-                app.showSignMessage = false;
-                app.network = network;
-                await app.FetchCanviaDevices();
-                await GetAccountInfo(true);
-            }
-        }
-
-        async function AttemptReverse(address) {
-            let provider = new ethers.providers.Web3Provider(app.providedWeb3.currentProvider);
-            provider.lookupAddress(address).then(function (ensName) {
-                if (ensName != null) {
-                    app.address = ensName;
-                }
-            });
-        }
-
-        function getSignatureKey(address, walletNetwork) {
-            return address + '_signature' + '_' + walletNetwork
-        }
-        function getCachedSignature(address, walletNetwork) {
-            var key = getSignatureKey(address, walletNetwork);
-            var cachedSignature = window.localStorage.getItem(key);
-            return cachedSignature
-        }
-        function cacheSignature(signature, address, walletNetwork) {
-            var key = getSignatureKey(address, walletNetwork);
-            window.localStorage.setItem(key, signature);
-        }
-
-        function storeLastUsedDevice(deviceId) {
-            app.selected = deviceId;
-            window.localStorage.setItem("lastDevice", deviceId);
-        }
-        function getLastUsedDevice() {
-            var deviceId = window.localStorage.getItem("lastDevice");
-            app.selected = deviceId;
-            return deviceId;
-        }
-
-        async function GetSignature() {
-            signature = getCachedSignature(web3Account, app.network);
-            if (signature === undefined || signature === "" || signature === null) {
-                if (!outstandingSignatureRequest) {
-                    outstandingSignatureRequest = true;
-                    try {
-                        if (app.network === TEZOS) {
-                            try {
-                                console.log("Getting Tezos signature");
-                                //const response = await app.dAppClient.requestSignPayload({
-                                //    signingType: beacon.SigningType.RAW,
-                                //    payload: app.signatureMessage,
-                                //});
-                                app.tezosWalletConnected = true;
-                                //signature = response.signature;
-                            }
-                            catch (e) {
-                                console.log(e);
-                            }
-                         } else {
-                             console.log("Getting Ethereum signature");
-                             let plain = app.signatureMessage;
-                             let msg = app.providedWeb3.utils.asciiToHex(plain);
-                             let hash = app.providedWeb3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
-                             signature = await app.providedWeb3.eth.personal.sign(msg, web3Account);
-                         }
-                        cacheSignature(signature, web3Account, app.network)
-                    }
-                    finally {
-                        outstandingSignatureRequest = false;
-                    }
-                }
-            }
-            if (signature !== undefined && signature !== "" && signature !== null) {
-                await app.FetchCanviaDevices();
-            }
-            await GetAccountInfo(true);
-        }
-
-        async function GetAccountInfo(onPageLoad) {
-            // Create account if not exist
-            $.get("Account/Details?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler, function (accountDetails) {
-                if (accountDetails != null) {
-                    app.showSignMessage = false;
-                    app.account = accountDetails;
-                    app.showAddDeviceButton = true;
-                    if (onPageLoad) {
-                        CheckAddDevice(accountDetails);
-                    }
-                } else {
-                    console.log("Error fetching account details");
-                }
-            });
-        }
-
-        async function CheckAddDevice(accountDetails) {
-
-            // Get device id from QS param
-            // If present, prompt user to add device
-            var urlParams = new URLSearchParams(window.location.search);
-            var deviceId = urlParams.get("deviceId");
-            var deviceAlias = urlParams.get("deviceAlias")
-
-            if (deviceId != null && deviceAlias != null &&
-                (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
-                AddDevice(deviceId, deviceAlias);
-            }
-            else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
-                defaultDeviceId = accountDetails.devices[0];
-                GetTokens();
-            }
-            else {
-                // No devices found
-                app.showAddDeviceInput = true;
-            }
-        }
-
-        async function AddDevice(deviceId, deviceAlias) {
-            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&deviceAlias=" + deviceAlias + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == false) {
-                        console.log("Failed to link device to account");
-                    }
-                    else {
-                        console.log("Successfully linked device to account");
-                        defaultDeviceId = deviceId;
-                        GetAccountInfo();
-                        GetTokens();
-                    }
-                });
-        }
-
-        async function AddCanviaDevices(code, address) {
-            $.post("Account/AddCanviaDevices?address=" + address + "&signature=" + signature + "&network=" + app.network + "&code=" + code + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result === false) {
-                        console.log("Failed to link Canvia account");
-                    }
-                    else {
-                        console.log("Successfully linked Canvia account. Devices Added!");
-                        app.showAddDeviceInput = false;
-                        GetAccountInfo(true);
-                    }
-                });
-        }
-
-        async function UpdateDevice(deviceId, alias, frequency) {
-            $.post("Account/UpdateDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&alias=" + alias + "&frequency=" + frequency + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == false) {
-                        console.log("Failed to add device alias");
-                    }
-                    else {
-                        console.log("Successfully added device alias");
-                        GetAccountInfo();
-                    }
-                });
-        }        
-        
-        async function GetDeviceRotationFrequency(deviceId) {
-            $.post("Account/GetDeviceFrequency?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == null) {
-                        console.log("Failed to fetch device rotation frequency");
-                    }
-                    else {
-                        app.rotationFrequency = parseInt(result);
-                    }
-                });
-        }
-
-        async function DeleteDevice(deviceId) {
-            $.post("Account/DeleteDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == false) {
-                        console.log("Failed to delete device");
-                    }
-                    else {
-                        console.log("Successfully deleted device");
-                        GetAccountInfo();
-                    }
-                });
-        }
-
-        async function RemoveAllTokens(deviceId) {
-            $.post("Account/RemoveDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == false) {
-                        alert("Remove Failed");
-                    }
-                    else {
-                        alert("Removed Token!");
-                    }
-                });
-        }        
-        
-        async function RemoveSingleToken(deviceId, index) {
-            $.post("Account/RemoveIndexFromQueue?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&index=" + index + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == false) {
-                        alert("Remove Failed");
-                    }
-                    else {
-                        alert(`Removed Token number ${index + 1}!`);
-                        var parsedTokens = JSON.parse(result);
-                        app.tokensByDevice = parsedTokens;
-                    }
-                });
-        }
-        
-        async function GetCastedTokensForDevice(deviceId) {
-            $.post("Account/GetCastedTokensForDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
-                function (result) {
-                    if (result == false) {
-                        console.log("Could not get tokens for device");
-                    }
-                    else {
-                        var parsedTokens = JSON.parse(result);
-                        app.tokensByDevice = parsedTokens;
-                        console.log("Fetched tokens on queue! " + parsedTokens)
-                    }
-            });
-        }
-
-        async function GetTokens() {
-            app.showFetchingTokensMessage = true;
-            $.get("Account/Tokens?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler, function (tokenResponse) {
-                app.showNoTokensMessage = false;
-                if (tokenResponse == "") {
-                    // no tokens found
-                    app.showNoTokensMessage = true;
-                }
-                var parsedTokens = JSON.parse(tokenResponse);
-                if (parsedTokens == null || parsedTokens.assets.length == 0) {
-                    // no tokens found
-                    app.showNoTokensMessage = true;
-                }
-                app.showFetchingTokensMessage = false;
-                app.tokens = [];
-                parsedTokens.assets.forEach(function (token) {
-                    if (token.image_url != "") {
-                        app.tokens.push(token);
-                    }
-                })
-                app.tokensLoaded = true;
-            });
-
-            GetCommunityTokens()
-        }
-
-        async function GetCommunityTokens() {
-
-            app.showFetchingTokensMessage = true;
-
-            $.get("Account/CommunityTokens", function (tokenResponse) {
-                var parsedTokens = JSON.parse(tokenResponse);
-                app.showFetchingTokensMessage = false;
-                app.communityTokens = [];
-                parsedTokens.assets.forEach(function (token) {
-                    if (token.image_url != "") {
-                        app.communityTokens.push(token);
-                    }
-                })
-            });
-        }
-
-        function CopyToClipboard(str) {
-            const el = document.createElement('textarea');
-            el.value = str;
-            el.setAttribute('readonly', '');
-            el.style.position = 'absolute';
-            el.style.left = '-9999px';
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-        };
-
-        function grabColorFromPos(e) {
-            if (e.offsetX) {
-                x = e.offsetX;
-                y = e.offsetY;
-            }
-            else if (e.layerX) {
-                x = e.layerX;
-                y = e.layerY;
-            }
-
-            var tokenPreviewContainer = document.getElementById('tokenPreviewContainer');
-            var tokenPreviewCanvas = document.getElementById('tokenPreviewCanvas');
-
-            tokenPreviewCanvas.width = tokenPreviewContainer.width;
-            tokenPreviewCanvas.height = tokenPreviewContainer.height;
-             fitImageOn(tokenPreviewCanvas, tokenPreviewContainer, tokenPreviewContainer.style.objectFit == "contain");
-            var p = tokenPreviewCanvas.getContext('2d')
-                .getImageData(x, y, 1, 1).data;
-
-            var hexColor = rgbToHex(p[0], p[1], p[2]);
-            return hexColor;
-        }
-
-        function fitImageOn(canvas, imageObj, contain) {
-            var context = canvas.getContext('2d');
-            var imageAspectRatio = imageObj.naturalWidth / imageObj.naturalHeight;
-            var canvasAspectRatio = canvas.width / canvas.height;
-            var renderableHeight, renderableWidth, xStart, yStart;
-
-            // Simulate 'cover' if not contain
-            if (!contain) {
-                // Width = canvas width
-                // Height = ratio
-                renderableWidth = canvas.width;
-                renderableHeight = canvas.width / imageAspectRatio;
-                xStart = 0;
-                yStart = (canvas.height - renderableHeight) / 2;
-            }
-            // If image's aspect ratio is less than canvas's we fit on height
-            // and place the image centrally along width
-            else if (imageAspectRatio < canvasAspectRatio) {
-                renderableHeight = canvas.height;
-                renderableWidth = imageObj.naturalWidth * (renderableHeight / imageObj.naturalHeight);
-                xStart = (canvas.width - renderableWidth) / 2;
-                yStart = 0;
-            }
-
-            // If image's aspect ratio is greater than canvas's we fit on width
-            // and place the image centrally along height
-            else if (imageAspectRatio > canvasAspectRatio) {
-                renderableWidth = canvas.width
-                renderableHeight = imageObj.naturalHeight * (renderableWidth / imageObj.naturalWidth);
-                xStart = 0;
-                yStart = (canvas.height - renderableHeight) / 2;
-            }
-
-            // Happy path - keep aspect ratio
-            else {
-                renderableHeight = canvas.height;
-                renderableWidth = canvas.width;
-                xStart = 0;
-                yStart = 0;
-            }
-
-            context.drawImage(imageObj, xStart, yStart, renderableWidth, renderableHeight);
-        };
-
-        function rgbToHex(r, g, b) {
-            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
-        }
-
-        function componentToHex(c) {
-            var hex = c.toString(16);
-            return hex.length == 1 ? "0" + hex : hex;
-        }
-    </script>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/old.css">
+  <link rel="stylesheet" href="/css/modals.css">
+  <link rel="stylesheet" href="/css/Hamburger.css">
+  <link rel="stylesheet" href="/css/Sidebar.css">
+  <link rel="stylesheet" href="/css/MenuFont.css">
 </head>
-    <body>
-        <style style="background-color:#000000">
-            h1 a {
-                text-decoration: none;
-                color: white;
-            }
-            h1 a:hover {
-                text-decoration: none;
-                color: white;
-            }
-            body
-            {
-                height: 100%;
-            }
 
-            .center {
-                margin-left: auto;
-                margin-right: auto;
-            }
+<body style="background-color: black">
+<div id="app">
+  <div class="navbar">
+    <span id="header" class="navbar-title">
+        <a>Snitch</a>
+    </span>
+  </div>
+  <div id="burger"
+       :class="{ 'active' : showHamburger }"
+       v-on:click="ToggleBurger"
+       v-if="walletConnected">
+    <slot>
+      <button type="button" class="burger-button" title="Menu">
+        <span class="burger-bar burger-bar--1"></span>
+        <span class="burger-bar burger-bar--2"></span>
+        <span class="burger-bar burger-bar--3"></span>
+      </button>
+    </slot>
+  </div>
 
-            .transformCenter {
-                 margin: 0;
-                 position: absolute;
-                 top: 50%;
-                 -ms-transform: translateY(-50%);
-                 transform: translateY(-50%);
-                 font-size: x-large;
-                 left: 50%;
-                 transform: translate(-50%, -50%);
-            }
-                        
-            .networkSelection {
-                position: absolute;
-                display: inline;
-                left: 50%;
-                top: 50%;
-                transform: translate(-50%, -50%);
-            }
-            
-            .networkButton {
-                width: 200px;
-                font-size: x-large;
-            }
-
-            .tokenGallery {
-                width: 50%;
-                min-width: 251px;
-                position: relative;
-                left: 50%;
-                transform: translate(-50%, 7em);
-            }
-
-            div.gallery {
-                margin: 5px;
-                border: 1px solid #ccc;
-                float: left;
-                border-radius: 5px;
-            }
-
-                div.gallery:hover {
-                      box-shadow: 0px 0px 40px rgba(0,0,0,0.4);
-                      transform: scale(1.01,1.01);
-                      border-radius: 5px;
-                      transition: opacity 0.3s ease-in-out;
-                }
-
-                div.gallery img {
-                    width: auto;
-                    height: 250px;
-                    padding: 15px;
-                }
-                div.gallery video {
-                    width: auto;
-                    height: 250px;
-                    padding: 15px;
-                }
-                           
-            div.queueGallery {
-                margin: 5px;
-                border: 1px solid #ccc;
-                float: left;
-                border-radius: 5px;
-            }
-                div.queueGallery:hover {
-                    box-shadow: 0px 0px 40px rgba(0,0,0,0.4);
-                    transform: scale(1.01,1.01);
-                    border-radius: 5px;
-                    transition: opacity 0.3s ease-in-out;
-                }                          
-                div.queueGallery img {
-                    width: 100px;
-                    height: 100px;
-                }
-                div.queueGallery video {
-                    width: 100px;
-                    height: 100px;
-                }
-
-            div.desc {
-                text-align: center;
-                color: white;
-                font-family: 'Roboto';
-                font-style: normal;
-                font-weight: 400;
-                font-size: 20px;
-                line-height: 305%;
-            }
-
-            .statusMessage {
-                margin: 0;
-                position: absolute;
-                top: 50%;
-                -ms-transform: translateY(-50%);
-                transform: translateY(-50%);
-                font-size: x-large;
-                left: 50%;
-                transform: translate(-50%, -50%);
-            }
-            .inlineStatusMessage {
-                margin: 0;
-                position: relative;
-                -ms-transform: translateY(-50%);
-                transform: translateY(-50%);
-                font-size: x-large;
-                left: 50%;
-                transform: translate(-50%, 0%);
-            }
-
-            #removeContentButtonContainer {
-                border-radius: 2px;
-                width: 300px;
-                position: absolute;
-                bottom: -100px;
-                right: 25%;
-                left: 50%;
-                margin-left: -150px;
-                padding-bottom: 20px;
-            }
-
-            #removeContentButton {
-                background-color: darkred;
-            }
-
-            .modal {
-                position: fixed;
-                z-index: 1001;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, .5);
-                display: table;
-                transition: opacity .3s ease;
-            }
-
-            .inputForm {
-                z-index: 1002;
-                display: grid;
-                margin: 0px auto;
-                background-color: #fff;
-                border-radius: 2px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, .33);
-                transition: all .3s ease;
-                padding: 3em;
-                position: absolute;
-                top: 1em;
-                left: 50%;
-                transform: translate(-50%, 0%);
-                width: 100%;
-                max-width: 50em;
-                max-height: 80%;
-                scroll-behavior: unset;
-                overflow-y: auto;
-                text-align: left;
-            }
-
-            .formElement {
-                padding-top: .5em;
-                font-weight: 500;
-            }
-
-            #idBar {
-                color: #000;
-                width: 65%;
-            }
-
-            #tokenPreviewContainer {
-                background-position: center;
-                background-repeat: no-repeat;
-                background-size: contain;
-                color: #FFFFFF;
-                cursor: crosshair;
-            }
-
-            .slider {
-                -webkit-appearance: none;
-                width: 100%;
-                height: 15px;
-                border-radius: 5px;
-                background: #d3d3d3;
-                outline: none;
-                opacity: 0.7;
-                -webkit-transition: .2s;
-                transition: opacity .2s;
-            }
-
-                .slider::-webkit-slider-thumb {
-                    -webkit-appearance: none;
-                    appearance: none;
-                    width: 25px;
-                    height: 25px;
-                    border-radius: 50%;
-                    background: darkcyan;
-                    cursor: pointer;
-                }
-
-                .slider::-moz-range-thumb {
-                    width: 25px;
-                    height: 25px;
-                    border-radius: 50%;
-                    background: #4CAF50;
-                    cursor: pointer;
-                }
-
-            .deviceListElement {
-                padding-left: 1em;
-                font-size: 1.2em;
-                color: #000;
-                text-align: left;
-            }
-
-            input[type=text] {
-                font-size: 1.3em;
-                padding-left: 5px;
-            }
-
-            #header {
-                position: absolute;
-            }
-
-
-            @@media only screen and (max-width: 600px) {
-                .inputForm {
-                    padding: 1em;
-                }
-            }
-
-        .navbar-title {
-            position: relative;
-            display: inline-block;
-            font-size: 22px;
-            color: #ffffff;
-            padding-top: 1.7em!important;
-            padding-left: 2em!important;
-        }
-            /*Hide arrow keys from number inputs*/
-            /* Chrome, Safari, Edge, Opera */
-            input::-webkit-outer-spin-button,
-            input::-webkit-inner-spin-button {
-                -webkit-appearance: none;
-                margin: 0;
-            }                    
-            /* Firefox */
-            input[type=number] {
-                -moz-appearance: textfield;
-            }
-        </style>
-        <div id="app">
-            <div style="position:fixed; top:0em!important; left:0em!important; width:100%; height: 5em; background-color:black; z-index:999;">
-                <span id="header" class="navbar-title">
-                    <a>Snitch</a>
-                </span>
-            </div>
-                <div id="burger"
-                 :class="{ 'active' : showHamburger }"
-                 v-on:click="ToggleBurger"
-                 v-if="walletConnected">
-                <slot>
-                    <button type="button" class="burger-button" title="Menu">
-                        <span class="burger-bar burger-bar--1"></span>
-                        <span class="burger-bar burger-bar--2"></span>
-                        <span class="burger-bar burger-bar--3"></span>
-                    </button>
-                </slot>
-            </div>
-            <div class="sidebar">
-                <div class="sidebar-backdrop" style=" z-index: 1;" v-on:click="ToggleBurger" v-if="showHamburger"></div>
-                <transition name="slide">
-                    <div v-if="showHamburger"
-                         class="sidebar-panel">
-                        <slot>
-                            <ul class="sidebar-panel-nav">
-                            <li style="margin:0px; margin-top:5em;" class="sidebar-menu-title">
-                                    <span id="idBar">
-                                        {{ shortenedAddress }}
-                                    </span>
-                                <hr style="border: 2px medium #707070; z-index:1000; margin:0px;" />
-                            </li>
-                            <li v-if="showAddDeviceButton" style="margin:0px 0px 0px 0px; margin-top:1em;">
-                                <span class="sidebar-menu-title" v-on:click="showAddDeviceInput = true" style="cursor:pointer; margin-top:1em;">Add new Snitch
-                                    <svg style="float:right; margin-top:0.1em; margin-left:40px"  width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M12.4482 21.2744C17.4188 21.2744 21.4482 17.245 21.4482 12.2744C21.4482 7.30383 17.4188 3.27439 12.4482 3.27439C7.47768 3.27439 3.44824 7.30383 3.44824 12.2744C3.44824 17.245 7.47768 21.2744 12.4482 21.2744Z" stroke="black" stroke-width="1.52987" stroke-miterlimit="10"/>
-                                        <path d="M8.69824 12.2741H16.1982" stroke="black" stroke-width="1.52987" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M12.4482 8.52409V16.0241" stroke="black" stroke-width="1.52987" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </span>
-                                <hr style="border: 2px medium #707070; z-index:1000; margin:0px;" />
-                            </li>
-                            <li v-if="showAddDeviceButton" style="margin:0px 0px 0px 0px; margin-top:1em;">
-                                <span class="sidebar-menu-title" id="viewDevicesButton" v-on:click="viewDevices = !viewDevices" style="cursor:pointer">
-                                    Linked Devices
-                                </span>
-                            <hr style="border: 2px medium #707070; z-index:1000; margin:0px;" />
-                                <transition name="slide-down">
-                                    <div>
-                                        <table>
-                                            <tr v-for="device in account.devices">
-                                                <td class="deviceListElement sidebar-menu-title-device" style="cursor:pointer" v-on:click="DeviceSelected(device)">
-                                                    {{ GetDeviceAlias(device) }}
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                </transition>
-                            </li>
-                            <li style="padding-top:6em">
-
-                                <span class="sidebar-menu-title" style="cursor:pointer;font-family: 'Roboto';font-style: normal;font-weight: 400;font-size: 30px;line-height: 105%;letter-spacing: -0.02em;color: #000000;" v-on:click="SignOut">    
-                                    <svg style="padding-top:5px" width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <g clip-path="url(#clip0_134_516)">
-                                            <path d="M12.1984 22.7021H3.04957C2.48844 22.7021 2.03306 22.2467 2.03306 21.6856V3.38808C2.03306 2.82695 2.48848 2.37158 3.04957 2.37158H12.1984C12.7605 2.37158 13.2149 1.91721 13.2149 1.35507C13.2149 0.792939 12.7605 0.33847 12.1984 0.33847H3.04957C1.36823 0.33847 0 1.70675 0 3.38808V21.6856C0 23.3669 1.36823 24.7351 3.04957 24.7351H12.1984C12.7605 24.7351 13.2149 24.2808 13.2149 23.7186C13.2149 23.1565 12.7605 22.7021 12.1984 22.7021Z" fill="#8C51EE" />
-                                            <path d="M24.1756 11.813L17.9951 5.71386C17.5967 5.31943 16.9522 5.32455 16.5578 5.72404C16.1634 6.12353 16.1674 6.76698 16.568 7.1614L20.9848 11.5203H9.14932C8.58718 11.5203 8.13281 11.9746 8.13281 12.5368C8.13281 13.0989 8.58718 13.5533 9.14932 13.5533H20.9848L16.568 17.9122C16.1675 18.3066 16.1644 18.95 16.5578 19.3495C16.757 19.5508 17.0193 19.6524 17.2816 19.6524C17.5398 19.6524 17.7979 19.5549 17.9951 19.3597L24.1756 13.2605C24.3688 13.0694 24.4786 12.8091 24.4786 12.5367C24.4786 12.2644 24.3698 12.0052 24.1756 11.813Z" fill="#8C51EE" />
-                                        </g>
-                                        <defs>
-                                            <clipPath id="clip0_134_516">
-                                                <rect width="24.478" height="24.478" fill="white" transform="translate(0 0.297882)" />
-                                            </clipPath>
-                                        </defs>
-                                    </svg>
-                                      Sign Out
-                                </span>
-                            </li>
-                            </ul>
-                        </slot>
-                    </div>
-                </transition>
-            </div>
-            <div class="d-flex align-items-center justify-content-center" style="height: 300px; margin-top: 10em"  v-if="!walletConnected">
-            <div class="p-2 m-2 d-flex align-items-center justify-content-center walletcontainer">
-            <div class="p-2 m-2 text-white shadow rounded-2 walletblock justify-content-center align-items-center" id="web3ConnectButton" v-on:click="EthereumConnect">
-                <svg class="walletimg column" width="158" height="158" viewBox="0 0 158 158" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="78.9139" cy="78.7962" rx="78.3738" ry="78.5424" fill="white"/>
-                        <path d="M78.0719 103.405L119.534 78.0432L78.0719 10.7044V103.405Z" fill="#343434"/>
-                        <path d="M78.4095 103.405L36.9473 78.0432L78.4095 10.7044V103.405Z" fill="#8B8B8B"/>
-                        <path d="M119.534 78.1254L78.0706 60.2556V103.405L119.534 78.1254Z" fill="#141414"/>
-                        <path d="M36.9473 78.1254L78.4109 60.2556V103.405L36.9473 78.1254Z" fill="#393939"/>
-                        <path d="M78.4085 112.016L37.6191 87.561L78.4085 145.205V112.016Z" fill="#8B8B8B"/>
-                        <path d="M78.4077 112.016L119.534 87.561L78.4077 145.205V112.016Z" fill="#3C3C3A"/>
-                    </svg>
-                    <button class="btn btn-default walletbtn text-center">
-                        Ethereum
-                    </button>
-                </div>
-                <div class="p-2 m-2 text-white shadow rounded-2 walletblock align-items-center justify-content-center" id="tezozWalletConnect" v-on:click="TezosConnect">
-                    <svg class="walletimg column" width="157" height="158" viewBox="0 0 157 158" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <ellipse cx="78.5428" cy="78.7962" rx="78.3738" ry="78.5424" fill="white"/>
-                        <path d="M87.2533 116.099C81.1906 116.099 76.7652 114.639 73.9776 111.718C71.3953 109.246 69.8965 105.852 69.8096 102.278C69.7782 101.192 70.0299 100.117 70.5397 99.158C71.0152 98.3293 71.7023 97.6417 72.5307 97.1654C74.4825 96.192 76.7785 96.192 78.7304 97.1654C79.5574 97.6397 80.241 98.3279 80.7103 99.158C81.2348 100.112 81.4959 101.189 81.4665 102.278C81.5206 103.578 81.1476 104.86 80.4044 105.929C79.7851 106.801 78.8998 107.449 77.8811 107.776C78.8771 109.044 80.2864 109.922 81.8635 110.258C83.6282 110.771 85.4555 111.034 87.2929 111.041C89.7257 111.062 92.1084 110.35 94.1299 108.997C96.2274 107.515 97.7912 105.397 98.5905 102.957C99.6032 100.052 100.098 96.992 100.051 93.9164C100.132 90.7099 99.5913 87.5178 98.4576 84.5172C97.6049 82.1173 95.9861 80.0646 93.8509 78.676C91.8665 77.4203 89.5629 76.7613 87.2145 76.778C85.168 76.9513 83.1949 77.6211 81.4659 78.7296L77.2033 80.8667V78.7296L96.3596 53.0312H69.8096V79.6987C69.7345 81.6231 70.2437 83.5251 71.2698 85.155C72.2797 86.5994 73.9716 87.4102 75.7304 87.2921C77.3279 87.2598 78.8726 86.7155 80.1374 85.739C81.571 84.6883 82.8185 83.4051 83.8282 81.942C83.9191 81.6854 84.0867 81.4631 84.3082 81.3051C84.4861 81.1513 84.7132 81.0666 84.9483 81.066C85.4096 81.1082 85.846 81.2937 86.1964 81.5968C86.6402 82.0927 86.8814 82.737 86.8732 83.4022C86.822 83.8494 86.7421 84.2929 86.6342 84.7296C85.6911 87.0126 84.11 88.9752 82.0805 90.3831C80.1954 91.6586 77.9691 92.3349 75.693 92.3233C69.9444 92.3233 65.9622 91.1905 63.7461 88.9248C61.445 86.3952 60.2584 83.046 60.4538 79.6316V53.0306H46.9492V48.0758H60.5166V36.7783L57.4104 33.6698V31.1365H66.4241L69.8099 32.889V48.0756L104.883 47.9688L108.375 51.4735L86.8687 73.0844C88.1681 72.5618 89.5362 72.2308 90.9308 72.1019C93.6906 72.2228 96.3834 72.9915 98.7912 74.3458C101.579 75.6712 103.929 77.7681 105.562 80.388C107.025 82.6058 108.061 85.0777 108.616 87.6761C109.072 89.7257 109.316 91.8167 109.346 93.9164C109.36 97.9232 108.452 101.88 106.691 105.479C105.021 108.964 102.211 111.775 98.7253 113.445C95.1568 115.203 91.2307 116.111 87.2533 116.099Z" fill="black"/>
-                        <path d="M104.77 126.295H51.5264C50.5878 126.295 49.8271 125.534 49.8271 124.596C49.8271 123.657 50.5878 122.896 51.5264 122.896H104.77C105.708 122.896 106.469 123.657 106.469 124.596C106.469 125.534 105.708 126.295 104.77 126.295Z" fill="black"/>
-                    </svg>
-                    <button class="btn btn-default walletbtn text-center">
-                        Tezos
-                    </button>
-                </div>
-                </div>
-            </div>
-
-        @*    <div class="networkSelection" v-if="!walletConnected">
-                <div class="networkButton button positiveButton" id="web3ConnectButton" v-on:click="EthereumConnect">Ethereum</div>
-                <div class="networkButton button positiveButton" id="tezozWalletConnect" v-on:click="TezosConnect">Tezos</div>
-            </div>*@
-            <div class="transformCenter" v-if="walletConnected && showSignMessage">Please sign the payload to prove ownership over your account</div>
-            <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
-            <div class="tokenGallery">
-                <div v-if="tokensLoaded">
-                    <p style="text-align:center; color:white!important;font-family: 'Roboto';font-style: normal;font-weight: 400;font-size: 80px;line-height: 105%;">
-                        Browse your
-                        <span style="background: linear-gradient(99.77deg, #8C50ED 9.08%, #EF88C6 99.58%);-webkit-background-clip: text;-webkit-text-fill-color: transparent;background-clip: text;text-fill-color: transparent;">NFTs</span>
-                    </p>
-                <div style="background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px; margin-bottom:3em;" class="input-group md-3 notselectable">
-                    <input style="background-color:black; border: 1px solid #8C51EE; border-radius: 40px;font-size:1em; padding-left:30px" 
-                            id="searchField"
-                            type="text" 
-                            class="form-control notselectable" 
-                            placeholder="Search whatever you want..."
-                            aria-label="Search whatever you want..." 
-                            aria-describedby="basic-addon2">
-                    <div class="input-group-append notselectable">
-                        <button class="btn btn-search notselectable" style="color:white; background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px; font-size:1em; width: 79px;
-font-family: 'Roboto';
-font-style: normal;
-font-weight: 700;
-font-size: 0.9em;
-line-height: 105%;
-letter-spacing: 0.01em;
-text-transform: uppercase;
-
-color: #FFFFFF;" type="button"
-                                v-on:click="SearchToken">
-                            Search
-                        </button>
-                      </div>
-                    </div>
-
-                </div>
-                <div class="inlineStatusMessage" v-if="showNoTokensMessage" style="width: 80%; min-width: 10em;">
-                    Unable to find any tokens
-                    <div>Get yours at</div>
-                    <div v-if="network === 'ETHEREUM'" style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
-                        <div style="width:40%;"><a class="button center positiveButton" href="https://knownorigin.io/">KnownOrigin</a></div>
-                        <div style="width:40%;"><a class="button center positiveButton" href="https://superrare.co/">SuperRare</a></div>
-                        <div style="width:40%;"><a class="button center positiveButton" href="https://opensea.io/">OpenSea</a></div>
-                    </div>
-                    <div v-if="network === 'TEZOS'" style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
-                        <div style="width:40%;" class="center">
-                            <a class="button center positiveButton" href="https://www.hicetnunc.xyz/">
-                                <img src="https://www.hicetnunc.xyz/hen-pride.gif" style="width: 11em; height: auto; ">
-                             </a>
-                        </div>
-                    </div>
-                </div>
-                <div v-if="tokensLoaded" class="row">
-                <div style="min-height:150px; max-height:250px; border-radius: 60px;" class="col-sm-6" v-for="token in filteredItems" v-bind:key="token.image_url" v-on:click="TokenSelected(token, true)">
-                        <a v-lazyload>
-                            <div class="loader center"></div>
-                            <img  :data-url="token.image_url" v-bind:alt="token.name" style="max-width: 95%; border-radius: 60px;">
-                        </a>
-                        <div class="desc">{{ token.name }}</div>
-                    </div>
-                </div>
-            </div>
-
-           @* <div style="width:100%;height: 3em;display: flex;"></div>
-
-            <div class="tokenGallery" style="background-color:#000000">
-                <div v-if="tokensLoaded" style="position:relative; top: 1em; z-index:-1;">
-                    <h3>
-                        Discover new NFTs
-                    </h3>
-                </div>
-                <div v-if="tokensLoaded" v-for="token in communityTokens" class="gallery" style="width: 48%; min-width: 250px; position:relative; top: 1em;" v-on:click="TokenSelected(token, false)">
-                    <a>
-                        <img v-bind:src="token.image_url" v-bind:alt="token.name" width="600" height="400" style="max-width: 95%">
-                    </a>
-                    <div class="desc">{{ token.name }}</div>
-                </div>
-            </div>*@
-
-            <div class="inputForm" v-if="showAddDeviceInput">
-                <h3 style="padding-bottom: 1em;">Register New Snitch</h3>
-                <a id="demoLink" v-on:click="AddDemoDeviceWithForm()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Try a demo instead</a>
-                <a id="canviaDeviceLink" v-if="!whitelabeled" v-on:click="OAuthWithCanvia()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Connect with Canvia</a>
-                <span class="formElement">Snitch Alias</span>
-                <input id="deviceAliasInput" type="text" placeholder="Snitch Alias (ex: deviceone)" style="width: 97%; max-width: 28em;" />
-                <span class="formElement">Snitch Id</span>
-                <input id="deviceIdInput" type="text" placeholder="Snitch Id (ex: 00:00:00:00:00:00)" style="width: 97%; max-width: 28em;" />
-                <button class="button center positiveButton largeButton" v-on:click="AddDeviceWithForm()">Add</button>
-            </div>
-
-            <div class="inputForm" v-if="showDeviceEdit">
-                <h1 style="padding-bottom: 1em;">Device</h1>
-                <div class="formElement">
-                    <h4 class="menuFont">Snitch Alias</h4>
-                    <input type="text" id="deviceAliasInput" placeholder="ex. device one" :value="selectedDeviceAlias" style="width:16em" />
-                    
-                    <h4 class="menuFont">Snitch Id</h4>
-                    <input type="text" id="deviceIdInput" placeholder="ex. 00:00:00:00:00:00" :value="selectedDeviceId" style="width:16em" />
-                </div>
-                <div style="padding-top: 1em">
-                    <h4 class="menuFont">Options</h4>
-                    <div style="display: flex; align-items: flex-start; flex-wrap: nowrap;">
-                        <div style="width:40%;"><button class="button flexButton negativeButton" id="deleteDeviceButton" v-on:click="DeleteDeviceWithForm()">Delete</button></div>
-                        <div style="width:40%; border-color: darkred;"><button class="button flexButton defaultButton" id="clearDeviceButton" v-on:click="ClearDeviceWithForm()">Clear</button></div>
-                        <div style="width:40%; border-color: darkred;"><button class="button flexButton defaultButton" id="shareDeviceButton" v-on:click="ShareDeviceWithForm()">Share</button></div>
-                        <div style="width:40%;"><button class="button positiveButton" id="updateDeviceButton" v-on:click="UpdateDeviceWithForm()">Update</button></div>
-                    </div>
-                </div>
-
-                <div v-if="tokensByDevice.length > 0 && !isCanviaDevice" style="padding-top: 1em">
-                    <span><h4 class="menuFont">On Queue <i>(select to remove)</i></h4></span>
-                </div>
+  <div class="sidebar">
+    <div class="sidebar-backdrop" style=" z-index: 1;" v-on:click="ToggleBurger" v-if="showHamburger"></div>
+    <transition name="slide">
+      <div v-if="showHamburger" class="sidebar-panel">
+        <slot>
+          <ul class="sidebar-panel-nav">
+            <li style="margin: 5em 0 0;" class="sidebar-menu-title">
+              <span id="idBar">
+                  {{ shortenedAddress }}
+              </span>
+              <hr style="border: solid 2px #707070; z-index: 1000; margin: 0;"/>
+            </li>
+            <li v-if="showAddDeviceButton" style="margin: 1em 0 0;">
+              <span class="sidebar-menu-title" v-on:click="showAddDeviceInput = true"
+                    style="cursor:pointer; margin-top:1em;">Add new Device
+                <svg style="float:right; margin-top:0.1em; margin-left:40px" width="25" height="25"
+                     viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12.4482 21.2744C17.4188 21.2744 21.4482 17.245 21.4482 12.2744C21.4482 7.30383 17.4188 3.27439 12.4482 3.27439C7.47768 3.27439 3.44824 7.30383 3.44824 12.2744C3.44824 17.245 7.47768 21.2744 12.4482 21.2744Z"
+                        stroke="black" stroke-width="1.52987" stroke-miterlimit="10"/>
+                  <path d="M8.69824 12.2741H16.1982" stroke="black" stroke-width="1.52987"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M12.4482 8.52409V16.0241" stroke="black" stroke-width="1.52987"
+                        stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+              </span>
+              <hr style="border: solid 2px #707070; z-index:1000; margin: 0;"/>
+            </li>
+            <li v-if="showAddDeviceButton" style="margin: 1em 0 0;">
+              <span class="sidebar-menu-title" id="viewDevicesButton"
+                    v-on:click="viewDevices = !viewDevices" style="cursor:pointer">
+                  Linked Devices
+              </span>
+              <hr style="border: solid 2px #707070; z-index:1000; margin: 0;"/>
+              <transition name="slide-down">
                 <div>
-                    <div v-if="!isCanviaDevice"
-                         v-for="(token, index) in tokensByDevice"
-                         class="queueGallery"
-                         style="width: 100px; height: 100px; display: flex;"
-                         :key="token.tokenImageUrl">
-                        <a v-lazyload>
-                          <img v-on:click="RemoveTokenFromDevice(index);" v-if="token.tokenImageUrl.indexOf('mp4') === -1" 
-                                 :data-url="token.tokenImageUrl" v-bind:alt="token.tokenName" width="100" height="100" style="padding-right:10px"/>
-                            <video id="video"
-                                   v-on:click="RemoveTokenFromDevice(index);"
-                                   v-if="token.tokenImageUrl.indexOf('mp4') > -1"
-                                   width="100" height="100"
-                                   style="padding-right:10px;"
-                                   loop autoplay muted>
-                                <source :src="token.tokenImageUrl" type="video/mp4"/>
-                            </video>
-                        </a>
-                    </div>
-                </div>
-                <div v-if="!isCanviaDevice" style="padding-top: 1em">
-                    <div class="formElement">
-                        <h4 class="menuFont">Queue Rotation Frequency</h4>
-                        <input type="range" id="frequencyOfRotation" min="1" max="10" 
-                               v-on:input="GetLogOf()"
-                               :value=Math.log2(rotationFrequency)
-                               style="width: 50%"
-                        >
-                        <output id="frequencyOutputValue">{{ rotationFrequency }}</output><b> minutes</b>
-                    </div>
-                </div>
-            </div>
-
-            <div class="modal" v-if="showModal" v-on:click="CloseInputForms()">
-            </div>
-
-            <div class="inputForm" v-if="showTokenDisplayOptions">
-                <h2 style="padding-bottom: 1em;">Cast your token</h2>
-                <div class="center"
-                     style="width:100%"
-                     v-bind:style="{
-                     backgroundColor: selectedBackgroundColor,
-                     maxWidth: tokenPreviewWidth + 'px',
-                     height: tokenPreviewHeight + 'px'
-                 }">
-                    <img id="tokenPreviewContainer"
-                         class="center"
-                         style="width:100%;"
-                         crossorigin="anonymous"
-                         v-on:click="TokenPreviewClick"
-                         v-on:mousemove="TokenPreviewMousemove"
-                         v-on:mouseout="TokenPreviewMouseout"
-                         v-bind:src="selectedToken.image_url"
-                         v-bind:style="{
-                            backgroundColor: selectedBackgroundColor,
-                            height:tokenHeight,
-                            marginTop: borderWidthInPx,
-                            objectFit: fitScreen? 'cover' : 'contain'
-                     }" />
-                </div>
-                <div style="padding-top:3em; text-align:left;">
-                    <div class="menuFont">Background color</div>
-                    <div v-for="color in backgroundColorPallete"
-                         class="gallery"
-                         v-on:click="ColorSelected(color)"
-                         v-bind:style="{ backgroundColor: color }"
-                         style="width: 2em; height: 2em;">
-                    </div>
-                    <div id="colorPicker"
-                         style="width: 2em;
-                                height: 2em;
-                                background-size: contain;
-                                cursor: pointer"
-                         v-on:click="ColorSelected(eyedropperSelectedColor)"
-                         v-bind:style="{backgroundColor: eyedropperHoverColor,
-                                        backgroundImage: eyedropperImage}"
-                         class="gallery">
-                    </div>
-                </div>
-                <div style="padding-top:1em; text-align:left;">
-                    <div class="menuFont">Border width percentage</div>
-                    <div style="width:100%">
-                        <input type="range" min="0" max="35" value="5" class="slider" v-model="borderWidthPercent">
-                    </div>
-                    <div class="menuFont">Fit screen</div>
-                    <input type="checkbox" v-model="fitScreen" v-on:click="borderWidthPercent = !fitScreen? 0 : borderWidthPercent" />
-                    <div class="menuFont">Rotate orientation</div>
-                    <input type="checkbox" v-model="orientationVertical" />
-                    <span v-if="displayingOwnedToken">
-                        <div class="menuFont">Show Metadata</div>
-                        <input type="checkbox" v-model="showMetadata" />
-                    </span>
-                </div>
-                <div style="padding-top:1em; text-align:left;" class="menuFont">Device</div>
-                <select id="deviceSelection" style="margin-top:.5em; margin-bottom:.5em; " v-model="selected">
-                    <option v-for="device in account.devices" :value="device">
+                  <table>
+                    <tr v-for="device in account.devices">
+                      <td class="deviceListElement sidebar-menu-title-device" style="cursor:pointer"
+                          v-on:click="DeviceSelected(device)">
                         {{ GetDeviceAlias(device) }}
-                    </option>
-                </select>
-                <button class="button center positiveButton largeButton" id="displayTokenButton" v-on:click="CastToken()">Cast</button>
-            </div>
-            <canvas id="tokenPreviewCanvas" style="display:none;"
-                    v-bind:style="{
-                        objectFit: fitScreen? 'fill' : 'contain',
-                        height:tokenHeight,
-                        marginTop: borderWidthInPx}">
-            </canvas>
+                      </td>
+                    </tr>
+                  </table>
+                </div>
+              </transition>
+            </li>
+            <li style="padding-top:6em">
+              <span class="sidebar-menu-title"
+                    style="cursor:pointer;font-weight: 400;font-size: 30px;line-height: 105%;letter-spacing: -0.02em;color: #000000;"
+                    v-on:click="SignOut">
+                <svg style="padding-top:5px" width="25" height="25" viewBox="0 0 25 25" fill="none"
+                     xmlns="http://www.w3.org/2000/svg">
+                  <g clip-path="url(#clip0_134_516)">
+                    <path d="M12.1984 22.7021H3.04957C2.48844 22.7021 2.03306 22.2467 2.03306 21.6856V3.38808C2.03306 2.82695 2.48848 2.37158 3.04957 2.37158H12.1984C12.7605 2.37158 13.2149 1.91721 13.2149 1.35507C13.2149 0.792939 12.7605 0.33847 12.1984 0.33847H3.04957C1.36823 0.33847 0 1.70675 0 3.38808V21.6856C0 23.3669 1.36823 24.7351 3.04957 24.7351H12.1984C12.7605 24.7351 13.2149 24.2808 13.2149 23.7186C13.2149 23.1565 12.7605 22.7021 12.1984 22.7021Z"
+                          fill="#8C51EE"/>
+                    <path d="M24.1756 11.813L17.9951 5.71386C17.5967 5.31943 16.9522 5.32455 16.5578 5.72404C16.1634 6.12353 16.1674 6.76698 16.568 7.1614L20.9848 11.5203H9.14932C8.58718 11.5203 8.13281 11.9746 8.13281 12.5368C8.13281 13.0989 8.58718 13.5533 9.14932 13.5533H20.9848L16.568 17.9122C16.1675 18.3066 16.1644 18.95 16.5578 19.3495C16.757 19.5508 17.0193 19.6524 17.2816 19.6524C17.5398 19.6524 17.7979 19.5549 17.9951 19.3597L24.1756 13.2605C24.3688 13.0694 24.4786 12.8091 24.4786 12.5367C24.4786 12.2644 24.3698 12.0052 24.1756 11.813Z"
+                          fill="#8C51EE"/>
+                  </g>
+                  <defs>
+                    <clipPath id="clip0_134_516">
+                      <rect width="24.478" height="24.478" fill="white"
+                            transform="translate(0 0.297882)"/>
+                    </clipPath>
+                  </defs>
+                </svg>
+                Sign Out
+              </span>
+            </li>
+          </ul>
+        </slot>
+      </div>
+    </transition>
+  </div>
+
+  <div class="d-flex align-items-center justify-content-center" style="height: 400px; margin-top: 10em"  v-if="!walletConnected">
+    <div class="p-2 m-2 d-flex align-items-center justify-content-center walletcontainer">
+      <div class="p-2 m-2 text-white shadow rounded-2 walletblock justify-content-center align-items-center" id="web3ConnectButton" v-on:click="EthereumConnect">
+        <svg class="walletimg column" width="158" height="158" viewBox="0 0 158 158" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="78.9139" cy="78.7962" rx="78.3738" ry="78.5424" fill="white"/>
+          <path d="M78.0719 103.405L119.534 78.0432L78.0719 10.7044V103.405Z" fill="#343434"/>
+          <path d="M78.4095 103.405L36.9473 78.0432L78.4095 10.7044V103.405Z" fill="#8B8B8B"/>
+          <path d="M119.534 78.1254L78.0706 60.2556V103.405L119.534 78.1254Z" fill="#141414"/>
+          <path d="M36.9473 78.1254L78.4109 60.2556V103.405L36.9473 78.1254Z" fill="#393939"/>
+          <path d="M78.4085 112.016L37.6191 87.561L78.4085 145.205V112.016Z" fill="#8B8B8B"/>
+          <path d="M78.4077 112.016L119.534 87.561L78.4077 145.205V112.016Z" fill="#3C3C3A"/>
+        </svg>
+        <button class="btn btn-default walletbtn text-center" style="margin-top: 60px">
+          Ethereum
+        </button>
+      </div>
+      <div class="p-2 m-2 text-white shadow rounded-2 walletblock align-items-center justify-content-center" id="tezozWalletConnect" v-on:click="TezosConnect">
+        <svg class="walletimg column" width="157" height="158" viewBox="0 0 157 158" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="78.5428" cy="78.7962" rx="78.3738" ry="78.5424" fill="white"/>
+          <path d="M87.2533 116.099C81.1906 116.099 76.7652 114.639 73.9776 111.718C71.3953 109.246 69.8965 105.852 69.8096 102.278C69.7782 101.192 70.0299 100.117 70.5397 99.158C71.0152 98.3293 71.7023 97.6417 72.5307 97.1654C74.4825 96.192 76.7785 96.192 78.7304 97.1654C79.5574 97.6397 80.241 98.3279 80.7103 99.158C81.2348 100.112 81.4959 101.189 81.4665 102.278C81.5206 103.578 81.1476 104.86 80.4044 105.929C79.7851 106.801 78.8998 107.449 77.8811 107.776C78.8771 109.044 80.2864 109.922 81.8635 110.258C83.6282 110.771 85.4555 111.034 87.2929 111.041C89.7257 111.062 92.1084 110.35 94.1299 108.997C96.2274 107.515 97.7912 105.397 98.5905 102.957C99.6032 100.052 100.098 96.992 100.051 93.9164C100.132 90.7099 99.5913 87.5178 98.4576 84.5172C97.6049 82.1173 95.9861 80.0646 93.8509 78.676C91.8665 77.4203 89.5629 76.7613 87.2145 76.778C85.168 76.9513 83.1949 77.6211 81.4659 78.7296L77.2033 80.8667V78.7296L96.3596 53.0312H69.8096V79.6987C69.7345 81.6231 70.2437 83.5251 71.2698 85.155C72.2797 86.5994 73.9716 87.4102 75.7304 87.2921C77.3279 87.2598 78.8726 86.7155 80.1374 85.739C81.571 84.6883 82.8185 83.4051 83.8282 81.942C83.9191 81.6854 84.0867 81.4631 84.3082 81.3051C84.4861 81.1513 84.7132 81.0666 84.9483 81.066C85.4096 81.1082 85.846 81.2937 86.1964 81.5968C86.6402 82.0927 86.8814 82.737 86.8732 83.4022C86.822 83.8494 86.7421 84.2929 86.6342 84.7296C85.6911 87.0126 84.11 88.9752 82.0805 90.3831C80.1954 91.6586 77.9691 92.3349 75.693 92.3233C69.9444 92.3233 65.9622 91.1905 63.7461 88.9248C61.445 86.3952 60.2584 83.046 60.4538 79.6316V53.0306H46.9492V48.0758H60.5166V36.7783L57.4104 33.6698V31.1365H66.4241L69.8099 32.889V48.0756L104.883 47.9688L108.375 51.4735L86.8687 73.0844C88.1681 72.5618 89.5362 72.2308 90.9308 72.1019C93.6906 72.2228 96.3834 72.9915 98.7912 74.3458C101.579 75.6712 103.929 77.7681 105.562 80.388C107.025 82.6058 108.061 85.0777 108.616 87.6761C109.072 89.7257 109.316 91.8167 109.346 93.9164C109.36 97.9232 108.452 101.88 106.691 105.479C105.021 108.964 102.211 111.775 98.7253 113.445C95.1568 115.203 91.2307 116.111 87.2533 116.099Z" fill="black"/>
+          <path d="M104.77 126.295H51.5264C50.5878 126.295 49.8271 125.534 49.8271 124.596C49.8271 123.657 50.5878 122.896 51.5264 122.896H104.77C105.708 122.896 106.469 123.657 106.469 124.596C106.469 125.534 105.708 126.295 104.77 126.295Z" fill="black"/>
+        </svg>
+        <button class="btn btn-default walletbtn text-center" style="margin-top: 60px">
+          Tezos
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="inputForm" v-if="showAddDeviceInput">
+    <div style="position:relative; width: 100%">
+      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+        <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
+        </svg>
+      </div>
+    </div>
+    <span class="modal-title">Register New Device</span>
+
+    <div class="modal-form">
+      <span class="modal-form-title">Device Id</span>
+      <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
+      <input
+          id="deviceIdInput"
+          type="text"
+          placeholder="Device Id (ex: 00:00:00:00:00:00)"
+          class="modal-form-input"
+      />
+
+      <span class="modal-form-title">Security code</span>
+      <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
+      <input
+          id="deviceSecurityCodeInput"
+          type="text"
+          placeholder="Security code"
+          class="modal-form-input"
+      />
+    </div>
+
+    <div>
+      <button class="device-add-button modal-button" v-on:click="AddDeviceWithForm()">Add</button>
+    </div>
+  </div>
+
+  <div class="inputForm" v-if="showDeviceEdit">
+    <div style="position:relative; width: 100%">
+      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+        <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
+        </svg>
+      </div>
+    </div>
+    <span class="modal-title">Device</span>
+
+    <div class="modal-form">
+      <div class="device-update-form">
+        <div style="display: flex; flex-direction: column">
+          <span class="modal-form-title">Name</span>
+          <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
+          <input
+              type="text"
+              id="deviceAliasInput"
+              placeholder="ex. device one"
+              :value="selectedDeviceAlias"
+              class="modal-form-input"
+          />
         </div>
 
-        <script type="text/javascript">
-            web3Account = "";
-            signature = ""
+        <div style="display: flex; flex-direction: column">
+          <span class="modal-form-title">Device ID</span>
+          <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
+          <input
+              type="text"
+              id="deviceIdInput"
+              placeholder="ex. 00:00:00:00:00:00"
+              :value="selectedDeviceId"
+              class="modal-form-input"
+          />
+        </div>
+      </div>
+    </div>
+    <div>
+      <button
+          class="modal-button device-edit-delete-button"
+          id="deleteDeviceButton"
+          v-on:click="DeleteDeviceWithForm()"
+      >
+        Delete
+      </button>
+      <button
+          class="modal-button device-edit-update-button"
+          id="updateDeviceButton"
+          v-on:click="UpdateDeviceWithForm()"
+      >
+        Update
+      </button>
+    </div>
+  </div>
 
-            var app = new Vue({
-                el: '#app',
-                data: {
-                    address: '',
-                    account: '',
-                    network: '',
-                    searchFieldProperty: '',
-                    tokens: '',
-                    filteredTokens: '',
-                    communityTokens: '',
-                    showSignMessage: true,
-                    showFetchingTokensMessage: false,
-                    tokensLoaded: false,
-                    tokensByDevice: [],
-                    showNoTokensMessage: false,
-                    showAddDeviceButton: false,
-                    showAddDeviceInput: false,
-                    isBurgerActive: false,
-                    viewDevices: false,
-                    showTokenDisplayOptions: false,
-                    selectedToken: null,
-                    backgroundColorPallete: [],
-                    selectedBackgroundColor: "#ffffff",
-                    tokenPreviewHeight: 300,
-                    tokenPreviewWidth: 500,
-                    borderWidthPercent: 5,
-                    borderWidthInPx: '0px',
-                    fitScreen: false,
-                    orientationVertical: false,
-                    showMetadata: true,
-                    selectedDeviceId: '',
-                    selectedDeviceAlias: '',
-                    isCanviaDevice: '',
-                    rotationFrequency: '',
-                    showDeviceEdit: false,
-                    eyedropperSelectedColor: "#ffffff",
-                    eyedropperHoverColor: "#ffffff",
-                    displayingOwnedToken: true,
-                    providedWeb3: '',
-                    dAppClient: '',
-                    tezosWalletConnected: false,
-                    whitelabeler: '',
-                    selected: ''
-                },
-                mounted: async function () {
-                    await onLoad(true, false);                      
-                },
-                computed: {
-                    filteredItems: function() {
-                    var filter = this.searchFieldProperty;
-                      return this.tokens.filter(function(item) {
-                          return item.name.includes(filter) || filter === "";
-                      });
-                    },
-                    walletConnected: function () {
-                        return this.providedWeb3 !== '' || this.tezosWalletConnected === true
-                    },
-                    showModal: function () {
-                        var shouldShowModal = this.showTokenDisplayOptions || this.showAddDeviceInput || this.showDeviceEdit;
-                        if (shouldShowModal) {
-                            $('html,body').scrollTop(0);
-                        }
-                        return shouldShowModal;
-                    },
-                    tokenHeight: function () {
-                        var borderWidthInPx = this.borderWidthPercent * .01 * this.tokenPreviewHeight;
-                        this.borderWidthInPx = borderWidthInPx + "px";
-                        var borderHeight = borderWidthInPx * 2;
-                        return (this.tokenPreviewHeight - borderHeight) + "px";
-                    },
-                    shortenedAddress: function () {
-                        var addressLength = this.address.length;
-                        if (addressLength > 20) {
-                            return this.address.substring(0, 7) + "..." + this.address.substring(addressLength - 8, addressLength);
-                        }
-                        return this.address;
-                    },
-                    showHamburger: function () {
-                        return this.isBurgerActive && !this.showModal;
-                    },
-                    eyedropperImage: function () {
-                        var c = this.eyedropperHoverColor.substring(1);      // strip #
-                        var rgb = parseInt(c, 16);   // convert rrggbb to decimal
-                        var r = (rgb >> 16) & 0xff;  // extract red
-                        var g = (rgb >>  8) & 0xff;  // extract green
-                        var b = (rgb >>  0) & 0xff;  // extract blue
+  <div class="inputForm" v-if="showTokenDisplayOptions">
+    <div style="position:relative; width: 100%">
+      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+        <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
+        </svg>
+      </div>
+    </div>
 
-                        var luma = 0.2126 * r + 0.7152 * g + 0.0722 * b; // per ITU-R BT.709
+    <span class="modal-title">Cast your token</span>
 
-                        if (luma < 100) {
-                            // pick a different colour
-                            return "url('images/eye_dropper_white.png')";
-                        }
-                        else {
-                            return "url('images/eye_dropper.png')";
-                        }
-                    },
-                    whitelabeled: function () {
-                        return !!this.whitelabeler && !!whiteLabelers[this.whitelabeler]
-                    },
-                    title: function () {
-                        if (!this.whitelabeled) {
-                            return "TokenCast";
-                        }
-                        return whiteLabelers[this.whitelabeler].title
-                    },
-                    homeUrl: function () {
-                        if (!this.whitelabeled) {
-                            return "https://tokencast.net";
-                        }
-                        return whiteLabelers[this.whitelabeler].url + "/account?whitelabel=" + this.whitelabeler
-                    },
-                    hasLogo: function () {
-                        if (!this.whitelabeled) {
-                            return false;
-                        }
-                        return whiteLabelers[this.whitelabeler].logo !== undefined
-                    },
-                    logoImageUrl: function () {
-                        if (!this.whitelabeled) {
-                            return false;
-                        }
-                        return "images/" + whiteLabelers[this.whitelabeler].logo
-                    },
-                    signatureMessage: function () {
-                        if (!this.whitelabeled || !whiteLabelers[this.whitelabeler].signatureMessage) {
-                            return 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.';
-                        }
-                        return whiteLabelers[this.whitelabeler].signatureMessage
-                    }
-                },
-                methods: {
-                    SearchToken: function()
-                    {
-                        var searchField = document.getElementById("searchField").value;
-                        this.searchFieldProperty = searchField;
-                    },
-                    EthereumConnect: function () {
-                        onConnectEthereum();
-                    },                    
-                    TezosConnect: function () {
-                        onConnectTezos();
-                    },
-                    SignOut: async function () {
-                        this.isBurgerActive = false;
-                        await web3Modal.clearCachedProvider();
-                        this.providedWeb3 = '';
-                        this.tokensLoaded = false;
-                        this.tezosWalletConnected = false;
-                        this.showNoTokensMessage = false;
-                        window.localStorage.removeItem(getSignatureKey(app.address, app.network));
-                        if (app.dAppClient) {
-                            await app.dAppClient.clearActiveAccount();
-                        }
-                    },
-                    FetchCanviaDevices: async function () {
-                        const queryString = window.location.search;
-                        const urlParams = new URLSearchParams(queryString);
-                        const code = urlParams.get('code');
-                        if (code !== null) {
-                            await AddCanviaDevices(code, app.address);
-                        }                      
-                    },
-                    OAuthWithCanvia: function () {
-                        this.showAddDeviceInput = false;
-                        const canviaLoginlink = "https://prod.palacio.life/backend/oauth/login.html?client_id=659fb248-18dc-497e-9b31-3419935e555f&grant_type=authorization_code&response_type=code";                         
-                        window.open(canviaLoginlink);
-                    },                                          
-                    TokenSelected: function (token, ownedToken) {
-                        this.backgroundColorPallete = [];
-                        this.selectedBackgroundColor = "#ffffff";
-                        this.selectedToken = token;
-                        // Generate color pallete
-                        var vibrantOptions = {
-                            colorCount: 7
-                        };
-                        if (token.background_color != null) {
-                            this.backgroundColorPallete.push("#" + token.background_color);
-                            this.selectedBackgroundColor = "#" + token.background_color;
-                        }
-                        if ("#" + token.background_color != "#ffffff") {
-                            this.backgroundColorPallete.push("#ffffff");
-                        }
-                        if ("#" + token.background_color != "#000000") {
-                            this.backgroundColorPallete.push("#000000");
-                        }
-                        var vibrant = new Vibrant(token.image_url, vibrantOptions);
-                        vibrant.getPalette((err, palette) => {
-                            for (var color in palette) {
-                                this.backgroundColorPallete.push(palette[color].hex);
-                            };
-                        });
-                        this.showTokenDisplayOptions = true;
-                        this.displayingOwnedToken = ownedToken;
-                        this.showMetadata = true;
-                    },
-                    DeviceSelected: function (deviceId) {
-                        this.selectedDeviceId = deviceId;
-                        this.selectedDeviceAlias = this.GetNameDeviceAlias(deviceId);
-                        this.isCanviaDevice = this.GetIsCanviaDevice(this.selectedDeviceAlias);
-                        this.selectedDeviceId = deviceId;
-                        this.showDeviceEdit = true;
-                        GetDeviceRotationFrequency(deviceId)
-                        this.GetTokensOnQueue()
-                    },
+    <div class="modal-form">
+      <img id="tokenPreviewContainer"
+           class="center"
+           style="width:100%;"
+           crossorigin="anonymous"
+           v-on:click="TokenPreviewClick"
+           v-on:mousemove="TokenPreviewMousemove"
+           v-on:mouseout="TokenPreviewMouseout"
+           v-bind:src="selectedToken.image_url"
+           v-bind:style="{
+              backgroundColor: selectedBackgroundColor,
+              height: tokenHeight,
+              marginTop: borderWidthInPx,
+              objectFit: fitScreen? 'cover' : 'contain'
+           }"
+      />
 
-                    GetDeviceAlias: function (deviceId) {
-                        if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
-                        return "\"" + this.account.deviceMapping[deviceId] + "\"" + " - " + "\"" + deviceId + "\"";
-                        }
+      <span class="modal-form-title">Device</span>
+      <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
 
-                        return deviceId;
-                    },  
-                    
-                    GetNameDeviceAlias: function (deviceId) {
-                        if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
-                        return this.account.deviceMapping[deviceId];
-                        }
+      <select id="deviceSelection" class="device-cast-select" v-model="selected">
+        <option v-for="device in account.devices" :value="device">
+          {{ GetDeviceAlias(device) }}
+        </option>
+      </select>
+    </div>
 
-                        return deviceId;
-                    },  
-                    
-                    GetIsCanviaDevice: function (deviceId) {
-                        if (this.account.canviaAccount.canviaDevices && deviceId in this.account.canviaAccount.canviaDevices) {
-                            return true
-                        }
+    <button class="modal-button device-edit-update-button" id="displayTokenButton" v-on:click="CastToken()">Cast</button>
+  </div>
 
-                        return false;
-                    },
-                    CastToken: function () {
-                        this.showTokenDisplayOptions = false;
-                        var token = this.selectedToken;
-                        var device = document.getElementById("deviceSelection").value;
-                        storeLastUsedDevice(device)
-                        // Prefer animation if it exists
-                        var tokenImageUrl = token.animation_url
-                        if (!token.animation_url) {
-                            if (token.image_original_url) {
-                                tokenImageUrl = token.image_original_url
-                            }
-                            else {
-                                tokenImageUrl = token.image_url
-                            }
-                        }
-                        var content =
-                        {
-                            id: device,
-                            currentDisplay: {
-                                tokenName: this.showMetadata? token.name : "",
-                                tokenOwnershipUrl: this.showMetadata? token.permalink : "",
-                                tokenMetadata: this.showMetadata? token.description : "",
-                                tokenImageUrl,
-                                borderWidthPercent: this.borderWidthPercent,
-                                rotationFrequency: this.rotationFrequency,
-                                fitScreen: this.fitScreen,
-                                backgroundColor: this.selectedBackgroundColor,
-                                orientationVertical: this.orientationVertical,
-                                currentPrice: token.current_price
-                            }
-                        }
-                        $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
-                            content,
-                            function (result) {
-                                if (result == false) {
-                                    alert("Cast Failed");
-                                }
-                                else {
-                                    alert("Token Added To Queue!");
-                                }
-                            });
-                    },
-                    AddDeviceWithForm: function () {
-                        this.showAddDeviceInput = false;
-                        var deviceId = document.getElementById("deviceIdInput").value;
-                        var deviceAlias = document.getElementById("deviceAliasInput").value;
-                        document.getElementById("deviceIdInput").value = "";
-                        document.getElementById("deviceAliasInput").value = "";
-                        AddDevice(deviceId, deviceAlias);
-                    },
-                    AddDemoDeviceWithForm: function () {
-                        this.showAddDeviceInput = false;
-                        var deviceId = words({ exactly: 1, wordsPerString: 3, separator: '_' }) + "_demo";
-                        document.getElementById("deviceIdInput").value = "";
-                    document.getElementById("deviceAliasInput").value = "";
-                        AddDevice(deviceId);
-                        // Open demo link in new tab
-                        var demoLink = "https://tokencast.net/device?demoFrame=true&deviceId=" + deviceId;
-                        window.open(demoLink)
-                    },
-                    UpdateDeviceWithForm: function () {
-                        this.showDeviceEdit = false;
-                        var deviceId = this.selectedDeviceId;
-                    var alias = document.getElementById("deviceAliasInput").value;
-                        var frequency = document.getElementById("frequencyOutputValue").value;
-                        UpdateDevice(deviceId, alias, frequency);
-                    },                    
-                    GetTokensOnQueue: function () {
-                        var deviceId = this.selectedDeviceId;
-                        GetCastedTokensForDevice(deviceId);
-                    },
-                    DeleteDeviceWithForm: function () {
-                        this.showDeviceEdit = false;
-                        var deviceId = this.selectedDeviceId;
-                        DeleteDevice(deviceId);
-                    },
-                    ClearDeviceWithForm: function () {
-                        var deviceId = this.selectedDeviceId;
-                        RemoveAllTokens(deviceId);
-                    },                    
-                    RemoveTokenFromDevice: function (index) {
-                        var deviceId = this.selectedDeviceId;
-                        RemoveSingleToken(deviceId, index);
-                    },
-                    ShareDeviceWithForm: function () {
-                        var deviceId = this.selectedDeviceId;
-                        var shareLink = "https://www.tokencast.net/Account?deviceId=" + deviceId;
+  <div class="modal" v-if="showModal" v-on:click="CloseInputForms()">
+  </div>
 
-                        if (navigator.share) {
-                            // From mobile device
-                            navigator.share({
-                                title: 'TokenCast Device',
-                                text: 'Display tokens to this device.',
-                                url: shareLink,
-                            })
-                                .then(() => console.log('Successful share'))
-                                .catch((error) => console.log('Error sharing', error));
-                        }
-                        else {
-                            // From PC
-                            CopyToClipboard(shareLink);
-                            alert("Copied sharable link!");
-                        }
-                    },
-                    CloseInputForms: function () {
-                        this.showTokenDisplayOptions = false;
-                        this.showAddDeviceInput = false;
-                        this.showDeviceEdit = false;
-                    },
-                    ColorSelected: function (color) {
-                        this.selectedBackgroundColor = color;
-                    },
-                    ToggleBurger: function () {
-                        this.isBurgerActive = !this.isBurgerActive
-                    },
-                    TokenPreviewClick: function (e) {
-                        var color = grabColorFromPos(e);
-                        this.eyedropperSelectedColor = color;
-                        this.selectedBackgroundColor = color;
-                    },
-                    TokenPreviewMousemove: function (e) {
-                        var color = grabColorFromPos(e);
-                        this.eyedropperHoverColor = color;
-                    },
-                    TokenPreviewMouseout: function () {
-                        this.eyedropperHoverColor = this.eyedropperSelectedColor;
-                    },
-                    GetLogOf: function (){
-                        var input = document.getElementById("frequencyOfRotation")
-                        this.rotationFrequency = Math.pow(2, input.value)
-                    }
-                },
-                directives: {
-                    lazyload: {
-                        inserted: function(el) {
-                            function loadImage() {
-                                const imageElement = Array.from(el.children).find(
-                                    el => el.nodeName === "IMG"
-                                );
-                                if (imageElement) {
-                                    imageElement.addEventListener("load", () => {
-                                        setTimeout(() => el.classList.add("loaded"), 100);
-                                    });
-                                    imageElement.addEventListener("error", () => console.log("error"));
-                                    imageElement.src = imageElement.dataset.url;
-                                }
-                                const loaderElement = Array.from(el.children).find(
-                                    el => el.nodeName === "DIV"
-                                );
+  <div class="content">
+    <div class="title" v-if="showNoTokensMessage">
+      <span class="title-first-part">Sorry, but no NFT on your wallet </span>
+      <span class="title-second-part">%wallet_id%</span>
+    </div>
 
-                                if (loaderElement) {
-                                    loaderElement.style.display = "none"
-                                }
-                            }
+    <div class="title" v-if="tokensLoaded">
+      <span class="title-first-part">Browse your</span>
+      <span class="title-second-part">NFT's</span>
+    </div>
 
-                            function handleIntersect(entries, observer) {
-                                entries.forEach(entry => {
-                                    if (entry.isIntersecting) {
-                                        loadImage();
-                                        observer.unobserve(el);
-                                    }
-                                });
-                            }
+    <div class="transformCenter" v-if="walletConnected && showSignMessage">Please sign the payload to prove ownership over your account</div>
+    <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
 
-                            function createObserver() {
-                                const options = {
-                                    root: null,
-                                    threshold: "0"
-                                };
-                                const observer = new IntersectionObserver(handleIntersect, options);
-                                observer.observe(el);
-                            }
-                            if (window["IntersectionObserver"]) {
-                                createObserver();
-                            } else {
-                                loadImage();
-                            }
-                        }
-                    }
-                }
-            });
+    <div class="search" v-if="tokensLoaded">
+      <div class="search-container">
+        <input
+            type="text"
+            class="search-input"
+            placeholder="Search whatever you want..."
+            aria-label="Search whatever you want..."
+            aria-describedby="basic-addon2"
+        >
+        <button class="search-button" type="button">Search</button>
+      </div>
+    </div>
 
+    <div class="nfts-list" v-if="tokensLoaded">
+      <div
+          class="nft-container"
+          v-for="token in filteredItems"
+          v-bind:key="token.image_url"
+          v-on:click="TokenSelected(token, true)"
+      >
+        <img class="nft-image" v-bind:src="token.image_url" alt="nft_image">
+        <span class="nft-name">{{ token.name }}</span>
+      </div>
+    </div>
+  </div>
 
-            window.onload = function () {
-                onLoad(false, true);
+  <footer>
+    <div class="footer-container">
+      <div>
+        <h2>LOGO</h2>
+        <span>© 2022. All rights reserved</span>
+      </div>
+      <div>
+        <div class="email-container">
+          <input
+              type="text"
+              class="email-input"
+              placeholder="Leave your E-mail to keep updated."
+              aria-label="Leave your E-mail to keep updated.."
+          >
+          <button type="button" class="email-button">be in touch</button>
+        </div>
+      </div>
+    </div>
+  </footer>
+</div>
+
+</body>
+
+<script type="text/javascript">
+  web3Account = ""
+  signature = ""
+
+  const app = new Vue({
+    el: '#app',
+    data: {
+      address: '',
+      account: '',
+      network: '',
+      searchFieldProperty: '',
+      tokens: '',
+      filteredTokens: '',
+      communityTokens: '',
+      showSignMessage: true,
+      showFetchingTokensMessage: false,
+      tokensLoaded: false,
+      tokensByDevice: [],
+      showNoTokensMessage: false,
+      showAddDeviceButton: false,
+      showAddDeviceInput: false,
+      isBurgerActive: false,
+      viewDevices: false,
+      showTokenDisplayOptions: false,
+      selectedToken: null,
+      backgroundColorPallete: [],
+      selectedBackgroundColor: "#ffffff",
+      tokenPreviewHeight: 300,
+      tokenPreviewWidth: 500,
+      borderWidthPercent: 5,
+      borderWidthInPx: '0px',
+      fitScreen: false,
+      orientationVertical: false,
+      showMetadata: true,
+      selectedDeviceId: '',
+      selectedDeviceAlias: '',
+      isCanviaDevice: '',
+      rotationFrequency: '',
+      showDeviceEdit: false,
+      eyedropperSelectedColor: "#ffffff",
+      eyedropperHoverColor: "#ffffff",
+      displayingOwnedToken: true,
+      providedWeb3: '',
+      dAppClient: '',
+      tezosWalletConnected: false,
+      whitelabeler: '',
+      selected: ''
+    },
+    async mounted () {
+      await onLoad(true, false)
+    },
+    computed: {
+      filteredItems() {
+        const filter = this.searchFieldProperty
+        return this.tokens.filter(function(item) {
+          return item.name.includes(filter) || filter === ""
+        })
+      },
+      walletConnected () {
+        return this.providedWeb3 !== '' || this.tezosWalletConnected === true
+      },
+      showModal () {
+        const shouldShowModal = this.showTokenDisplayOptions || this.showAddDeviceInput || this.showDeviceEdit
+        if (shouldShowModal) {
+          $('html,body').scrollTop(0)
+        }
+        return shouldShowModal
+      },
+      tokenHeight () {
+        const borderWidthInPx = this.borderWidthPercent * .01 * this.tokenPreviewHeight
+        this.borderWidthInPx = borderWidthInPx + "px"
+        const borderHeight = borderWidthInPx * 2
+        return (this.tokenPreviewHeight - borderHeight) + "px"
+      },
+      shortenedAddress () {
+        const addressLength = this.address.length
+        if (addressLength > 20) {
+          return this.address.substring(0, 7) + "..." + this.address.substring(addressLength - 8, addressLength)
+        }
+        return this.address
+      },
+      showHamburger () {
+        return this.isBurgerActive && !this.showModal
+      },
+      eyedropperImage () {
+        const c = this.eyedropperHoverColor.substring(1)      // strip #
+        const rgb = parseInt(c, 16)   // convert rrggbb to decimal
+        const r = (rgb >> 16) & 0xff  // extract red
+        const g = (rgb >>  8) & 0xff  // extract green
+        const b = (rgb >>  0) & 0xff  // extract blue
+
+        const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b // per ITU-R BT.709
+
+        if (luma < 100) {
+          // pick a different colour
+          return "url('images/eye_dropper_white.png')"
+        }
+        else {
+          return "url('images/eye_dropper.png')"
+        }
+      },
+      whitelabeled () {
+        return !!this.whitelabeler && !!whiteLabelers[this.whitelabeler]
+      },
+      title () {
+        if (!this.whitelabeled) {
+          return "TokenCast"
+        }
+        return whiteLabelers[this.whitelabeler].title
+      },
+      homeUrl () {
+        if (!this.whitelabeled) {
+          return "https://tokencast.net"
+        }
+        return whiteLabelers[this.whitelabeler].url + "/account?whitelabel=" + this.whitelabeler
+      },
+      hasLogo: function () {
+        if (!this.whitelabeled) {
+          return false
+        }
+        return whiteLabelers[this.whitelabeler].logo !== undefined
+      },
+      logoImageUrl: function () {
+        if (!this.whitelabeled) {
+          return false
+        }
+        return "images/" + whiteLabelers[this.whitelabeler].logo
+      },
+      signatureMessage: function () {
+        if (!this.whitelabeled || !whiteLabelers[this.whitelabeler].signatureMessage) {
+          return 'TokenCast - proof of ownership. Please sign this message to prove ownership over your Ethereum account.'
+        }
+        return whiteLabelers[this.whitelabeler].signatureMessage
+      }
+    },
+    methods: {
+      SearchToken() {
+        const searchField = document.getElementById("searchField").value
+        this.searchFieldProperty = searchField
+      },
+      EthereumConnect () {
+        onConnectEthereum()
+      },
+      TezosConnect () {
+        onConnectTezos()
+      },
+      async SignOut () {
+        this.isBurgerActive = false
+        await web3Modal.clearCachedProvider()
+        this.providedWeb3 = ''
+        this.tokensLoaded = false
+        this.tezosWalletConnected = false
+        this.showNoTokensMessage = false
+        window.localStorage.removeItem(getSignatureKey(app.address, app.network))
+        if (app.dAppClient) {
+          await app.dAppClient.clearActiveAccount()
+        }
+      },
+      async FetchCanviaDevices () {
+        const queryString = window.location.search
+        const urlParams = new URLSearchParams(queryString)
+        const code = urlParams.get('code')
+        if (code !== null) {
+          await AddCanviaDevices(code, app.address)
+        }
+      },
+      OAuthWithCanvia () {
+        this.showAddDeviceInput = false
+        const canviaLoginlink = "https://prod.palacio.life/backend/oauth/login.html?client_id=659fb248-18dc-497e-9b31-3419935e555f&grant_type=authorization_code&response_type=code"
+        window.open(canviaLoginlink)
+      },
+      TokenSelected (token, ownedToken) {
+        this.backgroundColorPallete = []
+        this.selectedBackgroundColor = "#ffffff"
+        this.selectedToken = token
+        // Generate color pallete
+        const vibrantOptions = {
+          colorCount: 7
+        }
+        if (token.background_color != null) {
+          this.backgroundColorPallete.push("#" + token.background_color)
+          this.selectedBackgroundColor = "#" + token.background_color
+        }
+        if ("#" + token.background_color !== "#ffffff") {
+          this.backgroundColorPallete.push("#ffffff")
+        }
+        if ("#" + token.background_color !== "#000000") {
+          this.backgroundColorPallete.push("#000000")
+        }
+        const vibrant = new Vibrant(token.image_url, vibrantOptions)
+        vibrant.getPalette((err, palette) => {
+          for (const color in palette) {
+            this.backgroundColorPallete.push(palette[color].hex)
+          }
+        })
+        this.showTokenDisplayOptions = true
+        this.displayingOwnedToken = ownedToken
+        this.showMetadata = true
+      },
+      DeviceSelected (deviceId) {
+        this.selectedDeviceId = deviceId
+        this.selectedDeviceAlias = this.GetNameDeviceAlias(deviceId)
+        this.isCanviaDevice = this.GetIsCanviaDevice(this.selectedDeviceAlias)
+        this.selectedDeviceId = deviceId
+        this.showDeviceEdit = true
+        GetDeviceRotationFrequency(deviceId)
+        this.GetTokensOnQueue()
+      },
+
+      GetDeviceAlias (deviceId) {
+        if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
+          return "\"" + this.account.deviceMapping[deviceId] + "\"" + " - " + "\"" + deviceId + "\""
+        }
+
+        return deviceId
+      },
+
+      GetNameDeviceAlias (deviceId) {
+        if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
+          return this.account.deviceMapping[deviceId]
+        }
+
+        return deviceId
+      },
+
+      GetIsCanviaDevice (deviceId) {
+        return !!(this.account.canviaAccount.canviaDevices && deviceId in this.account.canviaAccount.canviaDevices);
+      },
+      CastToken () {
+        this.showTokenDisplayOptions = false
+        const token = this.selectedToken
+        const device = document.getElementById("deviceSelection").value
+        storeLastUsedDevice(device)
+        // Prefer animation if it exists
+        let tokenImageUrl = token.animation_url
+        if (!token.animation_url) {
+          if (token.image_original_url) {
+            tokenImageUrl = token.image_original_url
+          }
+          else {
+            tokenImageUrl = token.image_url
+          }
+        }
+        const content = {
+          id: device,
+          currentDisplay: {
+            tokenName: this.showMetadata? token.name : "",
+            tokenOwnershipUrl: this.showMetadata? token.permalink : "",
+            tokenMetadata: this.showMetadata? token.description : "",
+            tokenImageUrl,
+            borderWidthPercent: this.borderWidthPercent,
+            rotationFrequency: this.rotationFrequency,
+            fitScreen: this.fitScreen,
+            backgroundColor: this.selectedBackgroundColor,
+            orientationVertical: this.orientationVertical,
+            currentPrice: token.current_price
+          }
+        }
+        $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
+          content,
+          function (result) {
+            if (result === false) {
+              alert("Cast Failed")
             }
-        </script>
-    </body>
+            else {
+              alert("Token Added To Queue!")
+            }
+          })
+      },
+      AddDeviceWithForm () {
+        this.showAddDeviceInput = false
+        const deviceId = document.getElementById("deviceIdInput").value
+        const deviceAlias = document.getElementById("deviceAliasInput").value
+        document.getElementById("deviceIdInput").value = ""
+        document.getElementById("deviceAliasInput").value = ""
+        AddDevice(deviceId, deviceAlias)
+      },
+      AddDemoDeviceWithForm () {
+        this.showAddDeviceInput = false
+        const deviceId = words({ exactly: 1, wordsPerString: 3, separator: '_' }) + "_demo"
+        document.getElementById("deviceIdInput").value = ""
+        document.getElementById("deviceAliasInput").value = ""
+        AddDevice(deviceId)
+        // Open demo link in new tab
+        const demoLink = "https://tokencast.net/device?demoFrame=true&deviceId=" + deviceId
+        window.open(demoLink)
+      },
+      UpdateDeviceWithForm () {
+        this.showDeviceEdit = false
+        const deviceId = this.selectedDeviceId
+        const alias = document.getElementById("deviceAliasInput").value
+        const frequency = document.getElementById("frequencyOutputValue").value
+        UpdateDevice(deviceId, alias, frequency)
+      },
+      GetTokensOnQueue () {
+        GetCastedTokensForDevice(this.selectedDeviceId)
+      },
+      DeleteDeviceWithForm () {
+        this.showDeviceEdit = false
+        DeleteDevice(this.selectedDeviceId)
+      },
+      ClearDeviceWithForm () {
+        RemoveAllTokens(this.selectedDeviceId)
+      },
+      RemoveTokenFromDevice (index) {
+        RemoveSingleToken(this.selectedDeviceId, index)
+      },
+      ShareDeviceWithForm () {
+        const deviceId = this.selectedDeviceId
+        const shareLink = "https://www.tokencast.net/Account?deviceId=" + deviceId
+
+        if (navigator.share) {
+          // From mobile device
+          navigator.share({
+            title: 'TokenCast Device',
+            text: 'Display tokens to this device.',
+            url: shareLink,
+          })
+            .then(() => console.log('Successful share'))
+            .catch((error) => console.log('Error sharing', error))
+        }
+        else {
+          // From PC
+          CopyToClipboard(shareLink)
+          alert("Copied sharable link!")
+        }
+      },
+      CloseInputForms () {
+        this.showTokenDisplayOptions = false
+        this.showAddDeviceInput = false
+        this.showDeviceEdit = false
+      },
+      ColorSelected (color) {
+        this.selectedBackgroundColor = color
+      },
+      ToggleBurger () {
+        this.isBurgerActive = !this.isBurgerActive
+      },
+      TokenPreviewClick (e) {
+        const color = grabColorFromPos(e)
+        this.eyedropperSelectedColor = color
+        this.selectedBackgroundColor = color
+      },
+      TokenPreviewMousemove (e) {
+        this.eyedropperHoverColor = grabColorFromPos(e)
+      },
+      TokenPreviewMouseout () {
+        this.eyedropperHoverColor = this.eyedropperSelectedColor
+      },
+      GetLogOf (){
+        const input = document.getElementById("frequencyOfRotation")
+        this.rotationFrequency = Math.pow(2, input.value)
+      }
+    },
+    directives: {
+      lazyload: {
+        inserted (el) {
+          function loadImage() {
+            const imageElement = Array.from(el.children).find(
+              el => el.nodeName === "IMG"
+            )
+            if (imageElement) {
+              imageElement.addEventListener("load", () => {
+                setTimeout(() => el.classList.add("loaded"), 100)
+              })
+              imageElement.addEventListener("error", () => console.log("error"))
+              imageElement.src = imageElement.dataset.url
+            }
+            const loaderElement = Array.from(el.children).find(
+              el => el.nodeName === "DIV"
+            )
+
+            if (loaderElement) {
+              loaderElement.style.display = "none"
+            }
+          }
+
+          function handleIntersect(entries, observer) {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                loadImage()
+                observer.unobserve(el)
+              }
+            })
+          }
+
+          function createObserver() {
+            const options = {
+              root: null,
+              threshold: "0"
+            }
+            const observer = new IntersectionObserver(handleIntersect, options)
+            observer.observe(el)
+          }
+          if (window["IntersectionObserver"]) {
+            createObserver()
+          } else {
+            loadImage()
+          }
+        }
+      }
+    }
+  })
+
+  window.onload = function () {
+    onLoad(false, true)
+  }
+</script>

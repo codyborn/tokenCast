@@ -1,0 +1,191 @@
+button {
+    outline: none;
+    user-select: none;
+    border: none
+}
+
+button:focus {
+    outline: none;
+}
+
+input {
+    border: none
+}
+
+input:focus {
+    outline: none;
+}
+
+html {
+    font-family: 'Roboto', sans-serif !important;
+    font-style: normal;
+}
+
+.navbar {
+    position:fixed;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100%;
+    height: 5em;
+    background-color: black;
+    z-index:999;
+}
+
+.content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 20%;
+    min-height: 70vh
+}
+
+.title {
+    text-align: center;
+    font-weight: 400;
+    font-size: 80px;
+    line-height: 105%;
+}
+
+.title-first-part {
+    color: #FFFFFF;
+}
+
+.title-second-part {
+    background: linear-gradient(99.77deg, #8C50ED 9.08%, #EF88C6 99.58%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-fill-color: transparent;
+}
+
+.search {
+    display: flex;
+    justify-content: center;
+    margin-top: 62px;
+}
+
+.search-container {
+    display: flex;
+    position: relative;
+}
+
+.search-input {
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 0 10px 40px !important;
+
+    background: #000000;
+    border: 2px solid #8C51EE;
+    border-radius: 40px 0px 0px 40px;
+
+    font-weight: 200;
+    font-size: 20px;
+    line-height: 23px;
+
+    color: #BFBFBF;
+    min-width: 420px;
+}
+
+.search-button {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px 32px 10px 32px;
+
+    background: #8C51EE;
+    border-radius: 0px 40px 40px 0px;
+
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 23px;
+    letter-spacing: 0.01em;
+    text-transform: uppercase;
+
+    color: #FFFFFF;
+}
+
+.nfts-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(auto-fill, 1fr);
+    grid-column-gap: 20px;
+    grid-row-gap: 60px;
+
+    margin-top: 124px;
+    margin-bottom: 20%;
+}
+
+.nft-container {
+    text-align: center;
+}
+
+.nft-image {
+    width: 256px;
+    height: 256px;
+    border-radius: 60px;
+
+    margin-bottom: 20px;
+
+}
+
+.nft-name {
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 105%;
+
+    color: #FFFFFF;
+}
+
+footer {
+    min-height: 300px;
+    background: linear-gradient(0deg, #FFFFFF, #FFFFFF), linear-gradient(144.48deg, #8C51EE 7.28%, #E690E2 91.58%);
+    border-radius: 90px 90px 0px 0px;
+
+    display: flex !important;
+    align-items: center;
+}
+
+.footer-container {
+    display: flex;
+    justify-content: space-between;
+
+    width: 100%;
+    padding: 0 80px;
+}
+
+.email-container {
+    display: flex;
+    padding-bottom: 10px;
+
+    border-bottom: thin black solid;
+}
+
+.email-input {
+    font-weight: 300;
+    font-size: 30px;
+    line-height: 160%;
+
+    letter-spacing: 0.01em;
+    color: #C4C4C4;
+
+    margin-right: 80px;
+}
+
+.email-button {
+    background: #000000;
+    border-radius: 100px;
+    padding: 20px 40px;
+
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 84%;
+
+    text-align: center;
+    letter-spacing: 0.01em;
+
+    color: #FFFFFF;
+}
