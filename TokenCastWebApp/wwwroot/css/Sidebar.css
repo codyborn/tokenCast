@@ -61,3 +61,49 @@ ul.sidebar-panel-nav > li > span {
     padding-bottom: 0.5em;
     text-align: left;
 }
+
+.centered-element {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.walletblock {
+    background: #EFEFEF !important;
+    border-radius: 65.0225px;
+    width: 259.27px;
+    height: 255.11px;
+}
+
+.walletcontainer {
+    background-color: #fff !important;
+    padding: 2em;
+    border-radius: 41.6144px !important;
+}
+
+.walletbtn {
+    background-color: #000 !important;
+    display: block;
+    margin-top:1em;
+    margin-left:1em;
+    margin-right:1em;
+    color: #fff !important;
+    height: 40.11px;
+    width:88%;
+    border-radius: 20px !important;
+}
+
+.walletimg {
+    width: 156.75px;
+    height: 157.08px;
+    display:block;
+    margin:auto;
+}
+
+.conter{
+    display:block;
+}
+
+.column {
+}

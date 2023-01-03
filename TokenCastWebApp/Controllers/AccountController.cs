@@ -98,14 +98,14 @@ namespace TokenCast.Controllers
 
         // POST Account/Details?address=0xEeA95EdFC25F15C0c44d4081BBd85026ba298Dc6&signature=...&deviceId=doge...
         [HttpPost]
-        public bool AddDevice(string address, string signature, string deviceId, string whitelabeler, string network = Ethereum)
+        public bool AddDevice(string address, string signature, string deviceId, string deviceAlias, string whitelabeler, string network = Ethereum)
         {
             if (!AuthCheck(address, signature, network, whitelabeler))
             {
                 return false;
             }
 
-            Database.AddDevice(address, deviceId).Wait();
+            Database.AddDevice(address, deviceId, deviceAlias).Wait();
             return true;
         }
         

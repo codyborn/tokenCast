@@ -103,3 +103,25 @@ body {
         transform: rotate(360deg);
     }
 }
+
+
+.sidebar-menu-title {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 30px;
+    line-height: 105%;
+    letter-spacing: -0.02em;
+    color: #000000;
+}
+
+.sidebar-menu-title-device {
+    font-family: 'Roboto';
+    font-style: normal;
+    font-weight: 300;
+    font-size: 17.2111px;
+    line-height: 160%;
+    /* identical to box height, or 28px */
+
+    letter-spacing: 0.01em;
+}

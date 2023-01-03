@@ -15,17 +15,37 @@ button {
 }
 
 /* remove blue outline */
-button:focus {
-    outline: 0;
+    button:focus {
+        outline: none !important;
+        border: none !important;
+    }
+
+    button:active {
+        outline: none !important;
+        border: none !important;
+    }
+
+
+.notselectable:focus {
+    outline: none !important;
+    border: none !important;
+}
+
+
+.burger-button:focus {
+    outline: none !important;
+    border: none !important;
 }
 
 .burger-button {
+    border: none;
     position: relative;
     height: 30px;
     width: 32px;
     display: block;
     z-index: 999;
     border: 0;
+    outline: none;
     border-radius: 0;
     background-color: transparent;
     pointer-events: all;

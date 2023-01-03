@@ -372,10 +372,11 @@
             // If present, prompt user to add device
             var urlParams = new URLSearchParams(window.location.search);
             var deviceId = urlParams.get("deviceId");
+            var deviceAlias = urlParams.get("deviceAlias")
 
-            if (deviceId != null &&
+            if (deviceId != null && deviceAlias != null &&
                 (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
-                AddDevice(deviceId);
+                AddDevice(deviceId, deviceAlias);
             }
             else if (accountDetails.devices != null && accountDetails.devices.length > 0) {
                 defaultDeviceId = accountDetails.devices[0];
@@ -387,8 +388,8 @@
             }
         }
 
-        async function AddDevice(deviceId) {
-            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&whitelabeler=" + app.whitelabeler,
+        async function AddDevice(deviceId, deviceAlias) {
+            $.post("Account/AddDevice?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&deviceId=" + deviceId + "&deviceAlias=" + deviceAlias + "&whitelabeler=" + app.whitelabeler,
                 function (result) {
                     if (result == false) {
                         console.log("Failed to link device to account");
@@ -635,6 +636,10 @@
                 text-decoration: none;
                 color: white;
             }
+            body
+            {
+                height: 100%;
+            }
 
             .center {
                 margin-left: auto;
@@ -803,7 +808,7 @@
             }
 
             #idBar {
-                color: white;
+                color: #000;
                 width: 65%;
             }
 
@@ -913,44 +918,94 @@
                          class="sidebar-panel">
                         <slot>
                             <ul class="sidebar-panel-nav">
-                                <li>
+                            <li style="margin:0px; margin-top:5em;" class="sidebar-menu-title">
                                     <span id="idBar">
                                         {{ shortenedAddress }}
                                     </span>
-                                </li>
-                                <li v-if="showAddDeviceButton">
-                                    <span v-on:click="showAddDeviceInput = true" style="cursor:pointer">New Device</span>
-                                </li>
-                                <li v-if="showAddDeviceButton">
-                                    <span id="viewDevicesButton" v-on:click="viewDevices = !viewDevices" style="cursor:pointer">
-                                        Linked Devices
-                                    </span>
-                                    <transition name="slide-down">
-                                        <div>
-                                            <table>
-                                                <tr v-for="device in account.devices">
-                                                    <td class="deviceListElement" style="cursor:pointer" v-on:click="DeviceSelected(device)">
-                                                        {{ GetDeviceAlias(device) }}
-                                                    </td>
-                                                </tr>
-                                            </table>
-                                        </div>
-                                    </transition>
-                                </li>
-                                <li style="padding-top:1em">
-                                    <span style="cursor:pointer" v-on:click="SignOut">
-                                        Sign Out
-                                    </span>
-                                </li>
+                                <hr style="border: 2px medium #707070; z-index:1000; margin:0px;" />
+                            </li>
+                            <li v-if="showAddDeviceButton" style="margin:0px 0px 0px 0px; margin-top:1em;">
+                                <span class="sidebar-menu-title" v-on:click="showAddDeviceInput = true" style="cursor:pointer; margin-top:1em;">Add new Snitch
+                                    <svg style="float:right; margin-top:0.1em; margin-left:40px"  width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12.4482 21.2744C17.4188 21.2744 21.4482 17.245 21.4482 12.2744C21.4482 7.30383 17.4188 3.27439 12.4482 3.27439C7.47768 3.27439 3.44824 7.30383 3.44824 12.2744C3.44824 17.245 7.47768 21.2744 12.4482 21.2744Z" stroke="black" stroke-width="1.52987" stroke-miterlimit="10"/>
+                                        <path d="M8.69824 12.2741H16.1982" stroke="black" stroke-width="1.52987" stroke-linecap="round" stroke-linejoin="round"/>
+                                        <path d="M12.4482 8.52409V16.0241" stroke="black" stroke-width="1.52987" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </span>
+                                <hr style="border: 2px medium #707070; z-index:1000; margin:0px;" />
+                            </li>
+                            <li v-if="showAddDeviceButton" style="margin:0px 0px 0px 0px; margin-top:1em;">
+                                <span class="sidebar-menu-title" id="viewDevicesButton" v-on:click="viewDevices = !viewDevices" style="cursor:pointer">
+                                    Linked Devices
+                                </span>
+                            <hr style="border: 2px medium #707070; z-index:1000; margin:0px;" />
+                                <transition name="slide-down">
+                                    <div>
+                                        <table>
+                                            <tr v-for="device in account.devices">
+                                                <td class="deviceListElement sidebar-menu-title-device" style="cursor:pointer" v-on:click="DeviceSelected(device)">
+                                                    {{ GetDeviceAlias(device) }}
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </transition>
+                            </li>
+                            <li style="padding-top:6em">
+
+                                <span class="sidebar-menu-title" style="cursor:pointer;font-family: 'Roboto';font-style: normal;font-weight: 400;font-size: 30px;line-height: 105%;letter-spacing: -0.02em;color: #000000;" v-on:click="SignOut">    
+                                    <svg style="padding-top:5px" width="25" height="25" viewBox="0 0 25 25" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <g clip-path="url(#clip0_134_516)">
+                                            <path d="M12.1984 22.7021H3.04957C2.48844 22.7021 2.03306 22.2467 2.03306 21.6856V3.38808C2.03306 2.82695 2.48848 2.37158 3.04957 2.37158H12.1984C12.7605 2.37158 13.2149 1.91721 13.2149 1.35507C13.2149 0.792939 12.7605 0.33847 12.1984 0.33847H3.04957C1.36823 0.33847 0 1.70675 0 3.38808V21.6856C0 23.3669 1.36823 24.7351 3.04957 24.7351H12.1984C12.7605 24.7351 13.2149 24.2808 13.2149 23.7186C13.2149 23.1565 12.7605 22.7021 12.1984 22.7021Z" fill="#8C51EE" />
+                                            <path d="M24.1756 11.813L17.9951 5.71386C17.5967 5.31943 16.9522 5.32455 16.5578 5.72404C16.1634 6.12353 16.1674 6.76698 16.568 7.1614L20.9848 11.5203H9.14932C8.58718 11.5203 8.13281 11.9746 8.13281 12.5368C8.13281 13.0989 8.58718 13.5533 9.14932 13.5533H20.9848L16.568 17.9122C16.1675 18.3066 16.1644 18.95 16.5578 19.3495C16.757 19.5508 17.0193 19.6524 17.2816 19.6524C17.5398 19.6524 17.7979 19.5549 17.9951 19.3597L24.1756 13.2605C24.3688 13.0694 24.4786 12.8091 24.4786 12.5367C24.4786 12.2644 24.3698 12.0052 24.1756 11.813Z" fill="#8C51EE" />
+                                        </g>
+                                        <defs>
+                                            <clipPath id="clip0_134_516">
+                                                <rect width="24.478" height="24.478" fill="white" transform="translate(0 0.297882)" />
+                                            </clipPath>
+                                        </defs>
+                                    </svg>
+                                      Sign Out
+                                </span>
+                            </li>
                             </ul>
                         </slot>
                     </div>
                 </transition>
             </div>
-            <div class="networkSelection" v-if="!walletConnected">
+            <div class="d-flex align-items-center justify-content-center" style="height: 300px; margin-top: 10em"  v-if="!walletConnected">
+            <div class="p-2 m-2 d-flex align-items-center justify-content-center walletcontainer">
+            <div class="p-2 m-2 text-white shadow rounded-2 walletblock justify-content-center align-items-center" id="web3ConnectButton" v-on:click="EthereumConnect">
+                <svg class="walletimg column" width="158" height="158" viewBox="0 0 158 158" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="78.9139" cy="78.7962" rx="78.3738" ry="78.5424" fill="white"/>
+                        <path d="M78.0719 103.405L119.534 78.0432L78.0719 10.7044V103.405Z" fill="#343434"/>
+                        <path d="M78.4095 103.405L36.9473 78.0432L78.4095 10.7044V103.405Z" fill="#8B8B8B"/>
+                        <path d="M119.534 78.1254L78.0706 60.2556V103.405L119.534 78.1254Z" fill="#141414"/>
+                        <path d="M36.9473 78.1254L78.4109 60.2556V103.405L36.9473 78.1254Z" fill="#393939"/>
+                        <path d="M78.4085 112.016L37.6191 87.561L78.4085 145.205V112.016Z" fill="#8B8B8B"/>
+                        <path d="M78.4077 112.016L119.534 87.561L78.4077 145.205V112.016Z" fill="#3C3C3A"/>
+                    </svg>
+                    <button class="btn btn-default walletbtn text-center">
+                        Ethereum
+                    </button>
+                </div>
+                <div class="p-2 m-2 text-white shadow rounded-2 walletblock align-items-center justify-content-center" id="tezozWalletConnect" v-on:click="TezosConnect">
+                    <svg class="walletimg column" width="157" height="158" viewBox="0 0 157 158" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="78.5428" cy="78.7962" rx="78.3738" ry="78.5424" fill="white"/>
+                        <path d="M87.2533 116.099C81.1906 116.099 76.7652 114.639 73.9776 111.718C71.3953 109.246 69.8965 105.852 69.8096 102.278C69.7782 101.192 70.0299 100.117 70.5397 99.158C71.0152 98.3293 71.7023 97.6417 72.5307 97.1654C74.4825 96.192 76.7785 96.192 78.7304 97.1654C79.5574 97.6397 80.241 98.3279 80.7103 99.158C81.2348 100.112 81.4959 101.189 81.4665 102.278C81.5206 103.578 81.1476 104.86 80.4044 105.929C79.7851 106.801 78.8998 107.449 77.8811 107.776C78.8771 109.044 80.2864 109.922 81.8635 110.258C83.6282 110.771 85.4555 111.034 87.2929 111.041C89.7257 111.062 92.1084 110.35 94.1299 108.997C96.2274 107.515 97.7912 105.397 98.5905 102.957C99.6032 100.052 100.098 96.992 100.051 93.9164C100.132 90.7099 99.5913 87.5178 98.4576 84.5172C97.6049 82.1173 95.9861 80.0646 93.8509 78.676C91.8665 77.4203 89.5629 76.7613 87.2145 76.778C85.168 76.9513 83.1949 77.6211 81.4659 78.7296L77.2033 80.8667V78.7296L96.3596 53.0312H69.8096V79.6987C69.7345 81.6231 70.2437 83.5251 71.2698 85.155C72.2797 86.5994 73.9716 87.4102 75.7304 87.2921C77.3279 87.2598 78.8726 86.7155 80.1374 85.739C81.571 84.6883 82.8185 83.4051 83.8282 81.942C83.9191 81.6854 84.0867 81.4631 84.3082 81.3051C84.4861 81.1513 84.7132 81.0666 84.9483 81.066C85.4096 81.1082 85.846 81.2937 86.1964 81.5968C86.6402 82.0927 86.8814 82.737 86.8732 83.4022C86.822 83.8494 86.7421 84.2929 86.6342 84.7296C85.6911 87.0126 84.11 88.9752 82.0805 90.3831C80.1954 91.6586 77.9691 92.3349 75.693 92.3233C69.9444 92.3233 65.9622 91.1905 63.7461 88.9248C61.445 86.3952 60.2584 83.046 60.4538 79.6316V53.0306H46.9492V48.0758H60.5166V36.7783L57.4104 33.6698V31.1365H66.4241L69.8099 32.889V48.0756L104.883 47.9688L108.375 51.4735L86.8687 73.0844C88.1681 72.5618 89.5362 72.2308 90.9308 72.1019C93.6906 72.2228 96.3834 72.9915 98.7912 74.3458C101.579 75.6712 103.929 77.7681 105.562 80.388C107.025 82.6058 108.061 85.0777 108.616 87.6761C109.072 89.7257 109.316 91.8167 109.346 93.9164C109.36 97.9232 108.452 101.88 106.691 105.479C105.021 108.964 102.211 111.775 98.7253 113.445C95.1568 115.203 91.2307 116.111 87.2533 116.099Z" fill="black"/>
+                        <path d="M104.77 126.295H51.5264C50.5878 126.295 49.8271 125.534 49.8271 124.596C49.8271 123.657 50.5878 122.896 51.5264 122.896H104.77C105.708 122.896 106.469 123.657 106.469 124.596C106.469 125.534 105.708 126.295 104.77 126.295Z" fill="black"/>
+                    </svg>
+                    <button class="btn btn-default walletbtn text-center">
+                        Tezos
+                    </button>
+                </div>
+                </div>
+            </div>
+
+        @*    <div class="networkSelection" v-if="!walletConnected">
                 <div class="networkButton button positiveButton" id="web3ConnectButton" v-on:click="EthereumConnect">Ethereum</div>
                 <div class="networkButton button positiveButton" id="tezozWalletConnect" v-on:click="TezosConnect">Tezos</div>
-            </div>
+            </div>*@
             <div class="transformCenter" v-if="walletConnected && showSignMessage">Please sign the payload to prove ownership over your account</div>
             <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
             <div class="tokenGallery">
@@ -959,10 +1014,28 @@
                         Browse your
                         <span style="background: linear-gradient(99.77deg, #8C50ED 9.08%, #EF88C6 99.58%);-webkit-background-clip: text;-webkit-text-fill-color: transparent;background-clip: text;text-fill-color: transparent;">NFTs</span>
                     </p>
-                <div style="background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px;" class="input-group mb-4">
-                    <input style="background-color:black; border: 1px solid #8C51EE; border-radius: 40px;font-size:1em;" type="text" class="form-control" placeholder="Search whatever you want..." aria-label="Search whatever you want..." aria-describedby="basic-addon2">
-                      <div class="input-group-append">
-                        <button class="btn btn-search" style=" color:white; background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px; font-size:1em;" type="button">Search</button>
+                <div style="background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px; margin-bottom:3em;" class="input-group md-3 notselectable">
+                    <input style="background-color:black; border: 1px solid #8C51EE; border-radius: 40px;font-size:1em; padding-left:30px" 
+                            id="searchField"
+                            type="text" 
+                            class="form-control notselectable" 
+                            placeholder="Search whatever you want..."
+                            aria-label="Search whatever you want..." 
+                            aria-describedby="basic-addon2">
+                    <div class="input-group-append notselectable">
+                        <button class="btn btn-search notselectable" style="color:white; background-color:#8C51EE;border: 1px solid #8C51EE; border-radius: 40px; font-size:1em; width: 79px;
+font-family: 'Roboto';
+font-style: normal;
+font-weight: 700;
+font-size: 0.9em;
+line-height: 105%;
+letter-spacing: 0.01em;
+text-transform: uppercase;
+
+color: #FFFFFF;" type="button"
+                                v-on:click="SearchToken">
+                            Search
+                        </button>
                       </div>
                     </div>
 
@@ -979,14 +1052,15 @@
                         <div style="width:40%;" class="center">
                             <a class="button center positiveButton" href="https://www.hicetnunc.xyz/">
                                 <img src="https://www.hicetnunc.xyz/hen-pride.gif" style="width: 11em; height: auto; ">
-                             </a></div>
+                             </a>
+                        </div>
                     </div>
                 </div>
                 <div v-if="tokensLoaded" class="row">
-                <div style="min-height:150px; max-height:250px; border-radius: 60px" class="col-sm-6" v-for="token in tokens" v-on:click="TokenSelected(token, true)">
+                <div style="min-height:150px; max-height:250px; border-radius: 60px;" class="col-sm-6" v-for="token in filteredItems" v-bind:key="token.image_url" v-on:click="TokenSelected(token, true)">
                         <a v-lazyload>
                             <div class="loader center"></div>
-                            <img  :data-url="token.image_url" v-bind:alt="token.name" style="max-width: 95%">
+                            <img  :data-url="token.image_url" v-bind:alt="token.name" style="max-width: 95%; border-radius: 60px;">
                         </a>
                         <div class="desc">{{ token.name }}</div>
                     </div>
@@ -1010,19 +1084,24 @@
             </div>*@
 
             <div class="inputForm" v-if="showAddDeviceInput">
-                <h3 style="padding-bottom: 1em;">Register New Device</h3>
+                <h3 style="padding-bottom: 1em;">Register New Snitch</h3>
                 <a id="demoLink" v-on:click="AddDemoDeviceWithForm()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Try a demo instead</a>
                 <a id="canviaDeviceLink" v-if="!whitelabeled" v-on:click="OAuthWithCanvia()" style="text-decoration: underline; color:darkcyan; cursor:pointer;">Connect with Canvia</a>
-                <span class="formElement">DeviceId</span>
-                <input id="deviceIdInput" type="text" placeholder="Device Id (ex: zero_one_two_three)" style="width: 97%; max-width: 28em;" />
+                <span class="formElement">Snitch Alias</span>
+                <input id="deviceAliasInput" type="text" placeholder="Snitch Alias (ex: deviceone)" style="width: 97%; max-width: 28em;" />
+                <span class="formElement">Snitch Id</span>
+                <input id="deviceIdInput" type="text" placeholder="Snitch Id (ex: 00:00:00:00:00:00)" style="width: 97%; max-width: 28em;" />
                 <button class="button center positiveButton largeButton" v-on:click="AddDeviceWithForm()">Add</button>
             </div>
 
             <div class="inputForm" v-if="showDeviceEdit">
                 <h1 style="padding-bottom: 1em;">Device</h1>
                 <div class="formElement">
-                    <h4 class="menuFont">Name</h4>
-                    <input type="text" id="deviceAliasInput" placeholder="ex. Living room" :value="selectedDeviceAlias" style="width:16em" />
+                    <h4 class="menuFont">Snitch Alias</h4>
+                    <input type="text" id="deviceAliasInput" placeholder="ex. device one" :value="selectedDeviceAlias" style="width:16em" />
+                    
+                    <h4 class="menuFont">Snitch Id</h4>
+                    <input type="text" id="deviceIdInput" placeholder="ex. 00:00:00:00:00:00" :value="selectedDeviceId" style="width:16em" />
                 </div>
                 <div style="padding-top: 1em">
                     <h4 class="menuFont">Options</h4>
@@ -1156,7 +1235,9 @@
                     address: '',
                     account: '',
                     network: '',
+                    searchFieldProperty: '',
                     tokens: '',
+                    filteredTokens: '',
                     communityTokens: '',
                     showSignMessage: true,
                     showFetchingTokensMessage: false,
@@ -1196,6 +1277,12 @@
                     await onLoad(true, false);                      
                 },
                 computed: {
+                    filteredItems: function() {
+                    var filter = this.searchFieldProperty;
+                      return this.tokens.filter(function(item) {
+                          return item.name.includes(filter) || filter === "";
+                      });
+                    },
                     walletConnected: function () {
                         return this.providedWeb3 !== '' || this.tezosWalletConnected === true
                     },
@@ -1274,6 +1361,11 @@
                     }
                 },
                 methods: {
+                    SearchToken: function()
+                    {
+                        var searchField = document.getElementById("searchField").value;
+                        this.searchFieldProperty = searchField;
+                    },
                     EthereumConnect: function () {
                         onConnectEthereum();
                     },                    
@@ -1334,20 +1426,31 @@
                         this.showMetadata = true;
                     },
                     DeviceSelected: function (deviceId) {
-                        this.selectedDeviceAlias = this.GetDeviceAlias(deviceId);
+                        this.selectedDeviceId = deviceId;
+                        this.selectedDeviceAlias = this.GetNameDeviceAlias(deviceId);
                         this.isCanviaDevice = this.GetIsCanviaDevice(this.selectedDeviceAlias);
                         this.selectedDeviceId = deviceId;
                         this.showDeviceEdit = true;
                         GetDeviceRotationFrequency(deviceId)
                         this.GetTokensOnQueue()
                     },
+
                     GetDeviceAlias: function (deviceId) {
                         if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
-                            return this.account.deviceMapping[deviceId];
+                        return "\"" + this.account.deviceMapping[deviceId] + "\"" + " - " + "\"" + deviceId + "\"";
                         }
 
                         return deviceId;
-                    },                    
+                    },  
+                    
+                    GetNameDeviceAlias: function (deviceId) {
+                        if (this.account.deviceMapping && deviceId in this.account.deviceMapping) {
+                        return this.account.deviceMapping[deviceId];
+                        }
+
+                        return deviceId;
+                    },  
+                    
                     GetIsCanviaDevice: function (deviceId) {
                         if (this.account.canviaAccount.canviaDevices && deviceId in this.account.canviaAccount.canviaDevices) {
                             return true
@@ -1400,13 +1503,16 @@
                     AddDeviceWithForm: function () {
                         this.showAddDeviceInput = false;
                         var deviceId = document.getElementById("deviceIdInput").value;
+                        var deviceAlias = document.getElementById("deviceAliasInput").value;
                         document.getElementById("deviceIdInput").value = "";
-                        AddDevice(deviceId);
+                        document.getElementById("deviceAliasInput").value = "";
+                        AddDevice(deviceId, deviceAlias);
                     },
                     AddDemoDeviceWithForm: function () {
                         this.showAddDeviceInput = false;
                         var deviceId = words({ exactly: 1, wordsPerString: 3, separator: '_' }) + "_demo";
                         document.getElementById("deviceIdInput").value = "";
+                    document.getElementById("deviceAliasInput").value = "";
                         AddDevice(deviceId);
                         // Open demo link in new tab
                         var demoLink = "https://tokencast.net/device?demoFrame=true&deviceId=" + deviceId;
@@ -1415,7 +1521,7 @@
                     UpdateDeviceWithForm: function () {
                         this.showDeviceEdit = false;
                         var deviceId = this.selectedDeviceId;
-                        var alias = document.getElementById("deviceAliasInput").value;
+                    var alias = document.getElementById("deviceAliasInput").value;
                         var frequency = document.getElementById("frequencyOutputValue").value;
                         UpdateDevice(deviceId, alias, frequency);
                     },                    

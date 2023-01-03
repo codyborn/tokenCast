@@ -18,7 +18,7 @@ namespace TokenCast
 
         Task<AccountModel> GetAccount(string address);
 
-        Task AddDevice(string address, string deviceId);
+        Task AddDevice(string address, string deviceId, string deviceAlias);
 
         Task AddCanviaDevicesToAccount(string address);
 
@@ -135,7 +135,7 @@ namespace TokenCast
             return databaseEntity.getEntity();
         }
 
-        public async Task AddDevice(string address, string deviceId)
+        public async Task AddDevice(string address, string deviceId, string deviceAlias)
         {
             address = address.ToLowerInvariant();
             AccountModel account = await GetAccount(address);
@@ -153,7 +153,12 @@ namespace TokenCast
             {
                 account.devices.Add(deviceId);
                 await CreateOrUpdateAccount(account);
-                await UpdateDeviceFrequency(deviceId, 5);
+                await UpdateDevice(new DeviceModel
+                {
+                    id = deviceId,
+                    frequencyOfRotation = 5
+                }); ;
+                await AddDeviceAlias(address, deviceId, deviceAlias);
             }
         }
 
@@ -175,7 +180,7 @@ namespace TokenCast
             foreach (var (name, identifier) in account.canviaAccount.canviaDevices)
             {
                 var deviceModel = new DeviceModel {id = identifier, isCanviaDevice = true};
-                await AddDevice(address, identifier);
+                await AddDevice(address, identifier, "canvia");
                 await UpdateDevice(deviceModel);
                 await AddDeviceAlias(address, identifier, name);
             }
