@@ -298,10 +298,10 @@
   <div class="content">
     <div class="title" v-if="showNoTokensMessage">
       <span class="title-first-part">Sorry, but no NFT on your wallet </span>
-      <span class="title-second-part">%wallet_id%</span>
+      <span class="title-second-part">{{ shortenedAddress }}</span>
     </div>
 
-    <div class="title" v-if="tokensLoaded">
+    <div class="title" v-if="tokensLoaded && !showNoTokensMessage">
       <span class="title-first-part">Browse your</span>
       <span class="title-second-part">NFT's</span>
     </div>
@@ -309,16 +309,17 @@
     <div class="transformCenter" v-if="walletConnected && showSignMessage">Please sign the payload to prove ownership over your account</div>
     <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
 
-    <div class="search" v-if="tokensLoaded">
+    <div class="search" v-if="tokensLoaded && !showNoTokensMessage">
       <div class="search-container">
         <input
+            id="searchField"
             type="text"
             class="search-input"
             placeholder="Search whatever you want..."
             aria-label="Search whatever you want..."
             aria-describedby="basic-addon2"
         >
-        <button class="search-button" type="button">Search</button>
+        <button class="search-button" type="button" v-on:click="SearchToken">Search</button>
       </div>
     </div>
 
