@@ -10,6 +10,7 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
   <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://unpkg.com/vue-qrcode-reader/dist/VueQrcodeReader.umd.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
   <script charset="utf-8"
@@ -20,7 +21,7 @@
   <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
   <script type="text/javascript" src="https://unpkg.com/evm-chains@0.2.0/dist/umd/index.min.js"></script>
-  <script type="text/javascript" src="https://unpkg.com/@@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/fortmatic@2.0.6/dist/fortmatic.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
@@ -163,41 +164,6 @@
     </div>
   </div>
 
-  <div class="inputForm" v-if="showAddDeviceInput">
-    <div style="position:relative; width: 100%">
-      <div style="position: absolute; right: 0" @click="CloseInputForms()">
-        <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
-        </svg>
-      </div>
-    </div>
-    <span class="modal-title">Register New Device</span>
-
-    <div class="modal-form">
-      <span class="modal-form-title">Device Id</span>
-      <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
-      <input
-          id="deviceIdInput"
-          type="text"
-          placeholder="Device Id (ex: 00:00:00:00:00:00)"
-          class="modal-form-input"
-      />
-
-      <span class="modal-form-title">Security code</span>
-      <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
-      <input
-          id="deviceSecurityCodeInput"
-          type="text"
-          placeholder="Security code"
-          class="modal-form-input"
-      />
-    </div>
-
-    <div>
-      <button class="device-add-button modal-button" v-on:click="AddDeviceWithForm()">Add</button>
-    </div>
-  </div>
-
   <div class="inputForm" v-if="showDeviceEdit">
     <div style="position:relative; width: 100%">
       <div style="position: absolute; right: 0" @click="CloseInputForms()">
@@ -292,6 +258,38 @@
     </div>
 
     <button class="modal-button device-edit-update-button" id="displayTokenButton" v-on:click="CastToken()">Cast</button>
+  </div>
+
+  <div class="inputForm">
+    <div style="position:relative; width: 100%">
+      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+        <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
+        </svg>
+      </div>
+    </div>
+    <span class="modal-title">Register New Device</span>
+
+    <div class="modal-form">
+      <div class="device-add-form">
+        <div style="display: flex; flex-direction: column">
+          <span class="modal-form-title">Device Id</span>
+          <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
+          <input
+              id="deviceIdInput"
+              type="text"
+              placeholder="Device Id (ex: 00:00:00:00:00:00)"
+              class="modal-form-input"
+          />
+        </div>
+
+        <qrcode-stream @decode="onQrcodeDecode" @init="onQrcodeInit"></qrcode-stream>
+      </div>
+    </div>
+
+    <div>
+      <button class="device-add-button modal-button" v-on:click="AddDeviceWithForm()">Add</button>
+    </div>
   </div>
 
   <div class="modal" v-if="showModal" v-on:click="CloseInputForms()">
@@ -496,6 +494,34 @@
       }
     },
     methods: {
+      onQrcodeDecode (value) {
+        document.getElementById("deviceIdInput").value = value
+      },
+      async onQrcodeInit (promise) {
+        let error
+        try {
+          await promise
+        } catch (e) {
+          if (e.name === 'NotAllowedError') {
+            error = "ERROR: you need to grant camera access permission"
+          } else if (e.name === 'NotFoundError') {
+            error = "ERROR: no camera on this device"
+          } else if (e.name === 'NotSupportedError') {
+            error = "ERROR: secure context required (HTTPS, localhost)"
+          } else if (e.name === 'NotReadableError') {
+            error = "ERROR: is the camera already in use?"
+          } else if (e.name === 'OverconstrainedError') {
+            error = "ERROR: installed cameras are not suitable"
+          } else if (e.name === 'StreamApiNotSupportedError') {
+            error = "ERROR: Stream API is not supported in this browser"
+          } else if (e.name === 'InsecureContextError') {
+            error = 'ERROR: Camera access is only permitted in secure context. Use HTTPS or localhost rather than HTTP.';
+          } else {
+            error = `ERROR: Camera error (${e.name})`;
+          }
+          window.alert(error)
+        }
+      },
       SearchToken() {
         const searchField = document.getElementById("searchField").value
         this.searchFieldProperty = searchField

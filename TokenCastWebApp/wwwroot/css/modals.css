@@ -38,6 +38,14 @@
     grid-row-gap: 0;
 }
 
+.device-add-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    grid-column-gap: 100px;
+    grid-row-gap: 0;
+}
+
 .modal-form {
     display: flex;
     flex-direction: column;
