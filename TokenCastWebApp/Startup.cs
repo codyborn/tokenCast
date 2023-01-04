@@ -34,12 +34,9 @@ namespace TokenCast
                 options.AddDefaultPolicy(
                     builder =>
                     {
-                        builder.WithOrigins("https://tokencast.net",
-                                            "http://localhost",
-                                            "http://localhost:4200",
-                                            "https://canvia.art",
-                                            "https://my.canvia.art",
-                                            "https://canvia.netlify.app");
+                        builder.AllowAnyOrigin();
+                        builder.AllowAnyMethod();
+                        builder.AllowAnyHeader();
                     });
             });
 
@@ -82,8 +79,7 @@ namespace TokenCast
             app.UseStaticFiles();
 
             app.UseRouting();
-            app.UseCors();
-
+           
             app.UseAuthorization();
 
             //app.UseMiddleware<WebSocketMiddleware>();
