@@ -1,0 +1,97 @@
+.device-add-button {
+    background: #000000;
+    color: #fff;
+}
+
+.device-edit-delete-button {
+    background-color: #fff;
+    border: thin solid #F10000;
+    color: #F10000;
+}
+
+.device-edit-update-button {
+    background-color: black;
+    color: #fff;
+}
+
+.modal-button {
+    padding: 19px 44px;
+    border-radius: 80px;
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 84%;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 43px;
+    line-height: 50px;
+
+    color: #000000;
+}
+
+.device-update-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    grid-column-gap: 100px;
+    grid-row-gap: 0;
+}
+
+.device-add-form {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(1, 1fr);
+    grid-column-gap: 100px;
+    grid-row-gap: 0;
+}
+
+.modal-form {
+    display: flex;
+    flex-direction: column;
+
+    margin: 50px 0;
+}
+
+.modal-form-title {
+    font-weight: 600;
+    font-size: 23px;
+    line-height: 27px;
+    /* identical to box height, or 119% */
+
+    letter-spacing: 0.01em;
+    margin: 20px 0 5px;
+}
+
+.modal-form-description {
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 16px;
+    letter-spacing: 0.01em;
+    color: #676767;
+
+    margin-bottom: 10px;
+}
+
+.modal-form-input {
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 160%;
+    letter-spacing: 0.01em;
+    color: #000000;
+
+    border-bottom: thin solid black;
+    padding-left: 0 !important;
+}
+
+.device-cast-select {
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 160%;
+    letter-spacing: 0.01em;
+    color: #000000;
+
+    border: none;
+    border-bottom: solid thin black;
+    padding: 10px 0;
+}
