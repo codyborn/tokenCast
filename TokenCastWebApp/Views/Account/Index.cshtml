@@ -21,7 +21,7 @@
   <script type="text/javascript" src="https://unpkg.com/web3@1.2.11/dist/web3.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/web3modal@1.9.0/dist/index.js"></script>
   <script type="text/javascript" src="https://unpkg.com/evm-chains@0.2.0/dist/umd/index.min.js"></script>
-  <script type="text/javascript" src="https://unpkg.com/@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
+  <script type="text/javascript" src="https://unpkg.com/@@walletconnect/web3-provider@1.2.1/dist/umd/index.min.js"></script>
   <script type="text/javascript" src="https://unpkg.com/fortmatic@2.0.6/dist/fortmatic.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/authereum@latest/authereum.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
@@ -166,7 +166,7 @@
 
   <div class="inputForm" v-if="showDeviceEdit">
     <div style="position:relative; width: 100%">
-      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+      <div style="position: absolute; right: 0" v-on:click="CloseInputForms()">
         <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
         </svg>
@@ -221,7 +221,7 @@
 
   <div class="inputForm" v-if="showTokenDisplayOptions">
     <div style="position:relative; width: 100%">
-      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+      <div style="position: absolute; right: 0" v-on:click="CloseInputForms()">
         <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
         </svg>
@@ -262,7 +262,7 @@
 
   <div class="inputForm" v-if="showAddDeviceInput">
     <div style="position:relative; width: 100%">
-      <div style="position: absolute; right: 0" @click="CloseInputForms()">
+      <div style="position: absolute; right: 0" v-on:click="CloseInputForms()">
         <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M1.10758 26.5821C1.19465 26.6692 1.29804 26.7384 1.41185 26.7856C1.52566 26.8327 1.64766 26.857 1.77086 26.857C1.89406 26.857 2.01606 26.8327 2.12987 26.7856C2.24368 26.7384 2.34707 26.6692 2.43414 26.5821L13.956 15.0602L25.4826 26.5821C25.6585 26.758 25.8971 26.8568 26.1459 26.8568C26.3946 26.8568 26.6332 26.758 26.8091 26.5821C26.9851 26.4062 27.0839 26.1676 27.0839 25.9188C27.0839 25.67 26.9851 25.4314 26.8091 25.2555L15.2826 13.7336L26.8045 2.20708C26.9804 2.03116 27.0792 1.79257 27.0792 1.5438C27.0792 1.29502 26.9804 1.05643 26.8045 0.880514C26.6285 0.704601 26.39 0.605774 26.1412 0.605774C25.8924 0.605774 25.6538 0.704601 25.4779 0.880514L13.956 12.4071L2.42945 0.885202C2.25011 0.731614 2.01941 0.651359 1.78347 0.660472C1.54752 0.669586 1.3237 0.767397 1.15674 0.934361C0.989775 1.10132 0.891963 1.32514 0.88285 1.56109C0.873736 1.79704 0.953992 2.02773 1.10758 2.20708L12.6295 13.7336L1.10758 25.2602C0.932969 25.4359 0.834961 25.6735 0.834961 25.9211C0.834961 26.1688 0.932969 26.4064 1.10758 26.5821Z" fill="black"/>
         </svg>
@@ -283,7 +283,7 @@
           />
         </div>
 
-        <qrcode-stream @decode="onQrcodeDecode" @init="onQrcodeInit"></qrcode-stream>
+        <qrcode-stream v-on:decode="onQrcodeDecode" v-on:init="onQrcodeInit"></qrcode-stream>
       </div>
     </div>
 
