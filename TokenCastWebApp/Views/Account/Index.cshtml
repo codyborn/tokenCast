@@ -260,7 +260,7 @@
     <button class="modal-button device-edit-update-button" id="displayTokenButton" v-on:click="CastToken()">Cast</button>
   </div>
 
-  <div class="inputForm">
+  <div class="inputForm" v-if="showAddDeviceInput">
     <div style="position:relative; width: 100%">
       <div style="position: absolute; right: 0" @click="CloseInputForms()">
         <svg width="28" height="27" viewBox="0 0 28 27" fill="none" xmlns="http://www.w3.org/2000/svg">
