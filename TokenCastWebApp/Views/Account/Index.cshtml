@@ -298,7 +298,7 @@
   <div class="content">
     <div class="title" v-if="showNoTokensMessage">
       <span class="title-first-part">Sorry, but no NFT on your wallet </span>
-      <span class="title-second-part">%wallet_id%</span>
+      <span class="title-second-part">{{ shortenedAddress }}</span>
     </div>
 
     <div class="title" v-if="tokensLoaded && !showNoTokensMessage">
