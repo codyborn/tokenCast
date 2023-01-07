@@ -535,12 +535,12 @@
       },
       async SignOut () {
         this.isBurgerActive = false
-        await web3Modal.clearCachedProvider()
         this.providedWeb3 = ''
         this.tokensLoaded = false
         this.tezosWalletConnected = false
         this.showNoTokensMessage = false
         window.localStorage.removeItem(getSignatureKey(app.address, app.network))
+        await web3Modal.clearCachedProvider()
         if (app.dAppClient) {
           await app.dAppClient.clearActiveAccount()
         }

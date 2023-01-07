@@ -304,7 +304,6 @@ async function GetSignature() {
           console.log("Getting Ethereum signature");
           let plain = app.signatureMessage;
           let msg = app.providedWeb3.utils.asciiToHex(plain);
-          let hash = app.providedWeb3.utils.keccak256("\x19Ethereum Signed Message:\n" + plain.length + plain);
           signature = await app.providedWeb3.eth.personal.sign(msg, web3Account);
         }
         cacheSignature(signature, web3Account, app.network)
@@ -343,7 +342,7 @@ async function CheckAddDevice(accountDetails) {
   // If present, prompt user to add device
   var urlParams = new URLSearchParams(window.location.search);
   var deviceId = urlParams.get("deviceId");
-  var deviceAlias = urlParams.get("deviceAlias")
+  var deviceAlias = deviceId
 
   if (deviceId != null && deviceAlias != null &&
     (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
