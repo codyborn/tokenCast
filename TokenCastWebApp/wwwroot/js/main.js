@@ -343,7 +343,7 @@ async function CheckAddDevice(accountDetails) {
   // If present, prompt user to add device
   var urlParams = new URLSearchParams(window.location.search);
   var deviceId = urlParams.get("deviceId");
-  var deviceAlias = urlParams.get("deviceAlias")
+  var deviceAlias = deviceId
 
   if (deviceId != null && deviceAlias != null &&
     (accountDetails.devices == null || accountDetails.devices.indexOf(deviceId) == -1)) {
