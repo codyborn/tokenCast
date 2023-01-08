@@ -544,6 +544,8 @@
         if (app.dAppClient) {
           await app.dAppClient.clearActiveAccount()
         }
+
+        window.localStorage.removeItem('walletconnect')
       },
       async FetchCanviaDevices () {
         const queryString = window.location.search
