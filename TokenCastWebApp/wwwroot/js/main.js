@@ -354,6 +354,7 @@ async function CheckAddDevice(accountDetails) {
   }
   else {
     // No devices found
+    GetTokens();
     app.showAddDeviceInput = true;
   }
 }
@@ -467,21 +468,20 @@ async function GetCastedTokensForDevice(deviceId) {
 async function GetTokens() {
   app.showFetchingTokensMessage = true;
   $.get(origURL + "Account/Tokens?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler, function (tokenResponse) {
-
-  app.showNoTokensMessage = tokenResponse === "";
-  var parsedTokens = JSON.parse(tokenResponse);
-  if (parsedTokens == null || parsedTokens.assets.length === 0) {
-  // no tokens found
-  app.showNoTokensMessage = true;
-}
-  app.showFetchingTokensMessage = false;
-  app.tokens = [];
-  parsedTokens.assets.forEach(function (token) {
-    if (token.image_url !== "") {
-      app.tokens.push(token);
+    app.showNoTokensMessage = tokenResponse === "";
+    var parsedTokens = JSON.parse(tokenResponse);
+    if (parsedTokens == null || parsedTokens.assets.length === 0) {
+      // no tokens found
+      app.showNoTokensMessage = true;
     }
-  })
-  app.tokensLoaded = true;
+    app.showFetchingTokensMessage = false;
+    app.tokens = [];
+    parsedTokens.assets.forEach(function (token) {
+      if (token.image_url !== "") {
+        app.tokens.push(token);
+      }
+    })
+    app.tokensLoaded = true;
   });
 
   await GetCommunityTokens()
