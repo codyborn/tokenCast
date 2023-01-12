@@ -524,8 +524,7 @@
         }
       },
       SearchToken() {
-        const searchField = document.getElementById("searchField").value
-        this.searchFieldProperty = searchField
+        this.searchFieldProperty = document.getElementById("searchField").value
       },
       EthereumConnect () {
         onConnectEthereum()
