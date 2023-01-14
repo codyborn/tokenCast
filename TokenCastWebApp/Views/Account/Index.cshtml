@@ -247,6 +247,38 @@
            }"
       />
 
+      <div style="padding-top:3em; text-align:left;">
+        <div class="menuFont">Background color</div>
+        <div
+          v-for="color in backgroundColorPallete"
+          class="gallery"
+          v-on:click="ColorSelected(color)"
+          v-bind:style="{ backgroundColor: color }"
+          style="width: 2em; height: 2em;"
+        ></div>
+        <div
+          id="colorPicker"
+          style="width: 2em; height: 2em; background-size: contain; cursor: pointer"
+          v-on:click="ColorSelected(eyedropperSelectedColor)"
+          v-bind:style="{backgroundColor: eyedropperHoverColor, backgroundImage: eyedropperImage}"
+          class="gallery"
+        ></div>
+      </div>
+      <div style="padding-top:1em; text-align:left;">
+        <div class="menuFont">Border width percentage</div>
+        <div style="width:100%">
+            <input type="range" min="0" max="35" value="5" class="slider" v-model="borderWidthPercent">
+        </div>
+        <div class="menuFont">Fit screen</div>
+        <input type="checkbox" v-model="fitScreen" v-on:click="borderWidthPercent = !fitScreen? 0 : borderWidthPercent" />
+        <div class="menuFont">Rotate orientation</div>
+        <input type="checkbox" v-model="orientationVertical" />
+        <span v-if="displayingOwnedToken">
+            <div class="menuFont">Show Metadata</div>
+            <input type="checkbox" v-model="showMetadata" />
+        </span>
+      </div>
+
       <span class="modal-form-title">Device</span>
       <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
 
