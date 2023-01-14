@@ -46,6 +46,13 @@
     grid-row-gap: 0;
 }
 
+@media (max-width: 600px) {
+    .device-add-form {
+        display: flex;
+        flex-direction: column-reverse;
+    }
+}
+
 .modal-form {
     display: flex;
     flex-direction: column;
