@@ -106,8 +106,6 @@ body {
 
 
 .sidebar-menu-title {
-    font-family: 'Roboto';
-    font-style: normal;
     font-weight: 400;
     font-size: 30px;
     line-height: 105%;
@@ -116,12 +114,9 @@ body {
 }
 
 .sidebar-menu-title-device {
-    font-family: 'Roboto';
-    font-style: normal;
     font-weight: 300;
-    font-size: 17.2111px;
+    font-size: 17px;
     line-height: 160%;
-    /* identical to box height, or 28px */
-
     letter-spacing: 0.01em;
+    color: #000000;
 }
