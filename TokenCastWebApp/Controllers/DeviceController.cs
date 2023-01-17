@@ -38,7 +38,7 @@ namespace TokenCast.Controllers
         {
             if (deviceId == null)
             {
-                return null;
+                return BadRequest();
             }
 
             var content = await Database.GetDeviceContent(deviceId);
@@ -59,10 +59,12 @@ namespace TokenCast.Controllers
                             },
                             Mode = ResizeMode.Max
                         });
+                        
                     });
+                    
                     using (var resizedStream = new MemoryStream())
                     {
-                        await image.SaveAsPngAsync(resizedStream);
+                        await image.SaveAsJpegAsync(resizedStream);
 
                         var inputAsString = Convert.ToBase64String(resizedStream.ToArray());
 

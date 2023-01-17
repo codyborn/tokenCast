@@ -132,7 +132,11 @@ namespace TokenCast
                 return null;
             }
 
-            return databaseEntity.getEntity();
+            var retVal = databaseEntity.getEntity();
+
+            retVal.devicesOnline = retVal.deviceMapping.Select(x => KeyValuePair.Create(x.Key, false)).ToDictionary(x => x.Key, t => t.Value);
+
+            return retVal;
         }
 
         public async Task AddDevice(string address, string deviceId, string deviceAlias)

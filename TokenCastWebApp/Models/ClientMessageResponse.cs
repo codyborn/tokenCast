@@ -10,6 +10,8 @@
     public enum EventType
     {
         Heartbeat,
-        NFTUpdated
+        NFTUpdated,
+        Online,
+        Offline
     }
 }

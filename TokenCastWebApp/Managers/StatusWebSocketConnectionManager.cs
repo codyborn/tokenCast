@@ -12,32 +12,31 @@ using TokenCastWebApp.Socket;
 using System.Text.Json;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Linq;
 
 namespace TokenCastWebApp.Managers
 {
-    public sealed class WebSocketConnectionManager : IWebSocketConnectionManager, IWebSocketHandler
+    public sealed class StatusWebSocketConnectionManager : IStatusWebSocketConnectionManager, IStatusWebSocketHandler
     {
         #region Private members
 
         private readonly IMemoryCache _tempSessionIdCache;
-        private readonly ILogger<IWebSocketConnectionManager> _logger;
+        private readonly ILogger<IStatusWebSocketConnectionManager> _logger;
         private readonly ILoggerFactory _loggerFactory;
         private readonly RealtimeOptions _realtimeOptions;
         private readonly ISystemTextJsonSerializer _serializer;
-        private readonly IStatusWebSocketConnectionManager _statusWebSocketConnectionManager;
 
-        private ConcurrentDictionary<string, IWebSocketConnection> _webSockets = new ConcurrentDictionary<string, IWebSocketConnection>();
+        private ConcurrentDictionary<string, IStatusWebSocketConnection> _webSockets = new ConcurrentDictionary<string, IStatusWebSocketConnection>();
 
 
         #endregion
 
         #region Constructor
 
-        public WebSocketConnectionManager(ILogger<IWebSocketConnectionManager> logger,
+        public StatusWebSocketConnectionManager(ILogger<IStatusWebSocketConnectionManager> logger,
             ILoggerFactory loggerFactory,
             IOptions<RealtimeOptions> realtimeOptions,
-            ISystemTextJsonSerializer serializer,
-            IStatusWebSocketConnectionManager statusWebSocketConnectionManager)
+            ISystemTextJsonSerializer serializer)
         {
             _logger = logger;
             _loggerFactory = loggerFactory;
@@ -46,25 +45,26 @@ namespace TokenCastWebApp.Managers
 
             var cacheOptions = new MemoryCacheOptions { ExpirationScanFrequency = TimeSpan.FromSeconds(_realtimeOptions.ExpirationScanFrequency) };
             _tempSessionIdCache = new MemoryCache(cacheOptions, _loggerFactory);
-            _statusWebSocketConnectionManager = statusWebSocketConnectionManager;
         }
 
         #endregion
 
         #region IWebSocketConnectionManager members
 
-        public string GenerateConnectionId(string deviceId)
+        public string GenerateConnectionId(List<string> deviceIds)
         {
             var connectionId = Guid.NewGuid().ToString();
 
-            _tempSessionIdCache.Set(connectionId, deviceId, TimeSpan.FromSeconds(_realtimeOptions.CacheItemExpirationTime));
+            _tempSessionIdCache.Set(connectionId, string.Join('|', deviceIds), TimeSpan.FromSeconds(_realtimeOptions.CacheItemExpirationTime));
 
             return connectionId;
         }
 
-        public bool TryGetDeviceId(string connectionId, out string deviceId)
+        public bool TryGetDeviceId(string connectionId, out List<string> deviceIds)
         {
-            var exist = _tempSessionIdCache.TryGetValue(connectionId, out deviceId);
+            var exist = _tempSessionIdCache.TryGetValue(connectionId, out string devices);
+
+            deviceIds = devices.Split('|').ToList();
 
             if (exist)
                 _tempSessionIdCache.Remove(connectionId);
@@ -72,13 +72,13 @@ namespace TokenCastWebApp.Managers
             return exist;
         }
 
-        public async Task ConnectAsync(string connectionId, string deviceId, WebSocket webSocket, CancellationToken cancellationToken)
+        public async Task ConnectAsync(string connectionId, List<string> deviceIds, WebSocket webSocket, CancellationToken cancellationToken)
         {
-            var webSocketConnection = new WebSocketConnection(connectionId, deviceId, webSocket, cancellationToken, _loggerFactory, this, _serializer);
+            var webSocketConnection = new StatusWebSocketConnection(connectionId, deviceIds, webSocket, cancellationToken, _loggerFactory, this, _serializer);
 
             _logger.LogInformation($"New WebSocket session {webSocketConnection.ConnectionId} connected.");
 
-            _webSockets.TryAdd(deviceId, webSocketConnection);
+            _webSockets.TryAdd(string.Join('|', deviceIds), webSocketConnection);
 
             await webSocketConnection.StartReceiveMessageAsync().ConfigureAwait(false);
         }
@@ -87,12 +87,12 @@ namespace TokenCastWebApp.Managers
 
         #region IWebSocketHandler members
 
-        public void HandleDisconnection(IWebSocketConnection connection)
+        public void HandleDisconnection(IStatusWebSocketConnection connection)
         {
-            _webSockets.TryRemove(connection.DeviceId, out var conn);
+            _webSockets.TryRemove(string.Join('|', connection.DeviceIds), out var conn);
         }
 
-        public void HandleMessage(SocketClientMessage message)
+        public void HandleMessage(StatusSocketClientMessage message)
         {
             var response = new ClientMessageResponse();
             try
@@ -106,12 +106,6 @@ namespace TokenCastWebApp.Managers
                     response.Message = "Invalid request model";
                     return;
                 }
-
-                if(subscribeMessage.Action == SubscribeAction.UpdateNft)
-                {
-                    response.Event = EventType.NFTUpdated;
-                    response.Message = "Event raised!";
-                }  
             }
             catch (Exception ex)
             {
@@ -126,9 +120,9 @@ namespace TokenCastWebApp.Managers
             }
         }
 
-        public void SendMessage(string deviceId, ClientMessageResponse message)
+        public void SendMessage(List<string> deviceId, ClientMessageResponse message)
         {
-            if(_webSockets.TryGetValue(deviceId, out var connection))
+            if (_webSockets.TryGetValue(string.Join('|', deviceId), out var connection))
             {
                 connection.Send(ConvertMessageToBytes(message));
             }

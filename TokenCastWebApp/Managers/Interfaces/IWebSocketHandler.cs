@@ -7,4 +7,10 @@ namespace TokenCastWebApp.Managers.Interfaces
         void HandleMessage(SocketClientMessage message);
         void HandleDisconnection(IWebSocketConnection connection);
     }
+
+    public interface IStatusWebSocketHandler
+    {
+        void HandleMessage(StatusSocketClientMessage message);
+        void HandleDisconnection(IStatusWebSocketConnection connection);
+    }
 }
