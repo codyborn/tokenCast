@@ -12,10 +12,12 @@ namespace TokenCastWebApp.Controllers
     public class ConnectController : Controller
     {
         private readonly IWebSocketConnectionManager _webSocketConnectionManager;
+        private readonly IStatusWebSocketConnectionManager _statusWebSocketConnectionManager;
 
-        public ConnectController(IWebSocketConnectionManager webSocketConnectionManager)
+        public ConnectController(IWebSocketConnectionManager webSocketConnectionManager, IStatusWebSocketConnectionManager statusWebSocketConnectionManager)
         {
             _webSocketConnectionManager = webSocketConnectionManager;
+            _statusWebSocketConnectionManager = statusWebSocketConnectionManager;
         }
 
         [HttpPost("create")]
@@ -53,6 +55,47 @@ namespace TokenCastWebApp.Controllers
 
             return Ok();
         }
+
+
+
+        [HttpPost("ui/create")]
+        public Task<IActionResult> CreateUIAsync([FromQuery] string deviceId)
+        {
+            var connectionId = _statusWebSocketConnectionManager.GenerateConnectionId(deviceId);
+            return Task.FromResult<IActionResult>(Ok(new
+            {
+                ConnectionId = connectionId
+            }));
+        }
+
+        [HttpGet("ui")]
+        public async Task<IActionResult> ConnectUIAsync([FromQuery] string connectionId, [FromQuery] string deviceId)
+        {
+            if (!HttpContext.WebSockets.IsWebSocketRequest)
+                return Ok();
+
+            var cancellationToken = HttpContext.RequestAborted;
+
+
+            if (string.IsNullOrWhiteSpace(connectionId))
+            {
+                return Forbid();
+            }
+
+            if (string.IsNullOrWhiteSpace(deviceId))
+            {
+                return Forbid();
+            }
+
+            var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+
+            await _statusWebSocketConnectionManager.ConnectAsync(connectionId, deviceId, webSocket, cancellationToken);
+
+            return Ok();
+        }
+
+
+
 
         #region Private methods
 

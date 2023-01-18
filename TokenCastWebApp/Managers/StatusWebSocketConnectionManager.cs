@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
+using TokenCast;
 
 namespace TokenCastWebApp.Managers
 {
@@ -25,10 +26,11 @@ namespace TokenCastWebApp.Managers
         private readonly ILoggerFactory _loggerFactory;
         private readonly RealtimeOptions _realtimeOptions;
         private readonly ISystemTextJsonSerializer _serializer;
+        private readonly IDatabase _database;
 
         private ConcurrentDictionary<string, IStatusWebSocketConnection> _webSockets = new ConcurrentDictionary<string, IStatusWebSocketConnection>();
 
-
+       
         #endregion
 
         #region Constructor
@@ -36,12 +38,14 @@ namespace TokenCastWebApp.Managers
         public StatusWebSocketConnectionManager(ILogger<IStatusWebSocketConnectionManager> logger,
             ILoggerFactory loggerFactory,
             IOptions<RealtimeOptions> realtimeOptions,
-            ISystemTextJsonSerializer serializer)
+            ISystemTextJsonSerializer serializer,
+            IDatabase database)
         {
             _logger = logger;
             _loggerFactory = loggerFactory;
             _realtimeOptions = realtimeOptions.Value;
             _serializer = serializer;
+            _database = database;
 
             var cacheOptions = new MemoryCacheOptions { ExpirationScanFrequency = TimeSpan.FromSeconds(_realtimeOptions.ExpirationScanFrequency) };
             _tempSessionIdCache = new MemoryCache(cacheOptions, _loggerFactory);
@@ -51,20 +55,18 @@ namespace TokenCastWebApp.Managers
 
         #region IWebSocketConnectionManager members
 
-        public string GenerateConnectionId(List<string> deviceIds)
+        public string GenerateConnectionId(string address)
         {
             var connectionId = Guid.NewGuid().ToString();
 
-            _tempSessionIdCache.Set(connectionId, string.Join('|', deviceIds), TimeSpan.FromSeconds(_realtimeOptions.CacheItemExpirationTime));
+            _tempSessionIdCache.Set(connectionId, address, TimeSpan.FromSeconds(_realtimeOptions.CacheItemExpirationTime));
 
             return connectionId;
         }
 
-        public bool TryGetDeviceId(string connectionId, out List<string> deviceIds)
+        public bool TryGetDeviceId(string connectionId, out string address)
         {
-            var exist = _tempSessionIdCache.TryGetValue(connectionId, out string devices);
-
-            deviceIds = devices.Split('|').ToList();
+            var exist = _tempSessionIdCache.TryGetValue(connectionId, out address);
 
             if (exist)
                 _tempSessionIdCache.Remove(connectionId);
@@ -72,13 +74,13 @@ namespace TokenCastWebApp.Managers
             return exist;
         }
 
-        public async Task ConnectAsync(string connectionId, List<string> deviceIds, WebSocket webSocket, CancellationToken cancellationToken)
+        public async Task ConnectAsync(string connectionId, string address, WebSocket webSocket, CancellationToken cancellationToken)
         {
-            var webSocketConnection = new StatusWebSocketConnection(connectionId, deviceIds, webSocket, cancellationToken, _loggerFactory, this, _serializer);
+            var webSocketConnection = new StatusWebSocketConnection(connectionId, address, webSocket, cancellationToken, _loggerFactory, this, _serializer, _database);
 
             _logger.LogInformation($"New WebSocket session {webSocketConnection.ConnectionId} connected.");
 
-            _webSockets.TryAdd(string.Join('|', deviceIds), webSocketConnection);
+            _webSockets.TryAdd(address, webSocketConnection);
 
             await webSocketConnection.StartReceiveMessageAsync().ConfigureAwait(false);
         }
@@ -89,7 +91,7 @@ namespace TokenCastWebApp.Managers
 
         public void HandleDisconnection(IStatusWebSocketConnection connection)
         {
-            _webSockets.TryRemove(string.Join('|', connection.DeviceIds), out var conn);
+            _webSockets.TryRemove(connection.Address, out var conn);
         }
 
         public void HandleMessage(StatusSocketClientMessage message)
@@ -120,12 +122,17 @@ namespace TokenCastWebApp.Managers
             }
         }
 
-        public void SendMessage(List<string> deviceId, ClientMessageResponse message)
+        public void SendMessage(string deviceId, ClientMessageResponse message)
         {
-            if (_webSockets.TryGetValue(string.Join('|', deviceId), out var connection))
+            lock (_webSockets)
             {
-                connection.Send(ConvertMessageToBytes(message));
+                var connection = _webSockets.FirstOrDefault(x=>x.Value.DeviceIds.Contains(deviceId));
+                if (connection.Value != null)
+                {
+                    connection.Value.Send(ConvertMessageToBytes(message));
+                }
             }
+
         }
 
         #endregion

@@ -10,6 +10,7 @@ using QRCoder;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Processing;
 using TokenCast.Models;
+using TokenCastWebApp.Managers.Interfaces;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -21,10 +22,13 @@ namespace TokenCast.Controllers
         // GET: /<controller>/
 
         private readonly IDatabase Database;
+        private readonly IWebSocketConnectionManager _webSocketConnectionManager;
 
-        public DeviceController(IDatabase database)
+        public DeviceController(IDatabase database,
+            IWebSocketConnectionManager webSocketConnectionManager)
         {
             Database = database;
+            _webSocketConnectionManager = webSocketConnectionManager;
         }
 
         public IActionResult Index()
@@ -117,6 +121,12 @@ namespace TokenCast.Controllers
         public void SetDeviceWhitelabeler(string deviceId, string whitelabel)
         {
             Database.SetDeviceWhiteLabeler(deviceId, whitelabel).Wait();
+            _webSocketConnectionManager.SendMessage(deviceId, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
         }
 
         /// <summary>

@@ -248,6 +248,7 @@ namespace TokenCastWebApp.Socket
         private void _timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Send(ConvertMessageToBytes(new ClientMessageResponse { Event = EventType.Heartbeat, Message = "Event raised!", Success = true }));
+            _handler.HandleHeartbeat(this);
         }
 
         private byte[] ConvertMessageToBytes<T>(T message)

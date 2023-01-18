@@ -79,7 +79,12 @@ namespace TokenCastWebApp.Managers
             _logger.LogInformation($"New WebSocket session {webSocketConnection.ConnectionId} connected.");
 
             _webSockets.TryAdd(deviceId, webSocketConnection);
-
+            _statusWebSocketConnectionManager.SendMessage(deviceId, new ClientMessageResponse
+            {
+                Event = EventType.Online,
+                Message = "Device is online",
+                Success = true
+            });
             await webSocketConnection.StartReceiveMessageAsync().ConfigureAwait(false);
         }
 
@@ -87,8 +92,24 @@ namespace TokenCastWebApp.Managers
 
         #region IWebSocketHandler members
 
+        public void HandleHeartbeat(IWebSocketConnection connection)
+        {
+            _statusWebSocketConnectionManager.SendMessage(connection.DeviceId, new ClientMessageResponse
+            {
+                Event = EventType.Online,
+                Message = "Device is online",
+                Success = true
+            });
+        }
+
         public void HandleDisconnection(IWebSocketConnection connection)
         {
+            _statusWebSocketConnectionManager.SendMessage(connection.DeviceId, new ClientMessageResponse
+            {
+                Event = EventType.Offline,
+                Message = "Device is offline",
+                Success = true
+            });
             _webSockets.TryRemove(connection.DeviceId, out var conn);
         }
 

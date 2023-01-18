@@ -49,11 +49,8 @@ namespace TokenCast
 
     public class Database : IDatabase
     {
-        private readonly IWebSocketConnectionManager _webSocketConnectionManager;
-
-        public Database(IWebSocketConnectionManager webSocketConnectionManager)
+        public Database()
         {
-            _webSocketConnectionManager = webSocketConnectionManager;
         }
 
 
@@ -134,7 +131,7 @@ namespace TokenCast
 
             var retVal = databaseEntity.getEntity();
 
-            retVal.devicesOnline = retVal.deviceMapping.Select(x => KeyValuePair.Create(x.Key, false)).ToDictionary(x => x.Key, t => t.Value);
+            retVal.devicesOnline = retVal?.devices?.ToDictionary(x => x, t => true);
 
             return retVal;
         }
@@ -265,13 +262,6 @@ namespace TokenCast
             {
                 throw new StorageException($"Unable to add content for device {device.id}");
             }
-
-            _webSocketConnectionManager.SendMessage(device.id, new TokenCastWebApp.Models.ClientMessageResponse
-            {
-                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
-                Message = "Event raised!",
-                Success = true
-            });
         }
 
         public async Task SetDeviceContent(DeviceModel device)

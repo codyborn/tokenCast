@@ -10,6 +10,7 @@ using TokenCastWebApp.Processors;
 using TokenCastWebApp.Models;
 using System.Timers;
 using System.Collections.Generic;
+using TokenCast;
 
 namespace TokenCastWebApp.Socket
 {
@@ -28,18 +29,20 @@ namespace TokenCastWebApp.Socket
         private readonly IStatusWebSocketHandler _handler;
         private readonly System.Timers.Timer _timer;
         private readonly ISystemTextJsonSerializer _serializer;
+        private readonly IDatabase _database;
 
         #endregion
 
         #region Constructor
 
         public StatusWebSocketConnection(string connectionId,
-        List<string> deviceId,
+        string address,
         WebSocket webSocket,
             CancellationToken cancellationToken,
             ILoggerFactory loggerFactory,
             IStatusWebSocketHandler handler,
-            ISystemTextJsonSerializer serializer)
+            ISystemTextJsonSerializer serializer,
+            IDatabase database)
         {
             if(string.IsNullOrWhiteSpace(connectionId))
             {
@@ -60,12 +63,13 @@ namespace TokenCastWebApp.Socket
             _timer.Interval = 15000;
             _timer.Elapsed += _timer_Elapsed;
             ConnectionId = connectionId;
-            DeviceIds = deviceId;
+            Address = address;
             _webSocket = webSocket;
             _cancellationToken = cancellationToken;
             _logger = loggerFactory.CreateLogger<IStatusWebSocketConnection>();
             _handler = handler;
             _serializer = serializer;
+            _database = database;
             _messagesQueueProcessor = new QueueProcessor<byte[]>(ProcessSendAsync, loggerFactory.CreateLogger<QueueProcessor<byte[]>>());
         }
 
@@ -75,7 +79,8 @@ namespace TokenCastWebApp.Socket
 
         public string ConnectionId { get; }
 
-        public List<string> DeviceIds { get; }
+        public List<string> DeviceIds { get; private set; } 
+        public string Address { get; }
 
         public void Send(byte[] message)
         {
@@ -85,14 +90,17 @@ namespace TokenCastWebApp.Socket
             _messagesQueueProcessor.OnQueueItemReceived(message);
         }
 
-        public Task StartReceiveMessageAsync()
+        public async Task StartReceiveMessageAsync()
         {
             if (_isDisposed)
-                return Task.CompletedTask;
+                return;
+
+            var account = await _database.GetAccount(Address).ConfigureAwait(false);
+            DeviceIds = account.devices;
 
             _timer.Start();
 
-            return ReceiveMessagesUntilCloseAsync();
+            await ReceiveMessagesUntilCloseAsync().ConfigureAwait(false);
         }
 
         #endregion

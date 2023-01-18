@@ -9,6 +9,7 @@ namespace TokenCastWebApp.Managers.Interfaces
         string ConnectionId { get; }
 
         List<string> DeviceIds { get; }
+        string Address { get; }
 
         void Send(byte[] message);
 
