@@ -69,7 +69,7 @@ namespace TokenCastWebApp.Controllers
         }
 
         [HttpGet("ui")]
-        public async Task<IActionResult> ConnectUIAsync([FromQuery] string connectionId, [FromQuery] string deviceId)
+        public async Task<IActionResult> ConnectUIAsync([FromQuery] string connectionId, [FromQuery] string address)
         {
             if (!HttpContext.WebSockets.IsWebSocketRequest)
                 return Ok();
@@ -82,14 +82,14 @@ namespace TokenCastWebApp.Controllers
                 return Forbid();
             }
 
-            if (string.IsNullOrWhiteSpace(deviceId))
+            if (string.IsNullOrWhiteSpace(address))
             {
                 return Forbid();
             }
 
             var webSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-            await _statusWebSocketConnectionManager.ConnectAsync(connectionId, deviceId, webSocket, cancellationToken);
+            await _statusWebSocketConnectionManager.ConnectAsync(connectionId, address, webSocket, cancellationToken);
 
             return Ok();
         }
