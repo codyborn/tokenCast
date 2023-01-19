@@ -124,6 +124,7 @@ namespace TokenCastWebApp.Managers
 
         public void SendMessage(string deviceId, ClientMessageResponse message)
         {
+            message.DeviceId = deviceId;
             lock (_webSockets)
             {
                 var connection = _webSockets.FirstOrDefault(x=>x.Value.DeviceIds.Contains(deviceId));
