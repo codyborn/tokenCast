@@ -9,10 +9,12 @@ using TokenCastWebApp.Managers.Interfaces;
 using TokenCastWebApp.Processors;
 using TokenCastWebApp.Models;
 using System.Timers;
+using System.Collections.Generic;
+using TokenCast;
 
 namespace TokenCastWebApp.Socket
 {
-    public sealed class WebSocketConnection : IWebSocketConnection, IDisposable
+    public sealed class StatusWebSocketConnection : IStatusWebSocketConnection, IDisposable
     {
         #region Private members
 
@@ -22,23 +24,25 @@ namespace TokenCastWebApp.Socket
 
         private readonly WebSocket _webSocket;
         private readonly CancellationToken _cancellationToken;
-        private readonly ILogger<IWebSocketConnection> _logger;
+        private readonly ILogger<IStatusWebSocketConnection> _logger;
         private readonly QueueProcessor<byte[]> _messagesQueueProcessor;
-        private readonly IWebSocketHandler _handler;
+        private readonly IStatusWebSocketHandler _handler;
         private readonly System.Timers.Timer _timer;
         private readonly ISystemTextJsonSerializer _serializer;
+        private readonly IDatabase _database;
 
         #endregion
 
         #region Constructor
 
-        public WebSocketConnection(string connectionId,
-        string deviceId,
+        public StatusWebSocketConnection(string connectionId,
+        string address,
         WebSocket webSocket,
             CancellationToken cancellationToken,
             ILoggerFactory loggerFactory,
-            IWebSocketHandler handler,
-            ISystemTextJsonSerializer serializer)
+            IStatusWebSocketHandler handler,
+            ISystemTextJsonSerializer serializer,
+            IDatabase database)
         {
             if(string.IsNullOrWhiteSpace(connectionId))
             {
@@ -59,12 +63,13 @@ namespace TokenCastWebApp.Socket
             _timer.Interval = 15000;
             _timer.Elapsed += _timer_Elapsed;
             ConnectionId = connectionId;
-            DeviceId = deviceId;
+            Address = address;
             _webSocket = webSocket;
             _cancellationToken = cancellationToken;
-            _logger = loggerFactory.CreateLogger<IWebSocketConnection>();
+            _logger = loggerFactory.CreateLogger<IStatusWebSocketConnection>();
             _handler = handler;
             _serializer = serializer;
+            _database = database;
             _messagesQueueProcessor = new QueueProcessor<byte[]>(ProcessSendAsync, loggerFactory.CreateLogger<QueueProcessor<byte[]>>());
         }
 
@@ -74,7 +79,8 @@ namespace TokenCastWebApp.Socket
 
         public string ConnectionId { get; }
 
-        public string DeviceId { get; }
+        public List<string> DeviceIds { get; private set; } 
+        public string Address { get; }
 
         public void Send(byte[] message)
         {
@@ -84,14 +90,17 @@ namespace TokenCastWebApp.Socket
             _messagesQueueProcessor.OnQueueItemReceived(message);
         }
 
-        public Task StartReceiveMessageAsync()
+        public async Task StartReceiveMessageAsync()
         {
             if (_isDisposed)
-                return Task.CompletedTask;
+                return;
+
+            var account = await _database.GetAccount(Address).ConfigureAwait(false);
+            DeviceIds = account.devices;
 
             _timer.Start();
 
-            return ReceiveMessagesUntilCloseAsync();
+            await ReceiveMessagesUntilCloseAsync().ConfigureAwait(false);
         }
 
         #endregion
@@ -179,7 +188,7 @@ namespace TokenCastWebApp.Socket
 
                     if (webSocketReceiveResult.MessageType == WebSocketMessageType.Text)
                     {
-                        _handler.HandleMessage(new SocketClientMessage(this, webSocketMessage));
+                        _handler.HandleMessage(new StatusSocketClientMessage(this, webSocketMessage));
                     }
 
                     webSocketReceiveResult = await _webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -248,7 +257,6 @@ namespace TokenCastWebApp.Socket
         private void _timer_Elapsed(object sender, ElapsedEventArgs e)
         {
             Send(ConvertMessageToBytes(new ClientMessageResponse { Event = EventType.Heartbeat, Message = "Event raised!", Success = true }));
-            _handler.HandleHeartbeat(this);
         }
 
         private byte[] ConvertMessageToBytes<T>(T message)
