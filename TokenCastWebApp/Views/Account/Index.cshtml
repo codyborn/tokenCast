@@ -693,10 +693,10 @@
       AddDeviceWithForm () {
         this.showAddDeviceInput = false
         const deviceId = document.getElementById("deviceIdInput").value
-        const deviceAlias = document.getElementById("deviceAliasInput").value
+//         const deviceAlias = document.getElementById("deviceAliasInput").value
         document.getElementById("deviceIdInput").value = ""
-        document.getElementById("deviceAliasInput").value = ""
-        AddDevice(deviceId, deviceAlias)
+//         document.getElementById("deviceAliasInput").value = ""
+        AddDevice(deviceId, deviceId)
       },
       AddDemoDeviceWithForm () {
         this.showAddDeviceInput = false
@@ -711,9 +711,9 @@
       UpdateDeviceWithForm () {
         this.showDeviceEdit = false
         const deviceId = this.selectedDeviceId
-        const alias = document.getElementById("deviceAliasInput").value
-        const frequency = document.getElementById("frequencyOutputValue").value
-        UpdateDevice(deviceId, alias, frequency)
+//         const alias = document.getElementById("deviceAliasInput").value
+//         const frequency = document.getElementById("frequencyOutputValue").value
+        UpdateDevice(deviceId, deviceId, frequency)
       },
       GetTokensOnQueue () {
         GetCastedTokensForDevice(this.selectedDeviceId)
