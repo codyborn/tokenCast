@@ -27,6 +27,9 @@ namespace TokenCast.Models
         public string address { get; set; }
         public List<string> devices { get; set; }
         public Dictionary<string, string> deviceMapping { get; set; }
+        public Dictionary<string, bool> devicesOnline { get; set; }
+
+
     }
     
     public class CanviaAccount

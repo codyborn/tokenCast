@@ -71,7 +71,7 @@
               <span id="idBar">
                   {{ shortenedAddress }}
               </span>
-              <hr style="border: solid 2px #707070; z-index: 1000; margin: 0;"/>
+              <hr style="border-bottom: solid thin #707070; z-index:1000; margin: 0;"/>
             </li>
             <li v-if="showAddDeviceButton" style="margin: 1em 0 0;">
               <span class="sidebar-menu-title" v-on:click="showAddDeviceInput = true"
@@ -86,14 +86,14 @@
                         stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
               </span>
-              <hr style="border: solid 2px #707070; z-index:1000; margin: 0;"/>
+              <hr style="border-bottom: solid thin #707070; z-index:1000; margin: 0;"/>
             </li>
             <li v-if="showAddDeviceButton" style="margin: 1em 0 0;">
               <span class="sidebar-menu-title" id="viewDevicesButton"
                     v-on:click="viewDevices = !viewDevices" style="cursor:pointer">
                   Linked Devices
               </span>
-              <hr style="border: solid 2px #707070; z-index:1000; margin: 0;"/>
+              <hr style="border-bottom: solid thin #707070; z-index:1000; margin: 0;"/>
               <transition name="slide-down">
                 <div>
                   <table>
@@ -247,6 +247,38 @@
            }"
       />
 
+      <div style="padding-top:3em; text-align:left;">
+        <div class="menuFont">Background color</div>
+        <div
+          v-for="color in backgroundColorPallete"
+          class="gallery"
+          v-on:click="ColorSelected(color)"
+          v-bind:style="{ backgroundColor: color }"
+          style="width: 2em; height: 2em;"
+        ></div>
+        <div
+          id="colorPicker"
+          style="width: 2em; height: 2em; background-size: contain; cursor: pointer"
+          v-on:click="ColorSelected(eyedropperSelectedColor)"
+          v-bind:style="{backgroundColor: eyedropperHoverColor, backgroundImage: eyedropperImage}"
+          class="gallery"
+        ></div>
+      </div>
+      <div style="padding-top:1em; text-align:left;">
+        <div class="menuFont">Border width percentage</div>
+        <div style="width:100%">
+            <input type="range" min="0" max="35" value="5" class="slider" v-model="borderWidthPercent">
+        </div>
+        <div class="menuFont">Fit screen</div>
+        <input type="checkbox" v-model="fitScreen" v-on:click="borderWidthPercent = !fitScreen? 0 : borderWidthPercent" />
+        <div class="menuFont">Rotate orientation</div>
+        <input type="checkbox" v-model="orientationVertical" />
+        <span v-if="displayingOwnedToken">
+            <div class="menuFont">Show Metadata</div>
+            <input type="checkbox" v-model="showMetadata" />
+        </span>
+      </div>
+
       <span class="modal-form-title">Device</span>
       <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
 
@@ -298,10 +330,10 @@
   <div class="content">
     <div class="title" v-if="showNoTokensMessage">
       <span class="title-first-part">Sorry, but no NFT on your wallet </span>
-      <span class="title-second-part">%wallet_id%</span>
+      <span class="title-second-part">{{ shortenedAddress }}</span>
     </div>
 
-    <div class="title" v-if="tokensLoaded">
+    <div class="title" v-if="tokensLoaded && !showNoTokensMessage">
       <span class="title-first-part">Browse your</span>
       <span class="title-second-part">NFT's</span>
     </div>
@@ -309,16 +341,17 @@
     <div class="transformCenter" v-if="walletConnected && showSignMessage">Please sign the payload to prove ownership over your account</div>
     <div class="transformCenter" v-if="walletConnected && showFetchingTokensMessage">Fetching tokens...</div>
 
-    <div class="search" v-if="tokensLoaded">
+    <div class="search" v-if="tokensLoaded && !showNoTokensMessage">
       <div class="search-container">
         <input
+            id="searchField"
             type="text"
             class="search-input"
             placeholder="Search whatever you want..."
             aria-label="Search whatever you want..."
             aria-describedby="basic-addon2"
         >
-        <button class="search-button" type="button">Search</button>
+        <button class="search-button" type="button" v-on:click="SearchToken">Search</button>
       </div>
     </div>
 
@@ -349,6 +382,7 @@
               placeholder="Leave your E-mail to keep updated."
               aria-label="Leave your E-mail to keep updated.."
           >
+          <span style="flex-grow: 1"></span>
           <button type="button" class="email-button">be in touch</button>
         </div>
       </div>
@@ -523,8 +557,7 @@
         }
       },
       SearchToken() {
-        const searchField = document.getElementById("searchField").value
-        this.searchFieldProperty = searchField
+        this.searchFieldProperty = document.getElementById("searchField").value
       },
       EthereumConnect () {
         onConnectEthereum()
@@ -534,15 +567,17 @@
       },
       async SignOut () {
         this.isBurgerActive = false
-        await web3Modal.clearCachedProvider()
         this.providedWeb3 = ''
         this.tokensLoaded = false
         this.tezosWalletConnected = false
         this.showNoTokensMessage = false
         window.localStorage.removeItem(getSignatureKey(app.address, app.network))
+        await web3Modal.clearCachedProvider()
         if (app.dAppClient) {
           await app.dAppClient.clearActiveAccount()
         }
+
+        window.localStorage.removeItem('walletconnect')
       },
       async FetchCanviaDevices () {
         const queryString = window.location.search
@@ -658,10 +693,10 @@
       AddDeviceWithForm () {
         this.showAddDeviceInput = false
         const deviceId = document.getElementById("deviceIdInput").value
-        const deviceAlias = document.getElementById("deviceAliasInput").value
+//         const deviceAlias = document.getElementById("deviceAliasInput").value
         document.getElementById("deviceIdInput").value = ""
-        document.getElementById("deviceAliasInput").value = ""
-        AddDevice(deviceId, deviceAlias)
+//         document.getElementById("deviceAliasInput").value = ""
+        AddDevice(deviceId, deviceId)
       },
       AddDemoDeviceWithForm () {
         this.showAddDeviceInput = false
@@ -676,9 +711,9 @@
       UpdateDeviceWithForm () {
         this.showDeviceEdit = false
         const deviceId = this.selectedDeviceId
-        const alias = document.getElementById("deviceAliasInput").value
-        const frequency = document.getElementById("frequencyOutputValue").value
-        UpdateDevice(deviceId, alias, frequency)
+//         const alias = document.getElementById("deviceAliasInput").value
+//         const frequency = document.getElementById("frequencyOutputValue").value
+        UpdateDevice(deviceId, deviceId, frequency)
       },
       GetTokensOnQueue () {
         GetCastedTokensForDevice(this.selectedDeviceId)

@@ -57,6 +57,7 @@ namespace TokenCast
             services.AddTransient<ISystemTextJsonSerializer, SystemTextJsonSerializer>();
 
             services.AddSingleton<IWebSocketConnectionManager, WebSocketConnectionManager>();
+            services.AddSingleton<IStatusWebSocketConnectionManager, StatusWebSocketConnectionManager>();
 
             services.AddControllersWithViews();
         }

@@ -2,6 +2,7 @@
 {
     public enum SubscribeAction
     {
-        UpdateNft
+        UpdateNft,
+        Status
     }
 }

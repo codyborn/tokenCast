@@ -13,6 +13,7 @@ using Nethereum.Web3;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using TokenCast.Models;
+using TokenCastWebApp.Managers.Interfaces;
 
 namespace TokenCast.Controllers
 {
@@ -21,10 +22,12 @@ namespace TokenCast.Controllers
         private const string Ethereum = "ETHEREUM";
 
         private readonly IDatabase Database;
+        private readonly IWebSocketConnectionManager _webSocketConnectionManager;
 
-        public AccountController(IDatabase database)
+        public AccountController(IDatabase database, IWebSocketConnectionManager webSocketConnectionManager)
         {
             Database = database;
+            _webSocketConnectionManager = webSocketConnectionManager;
         }
 
         private class MessageHash
@@ -106,6 +109,12 @@ namespace TokenCast.Controllers
             }
 
             Database.AddDevice(address, deviceId, deviceAlias).Wait();
+            _webSocketConnectionManager.SendMessage(deviceId, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
             return true;
         }
         
@@ -135,7 +144,7 @@ namespace TokenCast.Controllers
             
             Database.CreateOrUpdateAccount(account).Wait();
             Database.AddCanviaDevicesToAccount(address).Wait();
-            
+
             return true;
         }
         
@@ -177,7 +186,12 @@ namespace TokenCast.Controllers
             }
 
             Database.UpdateDeviceFrequency(deviceId, frequency).Wait();
-
+            _webSocketConnectionManager.SendMessage(deviceId, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
             return true;
         }        
         
@@ -239,6 +253,12 @@ namespace TokenCast.Controllers
             }
 
             Database.AddDeviceContent(deviceDisplay).Wait();
+            _webSocketConnectionManager.SendMessage(deviceDisplay.id, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
             return true;
         }
 
@@ -256,6 +276,12 @@ namespace TokenCast.Controllers
             }
 
             Database.RemoveDeviceContent(deviceId).Wait();
+            _webSocketConnectionManager.SendMessage(deviceId, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
             return true;
         }        
         
@@ -280,6 +306,12 @@ namespace TokenCast.Controllers
             }
 
             Database.RemoveATokenFromDevice(deviceId, index).Wait();
+            _webSocketConnectionManager.SendMessage(deviceId, new TokenCastWebApp.Models.ClientMessageResponse
+            {
+                Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                Message = "Event raised!",
+                Success = true
+            });
             var updatedDevice = Database.GetDeviceContent(deviceId).Result;
             
             return JsonConvert.SerializeObject(updatedDevice.castedTokens);
@@ -319,6 +351,12 @@ namespace TokenCast.Controllers
             if (device?.castedTokens != null)
             {
                 Database.ReorderCastedTokensOnDevice(device, order).Wait();
+                _webSocketConnectionManager.SendMessage(device.id, new TokenCastWebApp.Models.ClientMessageResponse
+                {
+                    Event = TokenCastWebApp.Models.EventType.NFTUpdated,
+                    Message = "Event raised!",
+                    Success = true
+                });
                 return true;
             }
 

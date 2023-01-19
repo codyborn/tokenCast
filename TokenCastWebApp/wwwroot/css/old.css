@@ -243,7 +243,7 @@ input[type=text] {
 
 @media only screen and (max-width: 600px) {
     .inputForm {
-        padding: 1em;
+        padding: 40px;
     }
 }
 
