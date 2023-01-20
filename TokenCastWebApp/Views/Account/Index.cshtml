@@ -101,6 +101,8 @@
                       <td class="deviceListElement sidebar-menu-title-device" style="cursor:pointer"
                           v-on:click="DeviceSelected(device)">
                         {{ GetDeviceAlias(device) }}
+                        <span v-if="deviceStatuses[device]" style="color: #0FFF50">Online</span>
+                        <span v-else style="color: #FF5733">Offline</span>
                       </td>
                     </tr>
                   </table>
@@ -172,7 +174,11 @@
         </svg>
       </div>
     </div>
-    <span class="modal-title">Device</span>
+    <div>
+      <span class="modal-title">Device</span>
+      <span v-if="deviceStatuses[selectedDeviceId]" style="color: #0FFF50">Online</span>
+      <span v-else style="color: #FF5733">Offline</span>
+    </div>
 
     <div class="modal-form">
       <div class="device-update-form">
@@ -279,7 +285,11 @@
         </span>
       </div>
 
-      <span class="modal-form-title">Device</span>
+      <div>
+        <span class="modal-form-title">Device</span>
+        <span v-if="deviceStatuses[selected]" style="color: #0FFF50">Online</span>
+        <span v-else style="color: #FF5733">Offline</span>
+      </div>
       <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
 
       <select id="deviceSelection" class="device-cast-select" v-model="selected">
@@ -438,10 +448,30 @@
       dAppClient: '',
       tezosWalletConnected: false,
       whitelabeler: '',
-      selected: ''
+      selected: '',
+      deviceStatuses: {},
+      deviceStatusSocket: null
     },
     async mounted () {
       await onLoad(true, false)
+      const resp = await fetch('/connect/ui/create', { method: 'POST' })
+      const { connectionId } = await resp.json()
+      this.deviceStatusesSocket = new WebSocket(
+        `wss://nftframe.azurewebsites.net/connect/ui?connectionId=${connectionId}&address=${this.address}`
+      );
+
+      this.deviceStatusesSocket.onmessage = (event) => {
+        console.log("device statuses event", event.data)
+        const data = JSON.parse(event.data)
+
+        if (data.event == 'Online') {
+          this.deviceStatuses[data.deviceId] = true
+        }
+
+        if (data.event == 'Offline') {
+          this.deviceStatuses[data.deviceId] = false
+        }
+      }
     },
     computed: {
       filteredItems() {
