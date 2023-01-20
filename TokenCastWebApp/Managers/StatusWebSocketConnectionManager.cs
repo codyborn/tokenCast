@@ -80,7 +80,7 @@ namespace TokenCastWebApp.Managers
 
             _logger.LogInformation($"New WebSocket session {webSocketConnection.ConnectionId} connected.");
 
-            _webSockets.TryAdd(address, webSocketConnection);
+            _webSockets.TryAdd(address.ToUpperInvariant(), webSocketConnection);
 
             await webSocketConnection.StartReceiveMessageAsync().ConfigureAwait(false);
         }
@@ -125,13 +125,12 @@ namespace TokenCastWebApp.Managers
         public void SendMessage(string deviceId, ClientMessageResponse message)
         {
             message.DeviceId = deviceId;
-            lock (_webSockets)
+            var accounts = _database.GetAllAccount().GetAwaiter().GetResult();
+            var address = accounts.FirstOrDefault(x => x.devices.Contains(deviceId));
+
+            if(_webSockets.TryGetValue(address.address.ToUpperInvariant(), out var webSocketConnection))
             {
-                var connection = _webSockets.FirstOrDefault(x=>x.Value.DeviceIds.Contains(deviceId));
-                if (connection.Value != null)
-                {
-                    connection.Value.Send(ConvertMessageToBytes(message));
-                }
+                webSocketConnection.Send(ConvertMessageToBytes(message));
             }
 
         }
