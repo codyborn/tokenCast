@@ -200,19 +200,19 @@ async function initEthereumAccount() {
 async function initTezosAccount(onConnect) {
   try {
     if (!app.dAppClient) {
-    app.dAppClient = await new beacon.DAppClient({ name: "TokenCast" });
-  }
-  activeAccount = await app.dAppClient.getActiveAccount();
-
-  if (!activeAccount && onConnect) {
-    console.log("getting permissions");
-    const permissions = await app.dAppClient.requestPermissions();
+      app.dAppClient = await new beacon.DAppClient({ name: "TokenCast" });
+    }
     activeAccount = await app.dAppClient.getActiveAccount();
-  }
-  if (activeAccount) {
-    app.address = activeAccount.address;
-    web3Account = app.address;
-  }
+
+    if (!activeAccount && onConnect) {
+      console.log("getting permissions");
+      const permissions = await app.dAppClient.requestPermissions();
+      activeAccount = await app.dAppClient.getActiveAccount();
+    }
+    if (activeAccount) {
+      app.address = activeAccount.address;
+      web3Account = app.address;
+    }
   } catch (error) {
     console.log("Tezos Account error:", error);
   }
