@@ -190,10 +190,32 @@ window.addEventListener('load', async () => {
   getLastUsedDevice();
 }, false);
 
+async function connectDeviceStatusesWS() {
+  const resp = await fetch('/connect/ui/create', { method: 'POST' })
+  const { connectionId } = await resp.json()
+  const deviceStatusesSocket = new WebSocket(
+    `wss://nftframe.azurewebsites.net/connect/ui?connectionId=${connectionId}&address=${app.address}`
+  );
+
+  deviceStatusesSocket.onmessage = (event) => {
+    console.log("device statuses event", event.data)
+    const data = JSON.parse(event.data)
+
+    if (data.event === 'Online') {
+      app.deviceStatuses[data.deviceId] = true
+    }
+
+    if (data.event === 'Offline') {
+      app.deviceStatuses[data.deviceId] = false
+    }
+  }
+}
+
 async function initEthereumAccount() {
   app.providedWeb3 = new Web3(provider);
   web3Account = (await app.providedWeb3.eth.getAccounts())[0];
   app.address = web3Account;
+  await connectDeviceStatusesWS();
   await AttemptReverse(web3Account);
 }
 
@@ -211,6 +233,7 @@ async function initTezosAccount(onConnect) {
     }
     if (activeAccount) {
       app.address = activeAccount.address;
+      await connectDeviceStatusesWS();
       web3Account = app.address;
     }
   } catch (error) {

@@ -455,24 +455,6 @@
     },
     async mounted () {
       await onLoad(true, false)
-      const resp = await fetch('/connect/ui/create', { method: 'POST' })
-      const { connectionId } = await resp.json()
-      this.deviceStatusesSocket = new WebSocket(
-        `wss://nftframe.azurewebsites.net/connect/ui?connectionId=${connectionId}&address=${this.address}`
-      );
-
-      this.deviceStatusesSocket.onmessage = (event) => {
-        console.log("device statuses event", event.data)
-        const data = JSON.parse(event.data)
-
-        if (data.event == 'Online') {
-          this.deviceStatuses[data.deviceId] = true
-        }
-
-        if (data.event == 'Offline') {
-          this.deviceStatuses[data.deviceId] = false
-        }
-      }
     },
     computed: {
       filteredItems() {
