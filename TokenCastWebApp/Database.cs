@@ -43,7 +43,7 @@ namespace TokenCast
         Task<DeviceModel> GetDeviceContent(string deviceId);
 
         Task<List<DeviceModel>> GetAllDevices();
-
+        Task<List<AccountModel>> GetAllAccount();
         Task<LastUpdateModel> GetLastUpdateTime();
     }
 
@@ -180,7 +180,7 @@ namespace TokenCast
 
             foreach (var (name, identifier) in account.canviaAccount.canviaDevices)
             {
-                var deviceModel = new DeviceModel {id = identifier, isCanviaDevice = true};
+                var deviceModel = new DeviceModel { id = identifier, isCanviaDevice = true };
                 await AddDevice(address, identifier, "canvia");
                 await UpdateDevice(deviceModel);
                 await AddDeviceAlias(address, identifier, name);
@@ -208,17 +208,17 @@ namespace TokenCast
 
             account.deviceMapping[deviceId] = alias;
             await CreateOrUpdateAccount(account);
-        }        
-        
+        }
+
         public async Task UpdateDeviceFrequency(string deviceId, int frequency)
         {
             DeviceModel device = await GetDeviceContent(deviceId);
-            
+
             if (device == null)
             {
                 throw new StorageException($"Unable to locate device {deviceId}");
             }
-            
+
             device.frequencyOfRotation = frequency;
 
             await UpdateDevice(device);
@@ -265,7 +265,7 @@ namespace TokenCast
         }
 
         public async Task SetDeviceContent(DeviceModel device)
-        { 
+        {
             var prevDevice = await GetDeviceContent(device.id);
             if (prevDevice != null && !string.IsNullOrEmpty(prevDevice.whiteLabeler))
             {
@@ -318,8 +318,8 @@ namespace TokenCast
             prevDevice.castedTokens = new List<Display>();
             prevDevice.currentDisplay = null;
             await UpdateDevice(prevDevice);
-        }        
-        
+        }
+
         public async Task RemoveATokenFromDevice(string deviceId, int index)
         {
             var prevDevice = await GetDeviceContent(deviceId);
@@ -332,9 +332,9 @@ namespace TokenCast
             {
                 prevDevice.currentDisplay = prevDevice.castedTokens[1];
             }
-            
+
             prevDevice.castedTokens.RemoveAt(index);
-            
+
             await UpdateDevice(prevDevice);
         }
 
@@ -359,6 +359,21 @@ namespace TokenCast
             do
             {
                 var queryResult = await deviceTable.Value.ExecuteQuerySegmentedAsync<DatabaseEntity<DeviceModel>>(new TableQuery<DatabaseEntity<DeviceModel>>(), token);
+                entities.AddRange(queryResult.Results.Select(e => e.getEntity()));
+                token = queryResult.ContinuationToken;
+            } while (token != null);
+
+            return entities;
+        }
+
+        public async Task<List<AccountModel>> GetAllAccount()
+        {
+            TableContinuationToken token = null;
+            var entities = new List<AccountModel>();
+
+            do
+            {
+                var queryResult = await accountTable.Value.ExecuteQuerySegmentedAsync<DatabaseEntity<AccountModel>>(new TableQuery<DatabaseEntity<AccountModel>>(), token);
                 entities.AddRange(queryResult.Results.Select(e => e.getEntity()));
                 token = queryResult.ContinuationToken;
             } while (token != null);
