@@ -510,20 +510,21 @@ async function GetTokens() {
   await GetCommunityTokens()
 }
 
-  async function GetCommunityTokens() {
-
+async function GetCommunityTokens() {
   app.showFetchingTokensMessage = true;
 
   $.get(origURL + "Account/CommunityTokens", function (tokenResponse) {
-  var parsedTokens = JSON.parse(tokenResponse);
-  app.showFetchingTokensMessage = false;
-  app.communityTokens = [];
-  parsedTokens.assets.forEach(function (token) {
-  if (token.image_url !== "") {
-  app.communityTokens.push(token);
-}
-})
-});
+    var parsedTokens = JSON.parse(tokenResponse);
+    app.showFetchingTokensMessage = false;
+    app.communityTokens = [];
+    parsedTokens.assets.forEach(function (token) {
+      if (token.image_url !== "") {
+        app.communityTokens.push(token);
+      }
+    })
+
+    app.tokens.push(...app.communityTokens)
+  });
 }
 
   function CopyToClipboard(str) {
