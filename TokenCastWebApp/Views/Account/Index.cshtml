@@ -240,15 +240,15 @@
     <div class="modal-form">
       <img id="tokenPreviewContainer"
            class="center"
-           style="width:100%;"
            crossorigin="anonymous"
            v-on:click="TokenPreviewClick"
            v-on:mousemove="TokenPreviewMousemove"
            v-on:mouseout="TokenPreviewMouseout"
            v-bind:src="selectedToken.image_url"
            v-bind:style="{
+              width: fitScreen ? '448px' : '100%'
               backgroundColor: selectedBackgroundColor,
-              height: tokenHeight,
+              height: fitScreen ? '368px' : tokenHeight,
               marginTop: borderWidthInPx,
               objectFit: fitScreen? 'cover' : 'contain'
            }"
