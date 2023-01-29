@@ -523,7 +523,9 @@ async function GetCommunityTokens() {
       }
     })
 
-    app.tokens.push(...app.communityTokens)
+    if (app.network === TEZOS) {
+      app.tokens = [...app.tokens, ...app.communityTokens];
+    }
   });
 }
 

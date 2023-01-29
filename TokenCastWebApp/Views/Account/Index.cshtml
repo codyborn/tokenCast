@@ -245,7 +245,7 @@
         class="cropper center"
         v-bind:src="selectedToken.image_url"
         v-bind:stencil-props="{ aspectRatio: 23/28 }"
-        @change="cropperChange"
+        v-on:change="cropperChange"
         v-bind:style="{
           width: '100%'
           backgroundColor: selectedBackgroundColor,
