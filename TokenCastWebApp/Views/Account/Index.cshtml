@@ -575,8 +575,8 @@
       }
     },
     methods: {
-      cropperChange (params, canvas) {
-        this.cropperParams = value
+      cropperChange ({ coordinates, canvas }) {
+        this.cropperParams = coordinates
       },
       onQrcodeDecode (value) {
         document.getElementById("deviceIdInput").value = value
