@@ -243,12 +243,8 @@
     <span class="modal-title">Cast your token</span>
 
     <div class="modal-form">
-      <cropper>
-        id="tokenPreviewContainer"
+      <div
         class="center"
-        v-bind:src="selectedToken.image_url"
-        v-bind:stencil-props="{ aspectRatio: 23/28 }"
-        v-on:change="cropperChange"
         v-bind:style="{
           width: '100%'
           backgroundColor: selectedBackgroundColor,
@@ -256,7 +252,14 @@
           marginTop: borderWidthInPx,
           objectFit: fitScreen ? 'cover' : 'contain'
         }"
-      </cropper>
+      >
+        <cropper>
+          id="tokenPreviewContainer"
+          v-bind:src="selectedToken.image_url"
+          v-bind:stencil-props="{ aspectRatio: 23/28 }"
+          v-on:change="cropperChange"
+        </cropper>
+      </div>
       <!-- ><img id="tokenPreviewContainer"
            class="center"
            crossorigin="anonymous"
