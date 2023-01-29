@@ -27,10 +27,12 @@
   <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
+  <script src="https://unpkg.com/vue-advanced-cropper@^1.0.0/dist/index.umd.js" />
+  <link rel="stylesheet" href="https://unpkg.com/vue-advanced-cropper@^1.0.0/dist/style.css" />
+
   <script src="/js/vibrant.min.js"></script>
   <script src="/js/whiteLabelers.js"></script>
   <script type="text/javascript" src="/js/random-words.js"></script>
-  <script type="text/javascript" src="/js/tezos-beacon.js"></script>
   <script type="text/javascript" src="/js/walletbeacon.min.js"></script>
   <script src="/js/main.js"></script>
 
@@ -238,21 +240,28 @@
     <span class="modal-title">Cast your token</span>
 
     <div class="modal-form">
-      <img id="tokenPreviewContainer"
+      <cropper>
+        id="tokenPreviewContainer"
+        class="cropper center"
+        v-bind:src="selectedToken.image_url"
+        v-bind:stencil-props="{ aspectRatio: 23/28 }"
+        @change="cropperChange"
+        v-bind:style="{
+          width: '100%'
+          backgroundColor: selectedBackgroundColor,
+          height: tokenHeight,
+          marginTop: borderWidthInPx,
+          objectFit: fitScreen ? 'cover' : 'contain'
+        }"
+      </cropper>
+      <!-- ><img id="tokenPreviewContainer"
            class="center"
-           style="width:100%;"
            crossorigin="anonymous"
            v-on:click="TokenPreviewClick"
            v-on:mousemove="TokenPreviewMousemove"
            v-on:mouseout="TokenPreviewMouseout"
            v-bind:src="selectedToken.image_url"
-           v-bind:style="{
-              backgroundColor: selectedBackgroundColor,
-              height: tokenHeight,
-              marginTop: borderWidthInPx,
-              objectFit: fitScreen? 'cover' : 'contain'
-           }"
-      />
+      /> -->
 
       <div style="padding-top:3em; text-align:left;">
         <div class="menuFont">Background color</div>
@@ -451,7 +460,8 @@
       whitelabeler: '',
       selected: '',
       deviceStatuses: {},
-      deviceStatusSocket: null
+      deviceStatusSocket: null,
+      cropperParams: {}
     },
     async mounted () {
       await onLoad(true, false)
@@ -559,6 +569,9 @@
       }
     },
     methods: {
+      cropperChange (params, canvas) {
+        this.cropperParams = value
+      },
       onQrcodeDecode (value) {
         document.getElementById("deviceIdInput").value = value
       },
@@ -698,16 +711,20 @@
         const content = {
           id: device,
           currentDisplay: {
-            tokenName: this.showMetadata? token.name : "",
-            tokenOwnershipUrl: this.showMetadata? token.permalink : "",
-            tokenMetadata: this.showMetadata? token.description : "",
+            tokenName: this.showMetadata ? token.name : "",
+            tokenOwnershipUrl: this.showMetadata ? token.permalink : "",
+            tokenMetadata: this.showMetadata ? token.description : "",
             tokenImageUrl,
             borderWidthPercent: this.borderWidthPercent,
             rotationFrequency: this.rotationFrequency,
             fitScreen: this.fitScreen,
             backgroundColor: this.selectedBackgroundColor,
             orientationVertical: this.orientationVertical,
-            currentPrice: token.current_price
+            currentPrice: token.current_price,
+            width: this.cropperParams.width,
+            height: this.cropperParams.height,
+            left: this.cropperParams.left,
+            top: this.cropperParams.top
           }
         }
         $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
