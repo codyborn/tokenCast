@@ -27,8 +27,11 @@
   <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-  <script src="https://unpkg.com/vue-advanced-cropper@^1.0.0/dist/index.umd.js" />
-  <link rel="stylesheet" href="https://unpkg.com/vue-advanced-cropper@^1.0.0/dist/style.css" />
+  <script src="https://unpkg.com/vue-advanced-cropper@1/dist/index.umd.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/vue-advanced-cropper@1/dist/style.css"
+  />
 
   <script src="/js/vibrant.min.js"></script>
   <script src="/js/whiteLabelers.js"></script>
@@ -242,7 +245,7 @@
     <div class="modal-form">
       <cropper>
         id="tokenPreviewContainer"
-        class="cropper center"
+        class="center"
         v-bind:src="selectedToken.image_url"
         v-bind:stencil-props="{ aspectRatio: 23/28 }"
         v-on:change="cropperChange"
