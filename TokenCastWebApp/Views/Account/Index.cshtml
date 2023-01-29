@@ -244,7 +244,6 @@
 
     <div class="modal-form">
       <div
-        id="tokenPreviewContainer"
         class="center"
         v-bind:style="{
           width: '100%'
@@ -255,6 +254,7 @@
         }"
       >
         <cropper>
+          id="tokenPreviewContainer"
           v-bind:src="selectedToken.image_url"
           v-bind:stencil-props="{ aspectRatio: 23/28 }"
           v-on:change="cropperChange"
