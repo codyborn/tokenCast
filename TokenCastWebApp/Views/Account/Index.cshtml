@@ -253,13 +253,14 @@
           objectFit: fitScreen ? 'cover' : 'contain'
         }"
       >
-        <cropper>
+        <cropper
           v-bind:src="selectedToken.image_url"
           v-bind:stencil-props="{ aspectRatio: 23/28 }"
           v-on:change="cropperChange"
           v-bind:min-height="tokenHeight"
           cross-origin="anonymous"
           v-bind:move-image="false"
+        >
         </cropper>
       </div>
       <!-- ><img id="tokenPreviewContainer"
