@@ -9,7 +9,7 @@
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14/dist/vue.js"></script>
   <script src="https://unpkg.com/vue-qrcode-reader/dist/VueQrcodeReader.umd.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
@@ -27,10 +27,16 @@
   <script src="https://cdn.jsdelivr.net/npm/bitski@0.10.8/dist/bitski.min.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
+  <script src="https://unpkg.com/vue-advanced-cropper@1/dist/index.umd.js"></script>
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/vue-advanced-cropper@1/dist/style.css"
+  />
+
   <script src="/js/vibrant.min.js"></script>
   <script src="/js/whiteLabelers.js"></script>
   <script type="text/javascript" src="/js/random-words.js"></script>
-  <script type="text/javascript" src="/js/tezos-beacon.js"></script>
+  <script type="text/javascript" src="/js/walletbeacon.min.js"></script>
   <script src="/js/main.js"></script>
 
   <link rel="stylesheet" href="/css/style.css">
@@ -101,6 +107,8 @@
                       <td class="deviceListElement sidebar-menu-title-device" style="cursor:pointer"
                           v-on:click="DeviceSelected(device)">
                         {{ GetDeviceAlias(device) }}
+                        <span v-if="deviceStatuses[device]" style="color: #0FFF50">Online</span>
+                        <span v-else style="color: #FF5733">Offline</span>
                       </td>
                     </tr>
                   </table>
@@ -172,7 +180,11 @@
         </svg>
       </div>
     </div>
-    <span class="modal-title">Device</span>
+    <div>
+      <span class="modal-title">Device</span>
+      <span v-if="deviceStatuses[selectedDeviceId]" style="color: #0FFF50">Online</span>
+      <span v-else style="color: #FF5733">Offline</span>
+    </div>
 
     <div class="modal-form">
       <div class="device-update-form">
@@ -231,21 +243,33 @@
     <span class="modal-title">Cast your token</span>
 
     <div class="modal-form">
-      <img id="tokenPreviewContainer"
+      <div
+        class="center"
+        v-bind:style="{
+          width: '100%',
+          backgroundColor: selectedBackgroundColor,
+          height: tokenHeight,
+          marginTop: borderWidthInPx,
+          objectFit: fitScreen ? 'cover' : 'contain'
+        }"
+      >
+        <cropper>
+          v-bind:src="selectedToken.image_url"
+          v-bind:stencil-props="{ aspectRatio: 23/28 }"
+          v-on:change="cropperChange"
+          v-bind:min-height="tokenHeight"
+          cross-origin="anonymous"
+          v-bind:move-image="false"
+        </cropper>
+      </div>
+      <!-- ><img id="tokenPreviewContainer"
            class="center"
-           style="width:100%;"
            crossorigin="anonymous"
            v-on:click="TokenPreviewClick"
            v-on:mousemove="TokenPreviewMousemove"
            v-on:mouseout="TokenPreviewMouseout"
            v-bind:src="selectedToken.image_url"
-           v-bind:style="{
-              backgroundColor: selectedBackgroundColor,
-              height: tokenHeight,
-              marginTop: borderWidthInPx,
-              objectFit: fitScreen? 'cover' : 'contain'
-           }"
-      />
+      /> -->
 
       <div style="padding-top:3em; text-align:left;">
         <div class="menuFont">Background color</div>
@@ -279,7 +303,11 @@
         </span>
       </div>
 
-      <span class="modal-form-title">Device</span>
+      <div>
+        <span class="modal-form-title">Device</span>
+        <span v-if="deviceStatuses[selected]" style="color: #0FFF50">Online</span>
+        <span v-else style="color: #FF5733">Offline</span>
+      </div>
       <span class="modal-form-description">Lorem ipsum dolor sit amet, consectetur adipisicing elit. Aut, culpa</span>
 
       <select id="deviceSelection" class="device-cast-select" v-model="selected">
@@ -438,10 +466,31 @@
       dAppClient: '',
       tezosWalletConnected: false,
       whitelabeler: '',
-      selected: ''
+      selected: '',
+      deviceStatuses: {},
+      deviceStatusSocket: null,
+      cropperParams: {}
     },
     async mounted () {
       await onLoad(true, false)
+      const resp = await fetch('/connect/ui/create', { method: 'POST' })
+      const { connectionId } = await resp.json()
+      this.deviceStatusesSocket = new WebSocket(
+        `wss://nftframe.azurewebsites.net/connect/ui?connectionId=${connectionId}&address=${this.address}`
+      );
+
+      this.deviceStatusesSocket.onmessage = (event) => {
+        console.log("device statuses event", event.data)
+        const data = JSON.parse(event.data)
+
+        if (data.event == 'Online') {
+          this.deviceStatuses[data.deviceId] = true
+        }
+
+        if (data.event == 'Offline') {
+          this.deviceStatuses[data.deviceId] = false
+        }
+      }
     },
     computed: {
       filteredItems() {
@@ -528,6 +577,9 @@
       }
     },
     methods: {
+      cropperChange ({ coordinates, canvas }) {
+        this.cropperParams = coordinates
+      },
       onQrcodeDecode (value) {
         document.getElementById("deviceIdInput").value = value
       },
@@ -667,16 +719,20 @@
         const content = {
           id: device,
           currentDisplay: {
-            tokenName: this.showMetadata? token.name : "",
-            tokenOwnershipUrl: this.showMetadata? token.permalink : "",
-            tokenMetadata: this.showMetadata? token.description : "",
+            tokenName: this.showMetadata ? token.name : "",
+            tokenOwnershipUrl: this.showMetadata ? token.permalink : "",
+            tokenMetadata: this.showMetadata ? token.description : "",
             tokenImageUrl,
             borderWidthPercent: this.borderWidthPercent,
             rotationFrequency: this.rotationFrequency,
             fitScreen: this.fitScreen,
             backgroundColor: this.selectedBackgroundColor,
             orientationVertical: this.orientationVertical,
-            currentPrice: token.current_price
+            currentPrice: token.current_price,
+            width: this.cropperParams.width,
+            height: this.cropperParams.height,
+            left: this.cropperParams.left,
+            top: this.cropperParams.top
           }
         }
         $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
