@@ -9,7 +9,7 @@
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2.7.14"></script>
   <script src="https://unpkg.com/vue-qrcode-reader/dist/VueQrcodeReader.umd.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
@@ -258,6 +258,9 @@
           v-bind:src="selectedToken.image_url"
           v-bind:stencil-props="{ aspectRatio: 23/28 }"
           v-on:change="cropperChange"
+          v-bind:min-height="tokenHeight"
+          cross-origin="anonymous"
+          v-bind:move-image="false"
         </cropper>
       </div>
       <!-- ><img id="tokenPreviewContainer"
