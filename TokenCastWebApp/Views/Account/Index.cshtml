@@ -9,7 +9,7 @@
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
 
-  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue@2"></script>
   <script src="https://unpkg.com/vue-qrcode-reader/dist/VueQrcodeReader.umd.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.0.0-beta.34/dist/web3.min.js"></script>
@@ -246,7 +246,7 @@
       <div
         class="center"
         v-bind:style="{
-          width: '100%'
+          width: '100%',
           backgroundColor: selectedBackgroundColor,
           height: tokenHeight,
           marginTop: borderWidthInPx,
@@ -575,8 +575,8 @@
       }
     },
     methods: {
-      cropperChange (params, canvas) {
-        this.cropperParams = value
+      cropperChange ({ coordinates, canvas }) {
+        this.cropperParams = coordinates
       },
       onQrcodeDecode (value) {
         document.getElementById("deviceIdInput").value = value
