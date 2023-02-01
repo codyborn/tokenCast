@@ -243,23 +243,22 @@
     <span class="modal-title">Cast your token</span>
 
     <div class="modal-form">
-      <div
-        class="center"
-        v-bind:style="{
-          width: '100%',
-          backgroundColor: selectedBackgroundColor,
-          height: tokenHeight,
-          marginTop: borderWidthInPx,
-          objectFit: fitScreen ? 'cover' : 'contain'
-        }"
-      >
+      <div class="center">
         <cropper
-          v-bind:src="selectedToken.image_url"
-          v-bind:stencil-props="{ aspectRatio: 23/28 }"
+          id="tokenPreviewContainer"
+          :src="selectedToken.image_url"
+          :stencil-props="{ aspectRatio: 23/28, rezible: false }"
+          :stencil-size="{ width: 368, height: 448 }"
+          style="max-height: 590px"
+          :style="{
+            backgroundColor: selectedBackgroundColor,
+            marginTop: borderWidthInPx,
+            objectFit: fitScreen ? 'cover' : 'contain',
+            maxHeight: '590px'
+          }"
+          background-class="cropper-background"
           v-on:change="cropperChange"
-          v-bind:min-height="tokenHeight"
           cross-origin="anonymous"
-          v-bind:move-image="false"
         >
         </cropper>
       </div>
@@ -306,6 +305,7 @@
 
       <div>
         <span class="modal-form-title">Device</span>
+        <span>{{ deviceStatuses }} {{ selected }}</span>
         <span v-if="deviceStatuses[selected]" style="color: #0FFF50">Online</span>
         <span v-else style="color: #FF5733">Offline</span>
       </div>
@@ -515,6 +515,12 @@
         this.borderWidthInPx = borderWidthInPx + "px"
         const borderHeight = borderWidthInPx * 2
         return (this.tokenPreviewHeight - borderHeight) + "px"
+      },
+      tokenWidth () {
+        const borderWidthInPx = this.borderWidthPercent * .01 * this.tokenPreviewWidth
+        this.borderWidthInPx = borderWidthInPx + "px"
+        const borderHeight = borderWidthInPx * 2
+        return (this.tokenPreviewWidth - borderHeight) + "px"
       },
       shortenedAddress () {
         const addressLength = this.address.length

@@ -342,7 +342,7 @@ async function GetSignature() {
     await GetAccountInfo(true);
   }
 
-const origURL = 'https://nftframe.azurewebsites.net/'
+const origURL = ''
 
 async function GetAccountInfo(onPageLoad) {
   // Create account if not exist
