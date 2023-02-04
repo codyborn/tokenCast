@@ -288,7 +288,7 @@
           class="gallery"
         ></div>
       </div>
-      <div style="padding-top:1em; text-align:left;">
+      <!-- <div style="padding-top:1em; text-align:left;">
         <div class="menuFont">Border width percentage</div>
         <div style="width:100%">
             <input type="range" min="0" max="35" value="5" class="slider" v-model="borderWidthPercent">
@@ -301,11 +301,10 @@
             <div class="menuFont">Show Metadata</div>
             <input type="checkbox" v-model="showMetadata" />
         </span>
-      </div>
+      </div> -->
 
       <div>
         <span class="modal-form-title">Device</span>
-        <span>{{ deviceStatuses }} {{ selected }}</span>
         <span v-if="deviceStatuses[selected]" style="color: #0FFF50">Online</span>
         <span v-else style="color: #FF5733">Offline</span>
       </div>
@@ -708,7 +707,15 @@
       GetIsCanviaDevice (deviceId) {
         return !!(this.account.canviaAccount.canviaDevices && deviceId in this.account.canviaAccount.canviaDevices);
       },
-      CastToken () {
+      GetImageMeta (url, cb) {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(img);
+          img.onerror = (err) => reject(err);
+          img.src = url;
+        });
+      },
+      async CastToken () {
         this.showTokenDisplayOptions = false
         const token = this.selectedToken
         const device = document.getElementById("deviceSelection").value
@@ -723,6 +730,9 @@
             tokenImageUrl = token.image_url
           }
         }
+
+        const imageMeta = await this.GetImageMeta(tokenImageUrl)
+
         const content = {
           id: device,
           currentDisplay: {
@@ -736,10 +746,8 @@
             backgroundColor: this.selectedBackgroundColor,
             orientationVertical: this.orientationVertical,
             currentPrice: token.current_price,
-            width: this.cropperParams.width,
-            height: this.cropperParams.height,
-            left: this.cropperParams.left,
-            top: this.cropperParams.top
+            image: { width: imageMeta.naturalWidth, height: imageMeta.naturalHeight },
+            cropper: this.cropperParams
           }
         }
         $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
