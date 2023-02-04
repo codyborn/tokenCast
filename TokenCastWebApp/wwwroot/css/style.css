@@ -316,3 +316,7 @@ footer {
         border-bottom: thin #a6a6a6 solid;
     }
 }
+
+.cropper-background {
+    background: none !important;
+}
