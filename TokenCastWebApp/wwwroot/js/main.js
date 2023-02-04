@@ -314,12 +314,12 @@ async function GetSignature() {
         if (app.network === TEZOS) {
           try {
             console.log("Getting Tezos signature");
-            //const response = await app.dAppClient.requestSignPayload({
-            //    signingType: beacon.SigningType.RAW,
-            //    payload: app.signatureMessage,
-            //});
+            const response = await app.dAppClient.requestSignPayload({
+                signingType: beacon.SigningType.RAW,
+                payload: app.signatureMessage,
+            });
             app.tezosWalletConnected = true;
-            //signature = response.signature;
+            signature = response.signature;
           } catch (e) {
             console.log(e);
           }
@@ -525,6 +525,10 @@ async function GetCommunityTokens() {
 
     if (app.network === TEZOS) {
       app.tokens = [...app.tokens, ...app.communityTokens];
+      if (app.communityTokens.length > 0) {
+        app.showNoTokensMessage = false;
+      }
+      app.tokensLoaded = true;
     }
   });
 }
