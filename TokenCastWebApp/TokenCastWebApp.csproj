@@ -13,6 +13,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="3.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="3.0.0" />
+    <PackageReference Include="Netezos" Version="2.7.5" />
     <PackageReference Include="Nethereum.Signer" Version="3.7.1" />
     <PackageReference Include="Nethereum.Web3" Version="3.7.1" />
     <PackageReference Include="QRCoder" Version="1.3.6" />
