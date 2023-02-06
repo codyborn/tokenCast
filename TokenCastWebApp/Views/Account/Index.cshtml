@@ -247,9 +247,17 @@
         <cropper
           id="tokenPreviewContainer"
           :src="selectedToken.image_url"
-          :stencil-props="{ aspectRatio: 23/28, rezible: false }"
+          :stencil-props="{
+		        handlers: {},
+		        movable: false,
+		        resizable: false,
+		        aspectRatio: 23/28,
+	        }"
+	        :resize-image="{
+		        adjustStencil: false
+	        }"
+	        image-restriction="none"
           :stencil-size="{ width: 368, height: 448 }"
-          style="max-height: 590px"
           :style="{
             backgroundColor: selectedBackgroundColor,
             marginTop: borderWidthInPx,
