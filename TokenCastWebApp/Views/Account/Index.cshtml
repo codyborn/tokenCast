@@ -38,6 +38,7 @@
   <script type="text/javascript" src="/js/random-words.js"></script>
   <script type="text/javascript" src="/js/walletbeacon.min.js"></script>
   <script src="/js/main.js"></script>
+  <script src="/js/gif.js"></script>
 
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/old.css">
@@ -748,16 +749,19 @@
         this.displayingOwnedToken = ownedToken
         this.showMetadata = true
 
-        this.cropperImage = new Image();
-        this.cropperImage.crossorigin = "anonymous";
-        this.cropperImage.src = this.selectedToken.image_url;
-
         const { naturalHeight, naturalWidth } = await this.GetImageMeta(this.selectedToken.image_url);
         this.cropperParams.width = naturalWidth;
         this.cropperParams.height = naturalHeight;
+        this.cropperParams.x = 0;
+        this.cropperParams.y = 0;
 
-        const canvas = document.querySelector("#tokenPreviewContainer");
-        this.updateCanvas(canvas);
+        this.cropperImage = new Image();
+        this.cropperImage.crossorigin = "anonymous";
+        this.cropperImage.src = this.selectedToken.image_url;
+        this.cropperImage.onload = () => {
+          const canvas = document.querySelector("#tokenPreviewContainer");
+          this.updateCanvas(canvas);
+        }
       },
       DeviceSelected (deviceId) {
         this.selectedDeviceId = deviceId
