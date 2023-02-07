@@ -49,5 +49,21 @@ namespace TokenCast.Models
         public bool orientationVertical { get; set; }
      
         public string currentPrice { get; set; }
+        public ImageFrame Image { get; set; }
+        public CropperFrame Cropper { get; set; }
+    }
+
+    public class ImageFrame
+    {
+        public int Width { get; set; }
+        public int Height { get; set; }
+    }
+
+    public class CropperFrame
+    {
+        public int Top { get; set; }
+        public int Left { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 }

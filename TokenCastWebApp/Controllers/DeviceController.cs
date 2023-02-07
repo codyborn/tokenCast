@@ -54,16 +54,7 @@ namespace TokenCast.Controllers
                     var image = Image.Load(stream);
                     image.Mutate(x =>
                     {
-                        x.Resize(new ResizeOptions
-                        {
-                            Size = new Size
-                            {
-                                Height = height,
-                                Width = width
-                            },
-                            Mode = ResizeMode.Max
-                        });
-                        
+                        x.Crop(new Rectangle(content.currentDisplay.Cropper.Left, content.currentDisplay.Cropper.Top, content.currentDisplay.Cropper.Width, content.currentDisplay.Cropper.Height));
                     });
                     
                     using (var resizedStream = new MemoryStream())

@@ -497,11 +497,12 @@ namespace TokenCast.Controllers
 
         private void addTezosTokensForUser(TokenList tokenList, string address)
         {
-            Uri hicetnuncAPI = new Uri("https://hdapi.teztools.io/v1/graphql");
+            Uri hicetnuncAPI = new Uri("https://api.teztools.io/v1/graphql");
             var queryBody = "{\"query\":\"\\nquery collectorGallery($address: String!) {\\n  hic_et_nunc_token_holder(where: {holder_id: {_eq: $address}, token: {creator: {address: {_neq: $address}}}, quantity: {_gt: \\\"0\\\"}}, order_by: {token_id: desc}) {\\n    token {\\n      id\\n      artifact_uri\\n      display_uri\\n      thumbnail_uri\\n      timestamp\\n      mime\\n      title\\n      description\\n      supply\\n      royalties\\n      creator {\\n        address\\n        name\\n      }\\n    }\\n  }\\n}\\n\",\"variables\":{\"address\":\"" + address + "\"},\"operationName\":\"collectorGallery\"}";
             var requestBody = new StringContent(queryBody, Encoding.UTF8, "application/json");
             HttpClient client = new HttpClient();
             var response = client.PostAsync(hicetnuncAPI, requestBody).Result;
+            
             if (response.IsSuccessStatusCode)
             {
                 string jsonList = response.Content.ReadAsStringAsync().Result;
