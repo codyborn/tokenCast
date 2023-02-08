@@ -276,6 +276,7 @@
             :style="{
               backgroundColor: selectedBackgroundColor
             }"
+            style="border: 1.5px #444 solid; border-radius: 5px"
             v-on:mousemove="cropperOnMousemove"
             v-on:mousedown="cropperOnMousedown"
             v-on:mouseup="cropperOnMouseup"
@@ -776,6 +777,8 @@
         const canvas = document.querySelector("#tokenPreviewContainer");
         const ctx = canvas.getContext("2d");
         ctx.clearRect(0, 0, 368, 448);
+        ctx.font = "20px Arial, sans-serif";
+        ctx.fillText("Loading...", 10, 50);
 
         this.cropperParams.isGif = imageBlob.type === 'image/gif';
 
