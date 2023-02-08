@@ -639,7 +639,7 @@
             this.cropperParams.y = 448 - 50
         }
 
-        if (!this.cropperParams.isGif) {
+        if (!this.cropperParams.isGif && this.cropperImage) {
           ctx.clearRect(0, 0, 368, 448);
           ctx.drawImage(
             this.cropperImage,
@@ -761,6 +761,8 @@
         this.showTokenDisplayOptions = true
         this.displayingOwnedToken = ownedToken
         this.showMetadata = true
+
+        this.cropperImage = null;
 
         const { naturalHeight, naturalWidth } = await this.GetImageMeta(this.selectedToken.image_url);
         this.cropperParams.width = naturalWidth;
