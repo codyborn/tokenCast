@@ -38,6 +38,7 @@
   <script type="text/javascript" src="/js/random-words.js"></script>
   <script type="text/javascript" src="/js/walletbeacon.min.js"></script>
   <script src="/js/main.js"></script>
+  <script src="/js/gif.js"></script>
 
   <link rel="stylesheet" href="/css/style.css">
   <link rel="stylesheet" href="/css/old.css">
@@ -244,7 +245,7 @@
 
     <div class="modal-form">
       <div class="center">
-        <cropper
+        <!-- <cropper
           id="tokenPreviewContainer"
           :src="selectedToken.image_url"
           :stencil-props="{
@@ -262,22 +263,28 @@
             backgroundColor: selectedBackgroundColor,
             marginTop: borderWidthInPx,
             objectFit: fitScreen ? 'cover' : 'contain',
-            maxHeight: '590px'
+            maxHeight: '448px',
+            maxWidth: '368px'
           }"
           background-class="cropper-background"
           v-on:change="cropperChange"
           cross-origin="anonymous"
         >
-        </cropper>
+        </cropper> -->
+        <canvas 
+            id="tokenPreviewContainer" 
+            :style="{
+              backgroundColor: selectedBackgroundColor
+            }"
+            v-on:mousemove="cropperOnMousemove"
+            v-on:mousedown="cropperOnMousedown"
+            v-on:mouseup="cropperOnMouseup"
+            v-on:mouseleave="cropperOnMouseup"
+            v-on:wheel="cropperWheel"
+            width="368" 
+            height="448"
+        ></canvas>
       </div>
-      <!-- ><img id="tokenPreviewContainer"
-           class="center"
-           crossorigin="anonymous"
-           v-on:click="TokenPreviewClick"
-           v-on:mousemove="TokenPreviewMousemove"
-           v-on:mouseout="TokenPreviewMouseout"
-           v-bind:src="selectedToken.image_url"
-      /> -->
 
       <div style="padding-top:3em; text-align:left;">
         <div class="menuFont">Background color</div>
@@ -477,7 +484,8 @@
       selected: '',
       deviceStatuses: {},
       deviceStatusSocket: null,
-      cropperParams: {}
+      cropperImage: null,
+      cropperParams: { x: 0, y: 0, scale: 1, isMoving: false, height: null, width: null, isGif: false },
     },
     async mounted () {
       await onLoad(true, false)
@@ -591,6 +599,74 @@
       }
     },
     methods: {
+      cropperWheel(event) {
+        event.preventDefault();
+
+        this.cropperParams.scale += event.deltaY * 0.01;
+        this.cropperParams.scale = Math.min(Math.max(.175, this.cropperParams.scale), 7);
+
+        const canvas = document.querySelector("#tokenPreviewContainer");
+        this.updateCanvas(canvas);
+      },
+      cropperOnMousemove(event) {
+        if (!this.cropperParams.isMoving) {
+          return;
+        }
+
+        const canvas = document.querySelector("#tokenPreviewContainer")
+
+        this.cropperParams.x += event.movementX;
+        this.cropperParams.y += event.movementY;
+
+        this.updateCanvas(canvas);
+      },
+      updateCanvas(canvas, imageUrl) {
+        const ctx = canvas.getContext("2d");
+
+        if (this.cropperParams.x < ((this.cropperParams.width / this.cropperParams.scale) * -1) + 50) {
+            this.cropperParams.x = ((this.cropperParams.width / this.cropperParams.scale) * -1) + 50
+        }
+
+        if (this.cropperParams.x > 368 - 50) {
+            this.cropperParams.x =  368 - 50;
+        }
+
+        if (this.cropperParams.y < ((this.cropperParams.height / this.cropperParams.scale) * -1) + 50) {
+            this.cropperParams.y = ((this.cropperParams.height / this.cropperParams.scale) * -1) + 50
+        }
+
+        if (this.cropperParams.y > 448 - 50) {
+            this.cropperParams.y = 448 - 50
+        }
+
+        if (!this.cropperParams.isGif) {
+          ctx.clearRect(0, 0, 368, 448);
+          ctx.drawImage(
+            this.cropperImage,
+            this.cropperParams.x,
+            this.cropperParams.y,
+            this.cropperParams.width / this.cropperParams.scale, 
+            this.cropperParams.height / this.cropperParams.scale
+          );
+        }
+      },
+      onDrawFrame(ctx, frame) {
+        ctx.clearRect(0, 0, 368, 448);
+
+        ctx.drawImage(
+          frame.buffer,
+          this.cropperParams.x,
+          this.cropperParams.y,
+          this.cropperParams.width / this.cropperParams.scale, 
+          this.cropperParams.height / this.cropperParams.scale
+        );
+      },
+      cropperOnMousedown () {
+        this.cropperParams.isMoving = true;
+      },
+      cropperOnMouseup () {
+        this.cropperParams.isMoving = false;
+      },
       cropperChange ({ coordinates, canvas }) {
         this.cropperParams = coordinates
       },
@@ -658,7 +734,7 @@
         const canviaLoginlink = "https://prod.palacio.life/backend/oauth/login.html?client_id=659fb248-18dc-497e-9b31-3419935e555f&grant_type=authorization_code&response_type=code"
         window.open(canviaLoginlink)
       },
-      TokenSelected (token, ownedToken) {
+      async TokenSelected (token, ownedToken) {
         this.backgroundColorPallete = []
         this.selectedBackgroundColor = "#ffffff"
         this.selectedToken = token
@@ -685,6 +761,32 @@
         this.showTokenDisplayOptions = true
         this.displayingOwnedToken = ownedToken
         this.showMetadata = true
+
+        const { naturalHeight, naturalWidth } = await this.GetImageMeta(this.selectedToken.image_url);
+        this.cropperParams.width = naturalWidth;
+        this.cropperParams.height = naturalHeight;
+        this.cropperParams.x = 0;
+        this.cropperParams.y = 0;
+
+        const image = await fetch(this.selectedToken.image_url, { method: 'HEAD' });
+        const imageBlob = await image.blob()
+
+        const canvas = document.querySelector("#tokenPreviewContainer");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 368, 448);
+
+        this.cropperParams.isGif = imageBlob.type === 'image/gif';
+
+        if (this.cropperParams.isGif) {
+          gifler(this.selectedToken.image_url).frames('canvas#tokenPreviewContainer', this.onDrawFrame);
+        } else {
+          this.cropperImage = new Image();
+          this.cropperImage.crossorigin = "anonymous";
+          this.cropperImage.src = this.selectedToken.image_url;
+          this.cropperImage.onload = () => {
+            this.updateCanvas(canvas);
+          }
+        }
       },
       DeviceSelected (deviceId) {
         this.selectedDeviceId = deviceId
@@ -754,8 +856,12 @@
             backgroundColor: this.selectedBackgroundColor,
             orientationVertical: this.orientationVertical,
             currentPrice: token.current_price,
-            image: { width: imageMeta.naturalWidth, height: imageMeta.naturalHeight },
-            cropper: this.cropperParams
+            image: { 
+                width: this.cropperParams.width / this.cropperParams.scale,
+                height: this.cropperParams.height / this.cropperParams.scale, 
+                x: this.cropperParams.x,
+                y: this.cropperParams.y
+            }
           }
         }
         $.post("Account/SetDeviceContent?address=" + web3Account + "&signature=" + signature + "&network=" + app.network + "&whitelabeler=" + app.whitelabeler,
