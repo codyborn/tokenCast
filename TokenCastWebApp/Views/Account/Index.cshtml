@@ -602,8 +602,8 @@
       cropperWheel(event) {
         event.preventDefault();
 
-        this.cropperParams.scale += event.deltaY * 0.01;
-        this.cropperParams.scale = Math.min(Math.max(.175, this.cropperParams.scale), 7);
+        this.cropperParams.scale += event.deltaY * 0.001;
+        this.cropperParams.scale = Math.min(Math.max(.4, this.cropperParams.scale), 7);
 
         const canvas = document.querySelector("#tokenPreviewContainer");
         this.updateCanvas(canvas);
