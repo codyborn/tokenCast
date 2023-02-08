@@ -485,7 +485,7 @@
       deviceStatuses: {},
       deviceStatusSocket: null,
       cropperImage: null,
-      cropperParams: { x: 0, y: 0, scale: 1, isMoving: false, height: null, width: null },
+      cropperParams: { x: 0, y: 0, scale: 1, isMoving: false, height: null, width: null, isGif: false },
     },
     async mounted () {
       await onLoad(true, false)
@@ -639,13 +639,26 @@
             this.cropperParams.y = 448 - 50
         }
 
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(
+        if (!this.cropperParams.isGif) {
+          ctx.clearRect(0, 0, 368, 448);
+          ctx.drawImage(
             this.cropperImage,
             this.cropperParams.x,
             this.cropperParams.y,
             this.cropperParams.width / this.cropperParams.scale, 
             this.cropperParams.height / this.cropperParams.scale
+          );
+        }
+      },
+      onDrawFrame(ctx, frame) {
+        ctx.clearRect(0, 0, 368, 448);
+
+        ctx.drawImage(
+          frame.buffer,
+          this.cropperParams.x,
+          this.cropperParams.y,
+          this.cropperParams.width / this.cropperParams.scale, 
+          this.cropperParams.height / this.cropperParams.scale
         );
       },
       cropperOnMousedown () {
@@ -755,12 +768,24 @@
         this.cropperParams.x = 0;
         this.cropperParams.y = 0;
 
-        this.cropperImage = new Image();
-        this.cropperImage.crossorigin = "anonymous";
-        this.cropperImage.src = this.selectedToken.image_url;
-        this.cropperImage.onload = () => {
-          const canvas = document.querySelector("#tokenPreviewContainer");
-          this.updateCanvas(canvas);
+        const image = await fetch(this.selectedToken.image_url, { method: 'HEAD' });
+        const imageBlob = await image.blob()
+
+        const canvas = document.querySelector("#tokenPreviewContainer");
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0, 0, 368, 448);
+
+        this.cropperParams.isGif = imageBlob.type === 'image/gif';
+
+        if (this.cropperParams.isGif) {
+          gifler(this.selectedToken.image_url).frames('canvas#tokenPreviewContainer', this.onDrawFrame);
+        } else {
+          this.cropperImage = new Image();
+          this.cropperImage.crossorigin = "anonymous";
+          this.cropperImage.src = this.selectedToken.image_url;
+          this.cropperImage.onload = () => {
+            this.updateCanvas(canvas);
+          }
         }
       },
       DeviceSelected (deviceId) {
