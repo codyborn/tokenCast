@@ -320,3 +320,13 @@ footer {
 .cropper-background {
     background: none !important;
 }
+.nft-preview{
+    width: 100%;
+    border: grey 2px solid;
+    border-radius: 10%;
+}
+.nft-preview > img{
+    border-radius: 9%;
+    overflow: hidden;
+    width: 100%;
+}

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -8,9 +9,13 @@ using Microsoft.AspNetCore.Mvc;
 using Org.BouncyCastle.Utilities.Zlib;
 using QRCoder;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using TokenCast.Models;
 using TokenCastWebApp.Managers.Interfaces;
+using Image = SixLabors.ImageSharp.Image;
+using Point = SixLabors.ImageSharp.Point;
+using Rectangle = SixLabors.ImageSharp.Rectangle;
 
 // For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -38,7 +43,8 @@ namespace TokenCast.Controllers
 
         // GET: Device/Content?deviceId=test
         [HttpGet("content")]
-        public async Task<IActionResult> DisplayContent([FromQuery] string deviceId, [FromQuery] int width, [FromQuery] int height, [FromQuery] int skip = 0, [FromQuery] int take = 10)
+        public async Task<IActionResult> DisplayContent([FromQuery] string deviceId, [FromQuery] int? width,
+            [FromQuery] int? height, [FromQuery] int? skip, [FromQuery] int? take)
         {
             if (deviceId == null)
             {
@@ -46,31 +52,80 @@ namespace TokenCast.Controllers
             }
 
             var content = await Database.GetDeviceContent(deviceId);
-            using (var webClient = new WebClient())
-            {
-                byte[] imageBytes = webClient.DownloadData(content.currentDisplay.tokenImageUrl);
-                using(var stream = new MemoryStream(imageBytes))
-                {
-                    var image = Image.Load(stream);
-                    image.Mutate(x =>
-                    {
-                        x.Crop(new Rectangle(content.currentDisplay.Cropper.Left, content.currentDisplay.Cropper.Top, content.currentDisplay.Cropper.Width, content.currentDisplay.Cropper.Height));
-                    });
+            
+            using var webClient = new WebClient();
+            
+            var imageBytes = webClient.DownloadData(content.currentDisplay.tokenImageUrl);
+            using var stream = new MemoryStream(imageBytes);
+            var image = await Image.LoadAsync(stream);
+
+            var intersection = Rectangle.Intersect(new Rectangle(0, 0, image.Width, image.Height),
+                new Rectangle(content.currentDisplay.Cropper.Left, content.currentDisplay.Cropper.Top,
+                    content.currentDisplay.Cropper.Width, content.currentDisplay.Cropper.Height));
                     
-                    using (var resizedStream = new MemoryStream())
-                    {
-                        await image.SaveAsJpegAsync(resizedStream);
+            image.Mutate(x =>
+            {
+                x.Crop(intersection);
+            });
 
-                        var inputAsString = Convert.ToBase64String(resizedStream.ToArray());
+            var backgroundColor = ColorTranslator.FromHtml(content.currentDisplay.backgroundColor);
+            var backgroundImage = new Image<Rgba32>(Configuration.Default,
+                content.currentDisplay.Cropper.Height, content.currentDisplay.Cropper.Height,
+                new Rgba32(backgroundColor.R, backgroundColor.G, backgroundColor.B, backgroundColor.A));
 
-                        return Ok(new
-                        {
-                            c = new string(inputAsString.Skip(skip).Take(take).ToArray()),
-                            t = inputAsString.Length
-                        });
-                    }
-                }
+            var offsetX = content.currentDisplay.Cropper.Left;
+            var offsetY = content.currentDisplay.Cropper.Top;
+
+            int newPositionX;
+            int newPositionY;
+
+            if (offsetX < 0 && offsetY < 0)
+            {
+                newPositionX = Math.Abs(offsetX);
+                newPositionY = Math.Abs(offsetY);
             }
+            else if (offsetX > 0 && offsetY > 0)
+            {
+                newPositionX = 0;
+                newPositionY = 0;
+            }
+            else if (offsetX < 0 && offsetY > 0)
+            {
+                newPositionX = Math.Abs(offsetX);
+                newPositionY = 0;
+            }
+            else
+            {
+                newPositionX = 0;
+                newPositionY = Math.Abs(offsetY);
+            }
+                    
+            backgroundImage.Mutate(bg =>
+            {
+                bg.DrawImage(image, new Point(newPositionX, newPositionY), 1);
+                bg.Resize(content.currentDisplay.Cropper.Width, content.currentDisplay.Cropper.Height);
+
+                if (height.HasValue && width.HasValue)
+                {
+                    bg.Resize(width.Value, height.Value);
+                }
+            });
+
+            using var resizedStream = new MemoryStream();
+            await backgroundImage.SaveAsJpegAsync(resizedStream);
+                
+            var inputAsString = Convert.ToBase64String(resizedStream.ToArray());;
+
+            if (skip.HasValue && take.HasValue)
+            {
+                inputAsString = new string(inputAsString.Skip(skip.Value).Take(take.Value).ToArray());
+            }
+
+            return Ok(new
+            {
+                c = inputAsString,
+                t = inputAsString.Length
+            });
         }
 
         // GET: LastUpdateTime
@@ -141,6 +196,7 @@ namespace TokenCast.Controllers
                     whiteLabelerActiveVsTotal[device.whiteLabeler]["active"] = 0;
                     whiteLabelerActiveVsTotal[device.whiteLabeler]["total"] = 0;
                 }
+
                 whiteLabelerActiveVsTotal[device.whiteLabeler]["total"]++;
                 whiteLabelerActiveVsTotal[device.whiteLabeler]["active"] += device.currentDisplay == null ? 0 : 1;
             }
