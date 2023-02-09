@@ -766,10 +766,14 @@
         this.cropperImage = null;
 
         const { naturalHeight, naturalWidth } = await this.GetImageMeta(this.selectedToken.image_url);
-        this.cropperParams.width = naturalWidth;
-        this.cropperParams.height = naturalHeight;
+        const ratio = Math.min(368 / naturalWidth, 448 / naturalHeight);
+
+        this.cropperParams.width = naturalWidth * ratio;
+        this.cropperParams.height = naturalHeight * ratio;
         this.cropperParams.x = 0;
         this.cropperParams.y = 0;
+
+        console.log(this.cropperParams)
 
         const image = await fetch(this.selectedToken.image_url, { method: 'HEAD' });
         const imageBlob = await image.blob()
